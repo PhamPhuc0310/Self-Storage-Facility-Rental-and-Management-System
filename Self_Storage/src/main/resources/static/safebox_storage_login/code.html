@@ -184,16 +184,12 @@
       }
 
       const destination = window.SafeBoxAuth.dashboardForRole(payload.user.role);
-      if (!destination) {
-        throw new Error('No dashboard is configured for this account role.');
-      }
-
       window.SafeBoxAuth.saveAuthentication(
         payload.token,
         payload.user,
         document.getElementById('remember-me').checked
       );
-      window.location.replace(destination);
+      window.location.replace(destination || '/');
     } catch (error) {
       errorBox.textContent = error instanceof Error ? error.message : 'Unable to sign in. Please try again.';
       errorBox.classList.remove('hidden');
@@ -205,4 +201,3 @@
 </script>
 </body>
 </html>
-

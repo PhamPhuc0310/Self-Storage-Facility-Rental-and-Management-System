@@ -7,9 +7,7 @@
   const roleDestinations = Object.freeze({
     CUSTOMER: '/safebox_storage_my_storage_dashboard/code.html',
     FACILITY_STAFF: '/safebox_storage_reservation_requests_management/code.html',
-    FACILITY_MANAGER: '/safebox_storage_facility_storage_unit_management/code.html',
-    BUSINESS_OPERATIONS_MANAGER: '/safebox_storage_facility_storage_unit_management/code.html',
-    SYSTEM_ADMIN: '/safebox_storage_facility_storage_unit_management/code.html'
+    FACILITY_MANAGER: '/safebox_storage_facility_storage_unit_management/code.html'
   });
 
   function clearStorage(storage) {
@@ -84,6 +82,9 @@
         element.removeAttribute('href');
         element.classList.add('hidden');
       }
+    });
+    document.querySelectorAll('[data-auth-no-dashboard]').forEach((element) => {
+      element.classList.toggle('hidden', Boolean(dashboard));
     });
   }
 
@@ -211,7 +212,7 @@
       if (!authentication) return;
       const user = await verifySession({ redirectOnFailure: false });
       const destination = user ? dashboardForRole(user.role) : null;
-      if (destination) window.location.replace(destination);
+      if (user) window.location.replace(destination || paths.home);
       return;
     }
 
