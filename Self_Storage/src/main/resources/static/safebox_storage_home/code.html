@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>SafeBox Storage</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-secondary-container":"#00476e","on-tertiary":"#ffffff","on-surface-variant":"#444651","on-tertiary-fixed":"#002113","surface-container-lowest":"#ffffff","tertiary-fixed":"#6ffbbe","surface-bright":"#f8f9ff","surface-variant":"#d3e4fe","surface-container-high":"#dce9ff","on-primary":"#ffffff","on-secondary-fixed-variant":"#004b73","surface-dim":"#cbdbf5","primary":"#00236f","inverse-surface":"#213145","inverse-on-surface":"#eaf1ff","outline-variant":"#c5c5d3","secondary-container":"#5bb8fe","primary-fixed":"#dce1ff","primary-fixed-dim":"#b6c4ff","error":"#ba1a1a","on-tertiary-fixed-variant":"#005236","outline":"#757682","tertiary-fixed-dim":"#4edea3","tertiary":"#00311f","surface-container-highest":"#d3e4fe","primary-container":"#1e3a8a","surface":"#f8f9ff","surface-tint":"#4059aa","error-container":"#ffdad6","on-error":"#ffffff","secondary-fixed":"#cce5ff","on-primary-fixed":"#00164e","on-tertiary-container":"#27c38a","secondary-fixed-dim":"#93ccff","on-primary-fixed-variant":"#264191","background":"#f8f9ff","on-background":"#0b1c30","on-surface":"#0b1c30","on-primary-container":"#90a8ff","on-secondary-fixed":"#001d31","on-secondary":"#ffffff","surface-container":"#e5eeff","on-error-container":"#93000a","tertiary-container":"#004a31","secondary":"#006398","inverse-primary":"#b6c4ff","surface-container-low":"#eff4ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-sm":"0.5rem","margin-lg":"3rem","space-xl":"2.5rem","margin":"1.5rem","space-lg":"1.5rem","gutter-sm":"1rem","gutter":"1.5rem","margin-sm":"1rem","space-xs":"0.25rem","gutter-lg":"2rem","space-md":"1rem"},fontFamily:{"headline-sm":["Plus Jakarta Sans"],"label-md":["Inter"],"headline-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"label-sm":["Inter"],"headline-lg":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"label-lg":["Inter"],"headline-xl":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"]},fontSize:{"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"0em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"display-lg":["44px",{"lineHeight":"52px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"headline-xl-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.01em","fontWeight":"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased" data-auth-page="public" id="top">
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-outline-variant/30 shadow-[0_1px_8px_rgba(15,23,42,0.04)]">
+  <div class="h-20 max-w-7xl mx-auto px-margin lg:px-margin-lg flex items-center justify-between gap-space-md">
+    <a class="flex items-center gap-space-sm shrink-0" href="/">
+      <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8PmWYhfZFYRU3mT8qOJX6y5DGxEX8bAeawwqQQefDVwv8_4ZrMQVvW6orDSkHXyIZ2vqygAF4JIi7tBFrJQN-aikpy5nFhnEaG7K2Xlf2zrj2UzR7WI3e5xpyultBGAJFNfkB4W_d8nvAjoy9z30Q45Oji-tg5aW1o2eegXgILFCzaMRYqj71sPrEUlY5gJaM9tVn-h4NQFnSmVgBbP4m5ZABoWNBMzgU1l_VxVBdaA1FI15ySlzpew"/>
+      <span class="font-headline-md text-headline-md font-bold tracking-tight text-primary">SafeBox</span>
+    </a>
+    <nav class="hidden xl:flex items-center gap-space-lg" aria-label="Public navigation">
+      <a class="font-label-lg text-label-lg text-primary font-semibold" href="/">Home</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#facilities-grid">Storage Facilities</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#available-units">Storage Units</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#available-units">Pricing</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#how-it-works">How It Works</a>
+      <a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#support">Support</a>
+    </nav>
+    <div class="flex items-center gap-space-sm shrink-0">
+      <div class="hidden md:flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant mr-space-xs">
+        <span class="material-symbols-outlined text-secondary text-[18px]">call</span>
+        <span>+84 (028) 3822 9900</span>
+      </div>
+      <div data-auth-logged-out>
+        <a class="inline-flex items-center justify-center font-label-lg text-label-lg bg-primary-container text-on-primary hover:bg-primary px-4 py-2 rounded-lg transition-colors shadow-sm" href="/safebox_storage_login/code.html">Login</a>
+      </div>
+      <div class="hidden flex items-center gap-space-sm" data-auth-logged-in>
+        <a class="inline-flex items-center gap-space-xs rounded-lg bg-surface-container-low px-3 py-2 text-on-surface hover:text-primary" data-auth-dashboard href="/">
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          <span class="hidden lg:inline font-label-md text-label-md font-semibold" data-auth-user="fullName"></span>
+        </a>
+        <button aria-label="Log out" class="inline-flex items-center gap-1 rounded-lg px-3 py-2 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low hover:text-primary" data-auth-action="logout" type="button">
+          <span class="material-symbols-outlined text-[19px]">logout</span>
+          <span class="hidden sm:inline">Logout</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="w-full pt-20 bg-background min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- Hero Section -->
+<section class="relative w-full overflow-hidden bg-primary py-space-xl lg:py-24">
+<!-- Ambient Warehouse Backdrop with Subtle Scrim -->
+<div class="absolute inset-0 z-0">
+<img alt="SafeBox Modern Storage Hallway" class="w-full h-full object-cover object-center opacity-25 filter brightness-75 scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCscR1D6DsMGI295Arm3KjzJAowQILnUYG2NCIwEphPSgMwlnfE9KSyJBxK3iObBKJKocgEesE0OmLp-sb21ljv_h30d40nO2yxsnT3pB7TVWhWi8qpFRanTBigyX-6sofH98yrMQTF2t-cpB5I6lePuYCy9lmzo65fG2qHOERL392DH1v4ivRaIK5-96t99VJu5YcUJU7ZCPKKbm1QA99hKQrgY0Evq3rqoX8F68ExtIecQ2XRxMOCIw"/>
+<div class="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/60"></div>
+<div class="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none"></div>
+</div>
+<div class="relative z-10 max-w-7xl mx-auto px-margin lg:px-margin-lg flex flex-col gap-space-xl">
+<!-- Title & Headline Block -->
+<div class="max-w-3xl flex flex-col gap-space-md text-on-primary">
+<div class="inline-flex items-center gap-space-xs bg-surface-container-lowest/15 backdrop-blur-md px-3 py-1.5 rounded-full w-fit">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed">verified_user</span>
+<span class="font-label-md text-label-md text-surface-bright tracking-wide uppercase">ISO 9001:2015 High-Security Self Storage</span>
+</div>
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg font-bold leading-tight tracking-tight text-surface-container-lowest">
+          Find the Right Storage Space for Your Needs
+        </h1>
+<p class="font-body-lg text-body-lg text-surface-variant font-normal leading-relaxed max-w-2xl">
+          Secure, flexible and affordable storage units for personal and business use across Ho Chi Minh City. Climate-monitored, alarmed, and accessible round-the-clock.
+        </p>
+<div class="flex flex-wrap items-center gap-space-md pt-space-xs">
+<a class="inline-flex items-center justify-center gap-space-xs bg-secondary hover:bg-on-secondary-container text-on-primary px-6 py-3.5 rounded-lg font-label-lg text-label-lg shadow-md transition-all duration-200 hover:shadow-lg" href="#available-units">
+<span>Find Storage</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+<a class="inline-flex items-center justify-center gap-space-xs bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary px-6 py-3.5 rounded-lg font-label-lg text-label-lg backdrop-blur-sm transition-all duration-200" href="#available-units">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+<span>View Pricing</span>
+</a>
+</div>
+</div>
+<!-- Quick Metrics Strip -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-md pt-space-sm border-t border-surface-variant/20">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest/10 flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined">warehouse</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-surface-bright">4 Facilities</span>
+<span class="font-body-sm text-body-sm text-surface-dim">Key HCMC Hubs</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest/10 flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined">shield_lock</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-surface-bright">24/7 Security</span>
+<span class="font-body-sm text-body-sm text-surface-dim">64+ HD CCTV &amp; Alarms</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest/10 flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined">ac_unit</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-surface-bright">Cold Storage</span>
+<span class="font-body-sm text-body-sm text-surface-dim">Regulated 18°C–22°C</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest/10 flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-surface-bright">Zero Lock-In</span>
+<span class="font-body-sm text-body-sm text-surface-dim">Monthly Flexibility</span>
+</div>
+</div>
+</div>
+<!-- Search Console Module -->
+<div class="bg-surface-container-lowest rounded-xl shadow-xl p-space-md md:p-space-lg text-on-surface">
+<div class="flex items-center justify-between pb-space-sm mb-space-sm border-b border-surface-container">
+<div class="flex items-center gap-space-xs text-primary font-headline-sm text-headline-sm">
+<span class="material-symbols-outlined text-[22px]">tune</span>
+<span>Instant Unit Locator</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-low px-2.5 py-1 rounded-full">
+            Real-time Bay Availability
+          </span>
+</div>
+<form class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md items-end" id="searchForm">
+<!-- Location -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1" for="facilityLocation">
+<span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+              Location
+            </label>
+<div class="relative">
+<select class="w-full h-11 bg-surface-container-low hover:bg-surface-container focus:bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none transition-colors" id="facilityLocation">
+<option value="all">All Facilities (HCMC)</option>
+<option value="thu-duc">Thu Duc City (Linh Chieu)</option>
+<option value="district-7">District 7 (Tan Phong)</option>
+<option value="binh-tan">Binh Tan (Tan Tao)</option>
+<option value="tan-binh">Tan Binh (Airport Node)</option>
+</select>
+<span class="material-symbols-outlined text-outline absolute right-2.5 top-2.5 pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+<!-- Storage Type -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1" for="storageType">
+<span class="material-symbols-outlined text-[16px] text-secondary">grid_view</span>
+              Storage Type
+            </label>
+<div class="relative">
+<select class="w-full h-11 bg-surface-container-low hover:bg-surface-container focus:bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none transition-colors" id="storageType">
+<option value="all">All Types</option>
+<option value="standard">Standard Storage</option>
+<option value="cold">Cold Storage (18°C–22°C)</option>
+<option value="business">Business &amp; Pallet Bay</option>
+</select>
+<span class="material-symbols-outlined text-outline absolute right-2.5 top-2.5 pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+<!-- Unit Size -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1" for="unitSize">
+<span class="material-symbols-outlined text-[16px] text-secondary">straighten</span>
+              Unit Size
+            </label>
+<div class="relative">
+<select class="w-full h-11 bg-surface-container-low hover:bg-surface-container focus:bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none transition-colors" id="unitSize">
+<option value="all">All Sizes</option>
+<option value="small">Small (1–5 m²)</option>
+<option value="medium">Medium (6–15 m²)</option>
+<option value="large">Large (16–30 m²)</option>
+<option value="xlarge">Extra Large (30+ m²)</option>
+</select>
+<span class="material-symbols-outlined text-outline absolute right-2.5 top-2.5 pointer-events-none text-[20px]">expand_more</span>
+</div>
+</div>
+<!-- Start Date -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1" for="startDate">
+<span class="material-symbols-outlined text-[16px] text-secondary">calendar_today</span>
+              Start Date
+            </label>
+<input class="w-full h-11 bg-surface-container-low hover:bg-surface-container focus:bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg px-3 py-2 focus:outline-none transition-colors" id="startDate" type="date" value="2025-04-01"/>
+</div>
+<!-- CTA Action -->
+<button class="w-full h-11 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-space-xs transition-colors shadow-sm" type="submit">
+<span class="material-symbols-outlined text-[20px]">search</span>
+<span>Search Units</span>
+</button>
+</form>
+</div>
+</div>
+</section>
+<!-- Popular Storage Types Section -->
+<section class="py-space-xl bg-background" id="available-units">
+<div class="max-w-7xl mx-auto px-margin lg:px-margin-lg flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-sm">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-secondary font-semibold">Specialized Facilities</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface">Choose by Storage Need</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Engineered specifically for personal possessions, sensitive temperature-grade merchandise, or commercial stock.</p>
+</div>
+<a class="inline-flex items-center gap-1 font-label-lg text-label-lg text-secondary hover:text-primary transition-colors" href="#facilities-grid">
+<span>Compare all unit specs</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</a>
+</div>
+<!-- 3 Tier Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+<!-- Standard Storage -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">inventory_2</span>
+</div>
+<span class="px-3 py-1 bg-surface-container-high text-primary font-label-sm text-label-sm rounded-full font-medium">
+                Most Popular
+              </span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Standard Storage</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Optimal dry storage for household furniture, seasonal home decor, relocation boxes, and retail surplus.
+              </p>
+</div>
+<!-- Features -->
+<ul class="space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">check_circle</span>
+<span>Sizes from 1.5 m² (Locker) to 25 m²</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">check_circle</span>
+<span>Individual rollup steel shutter with lock bracket</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">check_circle</span>
+<span>Pest-controlled, clean atmospheric seals</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">check_circle</span>
+<span>Free hand trolleys &amp; cargo lifters</span>
+</li>
+</ul>
+</div>
+<div class="pt-space-lg mt-space-md border-t border-surface-container flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Starting from</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">1,200,000 <span class="text-[14px] font-normal text-on-surface-variant">VND/mo</span></span>
+</div>
+<button class="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-colors shadow-sm" type="button">
+              View Units
+            </button>
+</div>
+</div>
+<!-- Cold Storage -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-bl-full pointer-events-none"></div>
+<div class="flex flex-col gap-space-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-lg bg-secondary-fixed text-on-secondary-fixed-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">ac_unit</span>
+</div>
+<span class="px-3 py-1 bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm rounded-full font-medium">
+                18°C – 22°C Constant
+              </span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Cold &amp; Climate Storage</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Industrial multi-split HVAC maintaining precise relative humidity below 55% for luxury apparel, cosmetics, wine, and optics.
+              </p>
+</div>
+<!-- Features -->
+<ul class="space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">device_thermostat</span>
+<span>Dual refrigeration backup compressor system</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">humidity_mid</span>
+<span>Active 50–55% RH Dehumidification</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">insights</span>
+<span>IoT temperature telemetry viewable in app</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+<span>Certified for pharmaceutical samples &amp; art</span>
+</li>
+</ul>
+</div>
+<div class="pt-space-lg mt-space-md border-t border-surface-container flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Starting from</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">2,800,000 <span class="text-[14px] font-normal text-on-surface-variant">VND/mo</span></span>
+</div>
+<button class="px-4 py-2.5 rounded-lg bg-secondary hover:bg-on-secondary-container text-on-primary font-label-lg text-label-lg transition-colors shadow-sm" type="button">
+              View Cold Units
+            </button>
+</div>
+</div>
+<!-- Business & Warehouse Storage -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">pallet</span>
+</div>
+<span class="px-3 py-1 bg-surface-container text-on-surface font-label-sm text-label-sm rounded-full font-medium">
+                Enterprise &amp; E-Comm
+              </span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Business &amp; Pallet Storage</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Commercial bays configured for wholesale pallet racking, carton inventory, direct container unloading, and logistics dispatch.
+              </p>
+</div>
+<!-- Features -->
+<ul class="space-y-2 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">forklift</span>
+<span>Forklift operators &amp; dock levelers on-site</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">height</span>
+<span>4.5-meter high-clearance vertical racking</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">local_shipping</span>
+<span>Container truck (20ft &amp; 40ft) loading bays</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">receipt_long</span>
+<span>VAT business invoicing &amp; dispatch logs</span>
+</li>
+</ul>
+</div>
+<div class="pt-space-lg mt-space-md border-t border-surface-container flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Starting from</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">4,500,000 <span class="text-[14px] font-normal text-on-surface-variant">VND/mo</span></span>
+</div>
+<button class="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg transition-colors shadow-sm" type="button">
+              View Pallet Bays
+            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Facilities in Ho Chi Minh City -->
+<section class="py-space-xl bg-surface-container-low" id="facilities-grid">
+<div class="max-w-7xl mx-auto px-margin lg:px-margin-lg flex flex-col gap-space-lg">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-secondary font-semibold">Strategic Locations</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface">Featured Facilities in Ho Chi Minh City</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Conveniently situated along major arterial roads, allowing seamless access for moving trucks and private vans.</p>
+</div>
+<!-- Facility Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+<!-- Facility 1: Thu Duc -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col">
+<div class="relative h-48 w-full overflow-hidden">
+<img alt="SafeBox Thu Duc Modern Logistics Center" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNRvEcOGprr5dnh65QQ6iARrT2rBtnKRrP60qf_z57iGlck6C1JRSLmVD-3AjHwtoEY4Kogi7fjxT13FfNCxKHoBgGeN8u9ZKlu1Ve7XykVWcXLU_nZf8U42RD1oMMtzW6cmh5XHjJCl_yti0dOjFLVOFW-UQW01O506YV7XMLMaBFRlRY5rS-N1qYD8QEz0WLz1vgp5abS5SjWhtrKp7NURU7p5OQY88juI8HkHrauVWWv6QhesvCQA"/>
+<div class="absolute top-3 left-3 flex gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-tertiary text-on-tertiary shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>
+                Available
+              </span>
+<span class="px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest/90 text-on-surface backdrop-blur-sm shadow-sm">
+                24/7 Gate Access
+              </span>
+</div>
+<div class="absolute bottom-3 right-3 bg-inverse-surface/80 text-inverse-on-surface px-2.5 py-1 rounded-md text-label-sm font-label-sm backdrop-blur-sm">
+              14 Units Left
+            </div>
+</div>
+<div class="p-space-lg flex-1 flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<h3 class="font-headline-md text-headline-md text-on-surface">SafeBox Thu Duc</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-start gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary shrink-0 mt-0.5">pin_drop</span>
+<span>128 Vo Van Ngan, Linh Chieu, Thu Duc City</span>
+</p>
+<div class="mt-space-xs flex flex-wrap gap-1.5">
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Standard Storage</span>
+<span class="font-label-sm text-label-sm bg-secondary-fixed px-2 py-0.5 rounded text-on-secondary-fixed-variant">Cold Storage</span>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Goods Lift</span>
+</div>
+</div>
+<div class="pt-space-md border-t border-surface-container flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Starting price</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">From 1,200,000 <span class="text-label-sm font-normal text-on-surface-variant">VND/mo</span></span>
+</div>
+<a class="inline-flex items-center gap-1 font-label-lg text-label-lg text-primary hover:text-secondary transition-colors font-medium" href="#facilities-grid">
+<span>View Facility</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Facility 2: District 7 -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col">
+<div class="relative h-48 w-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="SafeBox District 7 modern self-storage facility interior with wide hallways, bright LED strip lighting, and secure blue metal rolling doors with numbered units, immaculate polished concrete floor, clean commercial logistics aesthetic in Ho Chi Minh City." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDK4XsmkiiV_t8HZn-XCvxf5IG-hQwiCZ7JNHisu9k3ILylVyM0joy0pvZu5Ip3Z4Wbs3IC18d0RZX5_g0VOzM22XYu9wfznOhw9LL385tQw70W_zgHPBc5sXP1ohMa2AjVheeylntpHulzmQYpul3fDr5wUrfOQDkf87fwpowvbl1ztJkPx2CesC3WbfdAv0wH_F7j4oxvNYzO7Fk5T-MKSgzccy0ArnkrEhfkymkdlbd5DMOVUgc1Q"/>
+<div class="absolute top-3 left-3 flex gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary text-on-primary shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+                Limited Units
+              </span>
+<span class="px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest/90 text-on-surface backdrop-blur-sm shadow-sm">
+                Loading Bay Access
+              </span>
+</div>
+<div class="absolute bottom-3 right-3 bg-inverse-surface/80 text-inverse-on-surface px-2.5 py-1 rounded-md text-label-sm font-label-sm backdrop-blur-sm">
+              6 Units Left
+            </div>
+</div>
+<div class="p-space-lg flex-1 flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<h3 class="font-headline-md text-headline-md text-on-surface">SafeBox District 7</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-start gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary shrink-0 mt-0.5">pin_drop</span>
+<span>45 Nguyen Huu Tho, Tan Phong, District 7</span>
+</p>
+<div class="mt-space-xs flex flex-wrap gap-1.5">
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Standard Storage</span>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Drive-up Ground Bays</span>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Locker Sizes</span>
+</div>
+</div>
+<div class="pt-space-md border-t border-surface-container flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Starting price</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">From 1,500,000 <span class="text-label-sm font-normal text-on-surface-variant">VND/mo</span></span>
+</div>
+<a class="inline-flex items-center gap-1 font-label-lg text-label-lg text-primary hover:text-secondary transition-colors font-medium" href="#facilities-grid">
+<span>View Facility</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Facility 3: Binh Tan -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col">
+<div class="relative h-48 w-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="High-ceiling commercial warehouse with heavy duty pallet racks, wide concrete roadway, loading bays with trucks, clean architecture with deep blue accents under daytime Vietnam sky, commercial logistics center." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-tXkIs09GcuzZKJ7la7lG1eetzjmvLON-CmVpXeJRIMk8-EhV3aSgbwMoyGv0zZc9nviPTy1aLzq08fCtqyat7iWxLqLryfgiu6Bj8UCiuZZaiIwn5ZcpjjOMm_eNGtbGe_k1jWQcxCevxDXyEJPS49teCo-FP3psdX0-kWwPQlS_2jQCb76I4KZL9IjXvDJwjJw87JrisHx6kGoz9PKpgUIhqBeUOyrkiLFCdpU1CMAaXTqWQszy_w"/>
+<div class="absolute top-3 left-3 flex gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-tertiary text-on-tertiary shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>
+                Available
+              </span>
+<span class="px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container-lowest/90 text-on-surface backdrop-blur-sm shadow-sm">
+                Heavy Duty Hub
+              </span>
+</div>
+<div class="absolute bottom-3 right-3 bg-inverse-surface/80 text-inverse-on-surface px-2.5 py-1 rounded-md text-label-sm font-label-sm backdrop-blur-sm">
+              22 Units Left
+            </div>
+</div>
+<div class="p-space-lg flex-1 flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<h3 class="font-headline-md text-headline-md text-on-surface">SafeBox Binh Tan</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-start gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary shrink-0 mt-0.5">pin_drop</span>
+<span>Tan Tao Industrial Park, Binh Tan District</span>
+</p>
+<div class="mt-space-xs flex flex-wrap gap-1.5">
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">Standard</span>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">High-Cube Bays</span>
+<span class="font-label-sm text-label-sm bg-secondary-fixed px-2 py-0.5 rounded text-on-secondary-fixed-variant">Cold Storage</span>
+</div>
+</div>
+<div class="pt-space-md border-t border-surface-container flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Starting price</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">From 1,100,000 <span class="text-label-sm font-normal text-on-surface-variant">VND/mo</span></span>
+</div>
+<a class="inline-flex items-center gap-1 font-label-lg text-label-lg text-primary hover:text-secondary transition-colors font-medium" href="#facilities-grid">
+<span>View Facility</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works (Horizontal 4-Step Process) -->
+<section class="py-space-xl bg-background" id="how-it-works">
+<div class="max-w-7xl mx-auto px-margin lg:px-margin-lg flex flex-col gap-space-xl">
+<div class="text-center max-w-2xl mx-auto flex flex-col gap-2">
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-secondary font-semibold">Seamless Online Experience</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface">How It Works</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Reserve, pay, and unlock your storage bay in less than 3 minutes through our automated self-service portal.</p>
+</div>
+<!-- 4 Steps Flow -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-lg relative">
+<!-- Step 1 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<span class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline-sm text-headline-sm font-bold">
+              1
+            </span>
+<span class="material-symbols-outlined text-outline text-[24px]">manage_search</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Find a Storage Unit</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Select your preferred facility location, calculate unit size using our visual cube guide, and choose regular or cold storage.
+          </p>
+</div>
+<!-- Step 2 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<span class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline-sm text-headline-sm font-bold">
+              2
+            </span>
+<span class="material-symbols-outlined text-outline text-[24px]">calendar_month</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Make a Reservation</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Pick your lease start date and duration. Enjoy upfront transparent monthly pricing with zero surprise lock-in penalties.
+          </p>
+</div>
+<!-- Step 3 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<span class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline-sm text-headline-sm font-bold">
+              3
+            </span>
+<span class="material-symbols-outlined text-outline text-[24px]">qr_code_scanner</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Complete Payment</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Pay safely via instant VietQR, VNPay, Local Bank Transfer, or Visa/Mastercard with instant digital invoice and lease delivery.
+          </p>
+</div>
+<!-- Step 4 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<span class="w-10 h-10 rounded-full bg-tertiary-container text-tertiary-fixed flex items-center justify-center font-headline-sm text-headline-sm font-bold">
+              4
+            </span>
+<span class="material-symbols-outlined text-outline text-[24px]">key</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Check In &amp; Access Unit</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Receive your encrypted smart gate PIN code or NFC pass right on your phone. Unlock your sparkling clean unit 24/7.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Why Choose Us (4 Pillars) -->
+<section class="py-space-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-margin lg:px-margin-lg flex flex-col gap-space-xl">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-sm">
+<div class="flex flex-col gap-1 max-w-xl">
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-secondary font-semibold">Institutional Grade</span>
+<h2 class="font-headline-xl text-headline-xl text-on-surface">Why Store with SafeBox?</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Built to international warehousing standards so you can rest easy knowing your valuables and business inventory are protected.</p>
+</div>
+<!-- Trust badge metrics -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-2 bg-surface-container-lowest px-4 py-2 rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-tertiary-container text-[24px]">verified</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">99.98%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Incident-Free Safety</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4 Pillar Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Pillar 1 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">videocam</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">24/7 Security &amp; CCTV</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Over 64 full-HD infrared camera streams with individual unit door magnetic trip sensors and on-duty licensed security guards.
+          </p>
+</div>
+<!-- Pillar 2 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">local_fire_department</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Certified Fire Protection</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Automatic pre-action fire sprinkler networks, laser aspirating smoke detection, and NFPA 13 compliance across all bays.
+          </p>
+</div>
+<!-- Pillar 3 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">update</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Flexible Rental Terms</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Rent month-to-month, quarterly, or yearly. Scale up or downsize between lockers and pallet zones with instant credit roll-over.
+          </p>
+</div>
+<!-- Pillar 4 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">handyman</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">On-Site Logistics Gear</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Complimentary hand dollies, hydraulic pallet jacks, heavy freight elevators, and packaging supply shops at every site.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Storage Size Estimator Widget -->
+<section class="py-space-xl bg-background">
+<div class="max-w-7xl mx-auto px-margin lg:px-margin-lg">
+<div class="bg-surface-container-lowest rounded-2xl shadow-md p-space-lg lg:p-space-xl flex flex-col lg:flex-row gap-space-xl items-center">
+<div class="flex-1 flex flex-col gap-space-md">
+<div class="inline-flex items-center gap-1 font-label-sm text-label-sm text-secondary uppercase font-semibold">
+<span class="material-symbols-outlined text-[16px]">view_in_ar</span>
+<span>Space Visualizer</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl text-on-surface">Not Sure What Size You Need?</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Moving can be tricky. Use our interactive estimator to gauge roughly how much floor space your personal items or business stock will require.
+          </p>
+<div class="space-y-3 pt-space-xs">
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">backpack</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Locker / Mini (1.0 – 3.0 m²)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Luggage, files, seasonal clothes, 10–15 archive boxes</span>
+</div>
+</div>
+<span class="font-label-md text-label-md font-bold text-primary">~Studio</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">bed</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Medium Bay (6.0 – 12.0 m²)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mattress, sofa, TV unit, motorbike, 30–50 moving cartons</span>
+</div>
+</div>
+<span class="font-label-md text-label-md font-bold text-primary">~2-Bed Apt</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">store</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Large Bay / Pallet Rack (15.0 – 35.0+ m²)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Whole villa inventory, 4–8 wooden freight pallets, office furniture</span>
+</div>
+</div>
+<span class="font-label-md text-label-md font-bold text-primary">~Commercial</span>
+</div>
+</div>
+</div>
+<!-- Interactive Visual Cube representation -->
+<div class="w-full lg:w-96 bg-surface-container rounded-xl p-space-lg flex flex-col items-center justify-center text-center gap-space-md">
+<div class="w-28 h-28 rounded-full bg-surface-container-lowest shadow-inner flex items-center justify-center text-primary">
+<svg class="w-16 h-16 text-secondary" fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
+<path d="M21 16.5V7.5L12 2.5L3 7.5V16.5L12 21.5L21 16.5Z"></path>
+<path d="M12 2.5V21.5"></path>
+<path d="M3 7.5L12 12.5L21 7.5"></path>
+<path d="M7.5 5L16.5 10"></path>
+</svg>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Free On-Site Assessment</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Our space advisors will visit your location or review photos on Zalo to recommend the exact optimal bay size.</p>
+</div>
+<a class="w-full py-2.5 px-4 bg-surface-container-lowest hover:bg-surface-bright text-primary font-label-md text-label-md rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2" href="https://zalo.me" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px] text-secondary">chat</span>
+<span>Instant Chat on Zalo / WhatsApp</span>
+</a>
+</div>
+</div>
+</div>
+</section>
+<!-- Pre-Footer Call to Action Banner -->
+<section class="py-space-xl bg-primary text-on-primary relative overflow-hidden">
+<!-- Ambient back glow -->
+<div class="absolute -top-32 -left-32 w-80 h-80 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-32 -right-32 w-80 h-80 bg-tertiary-fixed/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 max-w-5xl mx-auto px-margin lg:px-margin-lg text-center flex flex-col items-center gap-space-lg">
+<div class="flex flex-col gap-space-xs max-w-2xl">
+<span class="font-label-md text-label-md uppercase tracking-wider text-tertiary-fixed font-semibold">Ready to declutter?</span>
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg font-bold leading-tight text-surface-container-lowest">
+          Need Extra Space? Secure Your Storage Today
+        </h2>
+<p class="font-body-lg text-body-lg text-surface-variant mt-1">
+          Book online in under 3 minutes. Clean, climate-controlled, and guarded 24/7 across 4 convenient Ho Chi Minh City locations.
+        </p>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-space-md">
+<a class="inline-flex items-center justify-center gap-space-xs bg-secondary hover:bg-on-secondary-container text-on-primary px-7 py-3.5 rounded-lg font-label-lg text-label-lg shadow-md transition-all duration-200" href="#searchForm">
+<span class="material-symbols-outlined text-[20px]">warehouse</span>
+<span>Browse Storage Units</span>
+</a>
+<a class="inline-flex items-center justify-center gap-space-xs bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 text-on-primary px-6 py-3.5 rounded-lg font-label-lg text-label-lg backdrop-blur-sm transition-all duration-200" href="tel:+8402838229900">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">call</span>
+<span>Call Hotline: (028) 3822 9900</span>
+</a>
+</div>
+<div class="pt-space-sm flex flex-wrap items-center justify-center gap-space-lg font-label-sm text-label-sm text-surface-variant">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed">check</span>
+          No Long-term Contract Required
+        </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed">check</span>
+          Refundable Security Deposit
+        </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed">check</span>
+          Instant Access Code on Approval
+        </span>
+</div>
+</div>
+</section>
+<!-- Search Interactivity Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('searchForm');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const location = document.getElementById('facilityLocation').value;
+          const type = document.getElementById('storageType').value;
+          const size = document.getElementById('unitSize').value;
+          
+          const target = document.getElementById('facilities-grid');
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
+    });
+  </script>
+</div></main><footer id="support" class="w-full bg-surface-container-lowest border-t border-outline-variant/30"><div class="max-w-7xl mx-auto px-margin lg:px-margin-lg py-space-xl"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter-lg"><div class="flex flex-col gap-space-sm"><div class="flex items-center gap-space-sm"><img alt="SafeBox Storage Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8PmWYhfZFYRU3mT8qOJX6y5DGxEX8bAeawwqQQefDVwv8_4ZrMQVvW6orDSkHXyIZ2vqygAF4JIi7tBFrJQN-aikpy5nFhnEaG7K2Xlf2zrj2UzR7WI3e5xpyultBGAJFNfkB4W_d8nvAjoy9z30Q45Oji-tg5aW1o2eegXgILFCzaMRYqj71sPrEUlY5gJaM9tVn-h4NQFnSmVgBbP4m5ZABoWNBMzgU1l_VxVBdaA1FI15ySlzpew"/><span class="font-headline-sm text-headline-sm text-primary">SafeBox Storage</span></div><p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">Secure Space. Simple Storage.</p><p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">Commercial-grade secure storage units and tech-enabled warehouse bay management across Ho Chi Minh City.</p><div class="mt-space-xs flex flex-col gap-space-xs text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-secondary">support_agent</span><span>Hotline: +84 (028) 3822 9900</span></div><div class="flex items-start gap-space-xs"><span class="material-symbols-outlined text-[16px] text-secondary mt-0.5">location_on</span><span>HCMC: Thu Duc • District 7 • Binh Tan • Tan Binh</span></div></div></div><div class="flex flex-col gap-space-sm"><h4 class="font-headline-sm text-headline-sm text-on-surface">Quick Links</h4><nav class="flex flex-col gap-space-xs" data-active-classes="text-primary font-semibold"><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="about-us" href="#why-safebox">About Us</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="storage-facilities" href="#facilities-grid">Facilities</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="storage-units" href="#available-units">Storage Units</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="pricing" href="#available-units">Pricing</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="how-it-works" href="#how-it-works">How It Works</a></nav></div><div class="flex flex-col gap-space-sm"><h4 class="font-headline-sm text-headline-sm text-on-surface">Support &amp; Policies</h4><nav class="flex flex-col gap-space-xs" data-active-classes="text-primary font-semibold"><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="support" href="#support">Help Center</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="rental-policy" href="#support">Rental Policy</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="fire-and-security-standards" href="#support">Fire &amp; Security Standards</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="faqs" href="#support">FAQs</a></nav></div><div class="flex flex-col gap-space-sm"><h4 class="font-headline-sm text-headline-sm text-on-surface">Certifications &amp; Security</h4><ul class="flex flex-col gap-space-xs font-body-md text-body-md text-on-surface-variant"><li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px] text-tertiary-container">verified</span><span>ISO 9001:2015 Certified Quality</span></li><li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px] text-tertiary-container">videocam</span><span>24/7 CCTV &amp; Biometric Access</span></li><li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px] text-tertiary-container">local_fire_department</span><span>Fire Safety Compliant &amp; Sprinklers</span></li><li class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px] text-tertiary-container">health_and_safety</span><span>Climate &amp; Pest Controlled Bays</span></li></ul></div></div><div class="mt-space-xl pt-space-lg border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-label-md text-label-md"><p>© 2025 SafeBox Storage Vietnam Co., Ltd. All rights reserved.</p><div class="flex items-center gap-space-lg"><a class="hover:text-primary transition-colors" data-path="privacy-policy" href="#support">Privacy Policy</a><a class="hover:text-primary transition-colors" data-path="terms-of-service" href="#support">Terms of Service</a><a class="hover:text-primary transition-colors" data-path="facility-regulations" href="#support">Facility Regulations</a></div></div></div></footer><script src="/js/auth-session.js"></script></body></html>

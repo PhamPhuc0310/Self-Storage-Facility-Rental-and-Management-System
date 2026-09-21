@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_staff_dashboard" name="shell-type"/><title>SafeBox Storage - Operations Workspace</title><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary-fixed-dim":"#b6c4ff","tertiary":"#00311f","primary":"#00236f","inverse-on-surface":"#eaf1ff","surface-variant":"#d3e4fe","on-surface":"#0b1c30","background":"#f8f9ff","secondary-fixed-dim":"#93ccff","primary-container":"#1e3a8a","surface-container-highest":"#d3e4fe","error":"#ba1a1a","tertiary-container":"#004a31","on-secondary-fixed-variant":"#004b73","outline-variant":"#c5c5d3","surface-container-lowest":"#ffffff","surface-bright":"#f8f9ff","surface":"#f8f9ff","primary-fixed":"#dce1ff","tertiary-fixed-dim":"#4edea3","outline":"#757682","on-tertiary-fixed":"#002113","on-secondary-fixed":"#001d31","surface-dim":"#cbdbf5","on-surface-variant":"#444651","on-tertiary-container":"#27c38a","on-primary-fixed-variant":"#264191","inverse-primary":"#b6c4ff","on-tertiary":"#ffffff","on-error-container":"#93000a","surface-container":"#e5eeff","secondary-container":"#5bb8fe","on-secondary":"#ffffff","tertiary-fixed":"#6ffbbe","on-primary-fixed":"#00164e","on-primary-container":"#90a8ff","secondary":"#006398","on-primary":"#ffffff","surface-tint":"#4059aa","error-container":"#ffdad6","on-secondary-container":"#00476e","on-tertiary-fixed-variant":"#005236","inverse-surface":"#213145","surface-container-low":"#eff4ff","secondary-fixed":"#cce5ff","on-error":"#ffffff","surface-container-high":"#dce9ff","on-background":"#0b1c30"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin":"1.5rem","space-xs":"0.25rem","space-sm":"0.5rem","space-lg":"1.5rem","gutter-sm":"1rem","gutter":"1.5rem","gutter-lg":"2rem","margin-sm":"1rem","space-xl":"2.5rem","space-md":"1rem","margin-lg":"3rem"},fontFamily:{"headline-xl-mobile":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"label-md":["Inter"],"display-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"label-sm":["Inter"],"label-lg":["Inter"]},fontSize:{"headline-xl-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"display-lg":["44px",{"lineHeight":"52px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"0em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased" data-auth-page="protected" data-required-roles="FACILITY_MANAGER,BUSINESS_OPERATIONS_MANAGER,SYSTEM_ADMIN"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest border-r border-outline-variant/30 z-50 flex flex-col justify-between pt-space-md pb-space-lg"><div class="flex flex-col"><div class="px-space-md pb-space-lg border-b border-outline-variant/20 flex items-center gap-space-sm"><img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8PmWYhfZFYRU3mT8qOJX6y5DGxEX8bAeawwqQQefDVwv8_4ZrMQVvW6orDSkHXyIZ2vqygAF4JIi7tBFrJQN-aikpy5nFhnEaG7K2Xlf2zrj2UzR7WI3e5xpyultBGAJFNfkB4W_d8nvAjoy9z30Q45Oji-tg5aW1o2eegXgILFCzaMRYqj71sPrEUlY5gJaM9tVn-h4NQFnSmVgBbP4m5ZABoWNBMzgU1l_VxVBdaA1FI15ySlzpew"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm font-bold text-primary">SafeBox</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Staff Ops</span></div></div><nav class="flex flex-col gap-1 px-space-sm mt-space-md" data-active-classes="bg-surface-container-high text-primary font-semibold"><a class="flex items-center px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="staff-dashboard" href="#">Dashboard</a><a class="flex items-center px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="manage-facilities" href="#">Facilities</a><a aria-current="page" class="flex items-center px-space-md py-2.5 rounded-lg transition-colors bg-surface-container-high text-primary font-semibold" data-path="manage-storage-units" href="#">Storage Units</a><a class="flex items-center px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-label-lg text-label-lg" data-path="manage-reservations" href="#">Reservations</a></nav></div><div class="px-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center justify-between"><div class="flex items-center gap-space-xs"><span aria-hidden="true" class="material-symbols-outlined w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary">person</span><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold" data-auth-user="fullName">Loading account...</span><span class="font-label-sm text-label-sm text-on-surface-variant" data-auth-user="email"></span></div></div><a aria-label="Log out" class="text-on-surface-variant hover:text-primary transition-colors p-1" data-auth-action="logout" href="/"><span class="material-symbols-outlined text-[18px]">logout</span></a></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest border-b border-outline-variant/30 z-40 px-space-lg flex items-center justify-between shadow-[0_1px_8px_rgba(15,23,42,0.04)]"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-secondary text-[20px]">warehouse</span><span class="font-label-lg text-label-lg text-on-surface font-semibold">Facility Operations Workspace</span></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant bg-surface-container-low px-3 py-1.5 rounded-full"><span class="w-2 h-2 rounded-full bg-secondary"></span><span>Authenticated session</span></div><button aria-label="Alerts" class="p-1.5 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span></button><span aria-hidden="true" class="material-symbols-outlined w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary border border-outline-variant/30">person</span></div></header><main class="w-full pt-16 bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Workspace Context Banner -->
+<div class="px-margin-lg pt-space-lg pb-space-md flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs text-secondary mb-1">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase font-semibold">Facility Operations &amp; Asset Workspace</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-primary tracking-tight">Facility &amp; Storage Unit Management</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl mt-1">
+        Oversee operational warehouse facilities, configure physical storage bays, unit dimensions, and live inventory statuses across HCMC logistics nodes.
+      </p>
+</div>
+<!-- Quick Stats Cards Summary Strip -->
+<div class="flex items-center gap-space-sm self-start md:self-auto">
+<div class="px-space-md py-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">domain</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Active Hubs</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">4 Facilities</span>
+</div>
+</div>
+<div class="px-space-md py-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[22px]">inventory_2</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Total Capacity</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">186 Units <span class="font-body-sm text-body-sm text-on-tertiary-container font-semibold">(42 Avail)</span></span>
+</div>
+</div>
+</div>
+</div>
+<div class="px-margin-lg pb-margin-lg flex flex-col gap-space-xl">
+<!-- ==================== SECTION 1: FACILITY MANAGEMENT ==================== -->
+<section class="flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-6 rounded-full bg-primary"></div>
+<div>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tight">Warehouse Facilities</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">4 Operational across Ho Chi Minh City</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-2 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm hover:bg-surface-container transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span>Bulk Actions</span>
+</button>
+<button class="px-space-md py-2.5 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg shadow-sm hover:bg-primary transition-colors flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Add New Facility</span>
+</button>
+</div>
+</div>
+<!-- Facilities Grid Table Cards -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-space-md px-space-lg">Facility Code &amp; Hub</th>
+<th class="py-space-md px-space-md">Address / Zone</th>
+<th class="py-space-md px-space-md">Operational Status</th>
+<th class="py-space-md px-space-md">Capacity Breakdown</th>
+<th class="py-space-md px-space-md">Occupancy Rate</th>
+<th class="py-space-md px-space-lg text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-on-surface font-body-md text-body-md">
+<!-- Row 1: Thu Duc -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover shadow-sm flex-shrink-0" data-alt="Modern logistics hub entrance in Ho Chi Minh City, featuring blue branding architectural accents, security barriers, clean concrete driveway under bright morning light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtGQYNfEKWkR7kMgqIZBM8FzH6_cf76YhDSIs26x0FkE_FwgsfDWr3ykRJxaMPlT1dsH6c6GZmDEdrAPZUReXAmE8zUj58hWwIftaeR67Xe-gLkVwB6zmg7JVWMeACX6kgS7UvxGlPDSxDWSGFI4cvKE_9dfA1nqe1gmRB7VJ9bwsf7hyvSf-Yoeks4pZrdiN7xKwSCI8_vskNKJ7kz-0XWPdjfKq6iUAPiArzdzklzfwnr4uREZsdAw"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">SafeBox Thu Duc Hub</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono tracking-wide">FAC-HCMC-01</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary flex-shrink-0 mt-0.5">location_on</span>
+<span class="truncate">Song Hanh Hanoi Highway, Thu Duc City, HCMC</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Active
+                  </span>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">48 Total Units</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold">14 Available</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="w-36 flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">70.8%</span>
+<span class="text-secondary font-semibold">34 Rented</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 70.8%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-secondary font-label-sm text-label-sm hover:bg-surface-container transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-container-highest transition-colors" type="button">View Units</button>
+<button class="px-2.5 py-1.5 rounded-lg text-error font-label-sm text-label-sm hover:bg-error-container/40 transition-colors" type="button">Deactivate</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: District 7 -->
+<tr class="bg-surface-container-low/30 hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover shadow-sm flex-shrink-0" data-alt="High-tech urban warehouse storage interior with neat roll-up doors, bright overhead LED panel lighting, polished epoxy flooring, and professional safety signs." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIpzL_Sw5_G9zPqflJf2XtLuC7ibj4ormu05bpfIXK-7B8IsYvj6PFRto9qre2r2tyoi4g3hVcU68t2cJPesvfCkYvnh9zMX2ugUNiU-gkjp-Pz_z4SBDsXJDxNHc9GdPOqY84v_lERooh-IIHmUxE2QusOGmZZlow-u87xZMV_PuM1RiljOLNpi_9tJfdBiAqBgC_ZYGgZ-YFoCVp9Ky307dqDWN16iGrZ5OXg6lTEH_yRvZl8sfY6A"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">SafeBox District 7 Facility</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono tracking-wide">FAC-HCMC-02</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary flex-shrink-0 mt-0.5">location_on</span>
+<span class="truncate">45 Nguyen Huu Tho, Tan Phong Ward, District 7</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Active
+                  </span>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">36 Total Units</span>
+<span class="font-label-sm text-label-sm text-amber-700 font-semibold">4 Available</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="w-36 flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">88.8%</span>
+<span class="text-primary font-semibold">32 Rented</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 88.8%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-secondary font-label-sm text-label-sm hover:bg-surface-container transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-container-highest transition-colors" type="button">View Units</button>
+<button class="px-2.5 py-1.5 rounded-lg text-error font-label-sm text-label-sm hover:bg-error-container/40 transition-colors" type="button">Deactivate</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Binh Tan Heavy Hub -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover shadow-sm flex-shrink-0" data-alt="Spacious heavy commercial warehouse with industrial loading bay ramps, automated roll-shutter doors, clean blue line markings, and forklift transit path." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAosZIwMld6Z-AX5pV4T0pEdkUccKFh2yAiIRFgi3wsjEPmApaoLkHTdNhYQEAdZNod8NIEwq1Z0ckY2hB7VzLsK1-qxSDyzWqe5ye0WC64sID7AzDSfN8wScRlcjOdWKTd7n5kDLlskCwdFjOjC7T9uuPyA0V24MnYEsVWd5CUGJUyy0bLcAhQf5g5iw2Aj5dibFAVuSyYZE2Y6ZqhBjivpYHNZ1rvwIR-L_PrGA_V4In1EB0Bq7DK7g"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">SafeBox Binh Tan Heavy Hub</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono tracking-wide">FAC-HCMC-03</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary flex-shrink-0 mt-0.5">location_on</span>
+<span class="truncate">124 Kinh Duong Vuong, An Lac, Binh Tan</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Active
+                  </span>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">60 Total Units</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold">22 Available</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="w-36 flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">63.3%</span>
+<span class="text-secondary font-semibold">38 Rented</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 63.3%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-secondary font-label-sm text-label-sm hover:bg-surface-container transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-container-highest transition-colors" type="button">View Units</button>
+<button class="px-2.5 py-1.5 rounded-lg text-error font-label-sm text-label-sm hover:bg-error-container/40 transition-colors" type="button">Deactivate</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Tan Binh Air Cargo Link -->
+<tr class="bg-surface-container-low/30 hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-md">
+<img class="w-12 h-12 rounded-lg object-cover shadow-sm flex-shrink-0" data-alt="Climate controlled micro warehouse room with insulated walls, modern digital locks, pristine clean aisles, and cold storage monitoring sensors on wall." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKX9cm3bEruzKO_5Asn5SxNNkJ0Q-ItHUgakKZzQUxCL9Q-fKUF9bV2qF6hYzvvXNq52aoraUG_q_4fvfR-k1d7NczoOGx-Yn_6e39GnPlNTzwcWGjQy3_xGIOMD19IddSStX21laI5bIsiUrubSvJ0dUhIBM5_4Fl9bSyf0cJf3lYP4c0YXHLzQ4jKCK2MsHoDX6g8glZt7DolBdKu1FvWx58FcQT7HidTNuLagVRMIdhqhRoaKqKKQ"/>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">SafeBox Tan Binh Air Cargo Link</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono tracking-wide">FAC-HCMC-04</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary flex-shrink-0 mt-0.5">location_on</span>
+<span class="truncate">Bach Dang Street, Ward 2, Tan Binh District</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Active
+                  </span>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface">42 Total Units</span>
+<span class="font-label-sm text-label-sm text-error font-semibold">2 Available (Almost Full)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="w-36 flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">95.2%</span>
+<span class="text-primary font-semibold">40 Rented</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary font-bold rounded-full" style="width: 95.2%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-secondary font-label-sm text-label-sm hover:bg-surface-container transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-container-highest transition-colors" type="button">View Units</button>
+<button class="px-2.5 py-1.5 rounded-lg text-error font-label-sm text-label-sm hover:bg-error-container/40 transition-colors" type="button">Deactivate</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- ==================== SECTION 2: STORAGE UNIT INVENTORY + QUICK DRAWER ==================== -->
+<section class="flex flex-col lg:flex-row items-start gap-space-lg">
+<!-- Main Table Column -->
+<div class="flex-1 w-full flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-6 rounded-full bg-secondary"></div>
+<div>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tight">Storage Unit Inventory</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Configure physical bay specs, sizes, and operational rental states</span>
+</div>
+</div>
+<button class="px-space-md py-2.5 rounded-lg bg-secondary text-on-secondary font-label-lg text-label-lg shadow-sm hover:bg-on-secondary-container transition-colors flex items-center gap-space-xs" id="openModalBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">add_box</span>
+<span>+ Add Storage Unit</span>
+</button>
+</div>
+<!-- Filter Controls Bar -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-wrap items-center gap-space-md">
+<!-- Search input -->
+<div class="flex-1 min-w-[200px] relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md placeholder-on-surface-variant/60 focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-secondary/40 transition-all" id="unitSearchInput" placeholder="Search by Unit Code (e.g. M-208)..." type="text"/>
+</div>
+<!-- Facility Filter -->
+<div class="flex items-center gap-1.5">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase" for="filterFacility">Hub:</label>
+<select class="py-2 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="filterFacility">
+<option value="all">All Facilities</option>
+<option selected="" value="thu-duc">SafeBox Thu Duc Hub</option>
+<option value="district-7">SafeBox District 7</option>
+<option value="binh-tan">SafeBox Binh Tan Heavy</option>
+<option value="tan-binh">SafeBox Tan Binh Cargo</option>
+</select>
+</div>
+<!-- Type Filter -->
+<div class="flex items-center gap-1.5">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase" for="filterType">Type:</label>
+<select class="py-2 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="filterType">
+<option value="all">All Types</option>
+<option value="standard">Standard Dry</option>
+<option value="cold">Cold Storage</option>
+</select>
+</div>
+<!-- Status Filter -->
+<div class="flex items-center gap-1.5">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase" for="filterStatus">Status:</label>
+<select class="py-2 px-space-md rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="filterStatus">
+<option value="all">All Statuses</option>
+<option value="available">Available</option>
+<option value="reserved">Reserved</option>
+<option value="in-use">In Use</option>
+<option value="maintenance">Maintenance</option>
+</select>
+</div>
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Reset Filters" type="button">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+<!-- Units Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left" id="unitsTable">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-space-md px-space-lg">Unit Code</th>
+<th class="py-space-md px-space-md">Type &amp; Category</th>
+<th class="py-space-md px-space-md">Dimensions &amp; Vol</th>
+<th class="py-space-md px-space-md">Monthly Tariff</th>
+<th class="py-space-md px-space-md">Status</th>
+<th class="py-space-md px-space-md">Assigned Tenant</th>
+<th class="py-space-md px-space-lg text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-on-surface font-body-md text-body-md" id="unitsTableBody">
+<!-- Unit 1: S-101 (In Use) -->
+<tr class="unit-row hover:bg-surface-container-low/60 transition-colors" data-code="S-101" data-status="in-use" data-type="standard">
+<td class="py-space-md px-space-lg font-mono">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center font-bold text-primary text-label-md font-mono">
+                        S
+                      </div>
+<div class="flex flex-col">
+<span class="font-bold text-on-surface text-label-lg">S-101</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-sans">SafeBox Thu Duc</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">inventory</span>
+<span class="font-semibold text-on-surface">Standard Dry</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-semibold">Small</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">5 m²</span>
+<span class="text-on-surface-variant text-label-sm font-sans">12.5 m³ (2.0 × 2.5 × 2.5m)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-primary">1,200,000 VND</span>
+<span class="text-on-surface-variant text-label-sm font-sans">VND / month</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-900 text-blue-100 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-blue-300"></span>
+                      In Use
+                    </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1 font-mono text-label-sm text-primary font-medium">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">person</span>
+<span>SB-CUST-88219</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg text-secondary hover:bg-surface-container font-label-sm text-label-sm transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-sm text-label-sm transition-colors" type="button">Status</button>
+</div>
+</td>
+</tr>
+<!-- Unit 2: S-102 (Available) -->
+<tr class="unit-row bg-surface-container-low/30 hover:bg-surface-container-low/60 transition-colors" data-code="S-102" data-status="available" data-type="standard">
+<td class="py-space-md px-space-lg font-mono">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center font-bold text-primary text-label-md font-mono">
+                        S
+                      </div>
+<div class="flex flex-col">
+<span class="font-bold text-on-surface text-label-lg">S-102</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-sans">SafeBox Thu Duc</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">inventory</span>
+<span class="font-semibold text-on-surface">Standard Dry</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-semibold">Small</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">5 m²</span>
+<span class="text-on-surface-variant text-label-sm font-sans">12.5 m³ (2.0 × 2.5 × 2.5m)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-primary">1,200,000 VND</span>
+<span class="text-on-surface-variant text-label-sm font-sans">VND / month</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      Available
+                    </span>
+</td>
+<td class="py-space-md px-space-md font-body-sm text-body-sm text-on-surface-variant italic">
+                    None (Ready to lease)
+                  </td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg text-secondary hover:bg-surface-container font-label-sm text-label-sm transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-sm text-label-sm transition-colors" type="button">Status</button>
+</div>
+</td>
+</tr>
+<!-- Unit 3: M-208 (Reserved) -->
+<tr class="unit-row hover:bg-surface-container-low/60 transition-colors" data-code="M-208" data-status="reserved" data-type="standard">
+<td class="py-space-md px-space-lg font-mono">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-secondary-fixed flex items-center justify-center font-bold text-secondary text-label-md font-mono">
+                        M
+                      </div>
+<div class="flex flex-col">
+<span class="font-bold text-on-surface text-label-lg">M-208</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-sans">SafeBox Thu Duc</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">shelves</span>
+<span class="font-semibold text-on-surface">Standard Dry</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-semibold">Medium</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">15 m²</span>
+<span class="text-on-surface-variant text-label-sm font-sans">45 m³ (3.0 × 5.0 × 3.0m)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-primary">2,500,000 VND</span>
+<span class="text-on-surface-variant text-label-sm font-sans">VND / month</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                      Reserved
+                    </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-mono text-label-sm text-primary font-semibold">SB-CUST-88219</span>
+<span class="text-label-sm text-on-surface font-medium">Mai Anh</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg text-secondary hover:bg-surface-container font-label-sm text-label-sm transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-sm text-label-sm transition-colors" type="button">Status</button>
+</div>
+</td>
+</tr>
+<!-- Unit 4: C-03 (Cold Storage / Maintenance) -->
+<tr class="unit-row bg-surface-container-low/30 hover:bg-surface-container-low/60 transition-colors" data-code="C-03" data-status="maintenance" data-type="cold">
+<td class="py-space-md px-space-lg font-mono">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center font-bold text-cyan-900 text-label-md font-mono">
+                        C
+                      </div>
+<div class="flex flex-col">
+<span class="font-bold text-on-surface text-label-lg">C-03</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-sans">SafeBox Thu Duc</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-cyan-700 text-[18px]">ac_unit</span>
+<span class="font-semibold text-cyan-900">Cold Storage</span>
+<span class="px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-800 text-label-sm font-semibold">Medium</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">20 m²</span>
+<span class="text-on-surface-variant text-label-sm font-sans">60 m³ (4.0 × 5.0 × 3.0m)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-primary">3,800,000 VND</span>
+<span class="text-on-surface-variant text-label-sm font-sans">VND / month</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                      Maintenance
+                    </span>
+</td>
+<td class="py-space-md px-space-md font-body-sm text-body-sm text-on-surface-variant italic">
+                    HVAC Sensor Calibration
+                  </td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg text-secondary hover:bg-surface-container font-label-sm text-label-sm transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-sm text-label-sm transition-colors" type="button">Status</button>
+</div>
+</td>
+</tr>
+<!-- Unit 5: L-305 (Large / Available) -->
+<tr class="unit-row hover:bg-surface-container-low/60 transition-colors" data-code="L-305" data-status="available" data-type="standard">
+<td class="py-space-md px-space-lg font-mono">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-primary-fixed-dim flex items-center justify-center font-bold text-primary text-label-md font-mono">
+                        L
+                      </div>
+<div class="flex flex-col">
+<span class="font-bold text-on-surface text-label-lg">L-305</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-sans">SafeBox Thu Duc</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">warehouse</span>
+<span class="font-semibold text-on-surface">Standard Dry</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-semibold">Large</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-on-surface">30 m²</span>
+<span class="text-on-surface-variant text-label-sm font-sans">90 m³ (5.0 × 6.0 × 3.0m)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono">
+<div class="flex flex-col">
+<span class="font-bold text-primary">4,500,000 VND</span>
+<span class="text-on-surface-variant text-label-sm font-sans">VND / month</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      Available
+                    </span>
+</td>
+<td class="py-space-md px-space-md font-body-sm text-body-sm text-on-surface-variant italic">
+                    None (Ready to lease)
+                  </td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg text-secondary hover:bg-surface-container font-label-sm text-label-sm transition-colors" type="button">Edit</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest font-label-sm text-label-sm transition-colors" type="button">Status</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Bottom Pagination / Indicator -->
+<div class="px-space-lg py-space-sm bg-surface-container-low flex items-center justify-between font-label-md text-label-md text-on-surface-variant">
+<span>Showing 5 of 48 storage units in Thu Duc Hub</span>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest shadow-sm hover:bg-surface-container text-on-surface transition-colors" disabled="" type="button">Prev</button>
+<button class="px-3 py-1 rounded bg-primary text-on-primary font-bold" type="button">1</button>
+<button class="px-3 py-1 rounded hover:bg-surface-container text-on-surface transition-colors" type="button">2</button>
+<button class="px-3 py-1 rounded hover:bg-surface-container text-on-surface transition-colors" type="button">3</button>
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest shadow-sm hover:bg-surface-container text-on-surface transition-colors" type="button">Next</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Add / Edit Side Drawer Panel -->
+<div class="w-full lg:w-96 flex-shrink-0 bg-surface-container-lowest rounded-xl shadow-md p-space-lg flex flex-col gap-space-md transition-all" id="unitDrawer">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[22px]">add_business</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Configure Storage Unit</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded-md hover:bg-surface-container transition-colors" id="closeDrawerBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant -mt-2">
+          Provision new bay inventory or edit physical attributes for SafeBox facilities.
+        </p>
+<form class="flex flex-col gap-space-sm" id="unitConfigForm">
+<!-- Unit Code -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formUnitCode">Unit Code Identifier</label>
+<input class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-mono text-label-lg focus:outline-none focus:ring-2 focus:ring-secondary/40 font-bold" id="formUnitCode" required="" type="text" value="M-209"/>
+</div>
+<!-- Target Facility -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formFacility">Assigned Facility</label>
+<select class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formFacility">
+<option selected="" value="FAC-HCMC-01">SafeBox Thu Duc Hub</option>
+<option value="FAC-HCMC-02">SafeBox District 7 Facility</option>
+<option value="FAC-HCMC-03">SafeBox Binh Tan Heavy Hub</option>
+<option value="FAC-HCMC-04">SafeBox Tan Binh Cargo Link</option>
+</select>
+</div>
+<!-- Storage Type -->
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formStorageType">Storage Type</label>
+<select class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formStorageType">
+<option selected="" value="standard">Standard Dry</option>
+<option value="cold">Cold Storage</option>
+<option value="climate">Climate Shield</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formSizeCategory">Size Category</label>
+<select class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formSizeCategory">
+<option value="Small">Small (1-6m²)</option>
+<option selected="" value="Medium">Medium (7-20m²)</option>
+<option value="Large">Large (21-45m²)</option>
+<option value="Bay">Warehouse Bay (&gt;45m²)</option>
+</select>
+</div>
+</div>
+<!-- Metrics: Area & Height -->
+<div class="grid grid-cols-2 gap-space-xs">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formFloorArea">Floor Area (m²)</label>
+<input class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-mono text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formFloorArea" step="0.1" type="number" value="16.5"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formCeilingHeight">Ceiling Height (m)</label>
+<input class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-mono text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formCeilingHeight" step="0.1" type="number" value="3.0"/>
+</div>
+</div>
+<!-- Calculated Volume Helper Notice -->
+<div class="p-2.5 rounded-lg bg-surface-container-low flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">view_in_ar</span>
+              Net Usable Volume:
+            </span>
+<span class="font-mono font-bold text-primary" id="calculatedVolume">49.5 m³</span>
+</div>
+<!-- Monthly Tariff -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formTariff">Monthly Tariff (VND)</label>
+<div class="relative">
+<input class="w-full pl-space-md pr-16 py-2 rounded-lg bg-surface-container-low text-on-surface font-mono text-body-md font-bold focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formTariff" type="text" value="2,750,000"/>
+<span class="absolute right-3 top-2 font-label-sm text-label-sm text-on-surface-variant">VND/mo</span>
+</div>
+</div>
+<!-- Initial Status -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="formStatus">Initial Status</label>
+<select class="w-full px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-secondary/40" id="formStatus">
+<option selected="" value="available">Available (Ready for Lease)</option>
+<option value="maintenance">Under Maintenance</option>
+<option value="reserved">Reserved (Staging)</option>
+<option value="in-use">In Use / Occupied</option>
+</select>
+</div>
+<!-- Feature Flags for Unit -->
+<div class="flex flex-col gap-1.5 pt-1">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Unit Amenities &amp; Access</span>
+<div class="grid grid-cols-2 gap-2 text-label-sm">
+<label class="flex items-center gap-2 cursor-pointer text-on-surface-variant">
+<input checked="" class="rounded text-primary focus:ring-secondary" type="checkbox"/>
+<span>24/7 CCTV</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer text-on-surface-variant">
+<input checked="" class="rounded text-primary focus:ring-secondary" type="checkbox"/>
+<span>Smart RFID Lock</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer text-on-surface-variant">
+<input class="rounded text-primary focus:ring-secondary" type="checkbox"/>
+<span>Smoke Detection</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer text-on-surface-variant">
+<input checked="" class="rounded text-primary focus:ring-secondary" type="checkbox"/>
+<span>Ground Bay</span>
+</label>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-space-sm pt-space-sm mt-space-xs">
+<button class="flex-1 py-2 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors" id="cancelFormBtn" type="button">
+              Cancel
+            </button>
+<button class="flex-1 py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary-container transition-colors flex items-center justify-center gap-1" id="saveUnitBtn" type="submit">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Save Unit</span>
+</button>
+</div>
+</form>
+</div>
+</section>
+</div>
+</div>
+<script>
+  // Simple client-side micro-interactions for Unit Search, Filtering, and Drawer Calculator
+  (function() {
+    const searchInput = document.getElementById('unitSearchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterType = document.getElementById('filterType');
+    const tableRows = document.querySelectorAll('.unit-row');
+    const floorAreaInput = document.getElementById('formFloorArea');
+    const ceilingHeightInput = document.getElementById('formCeilingHeight');
+    const volumeDisplay = document.getElementById('calculatedVolume');
+    const unitDrawer = document.getElementById('unitDrawer');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const cancelFormBtn = document.getElementById('cancelFormBtn');
+    const unitConfigForm = document.getElementById('unitConfigForm');
+
+    // Real-time volume recalculation
+    function updateVolume() {
+      const area = parseFloat(floorAreaInput.value) || 0;
+      const height = parseFloat(ceilingHeightInput.value) || 0;
+      const vol = (area * height).toFixed(1);
+      volumeDisplay.textContent = vol + ' m³';
+    }
+
+    if (floorAreaInput && ceilingHeightInput) {
+      floorAreaInput.addEventListener('input', updateVolume);
+      ceilingHeightInput.addEventListener('input', updateVolume);
+    }
+
+    // Filter logic
+    function applyFilters() {
+      const query = (searchInput.value || '').toLowerCase().trim();
+      const statusVal = filterStatus.value;
+      const typeVal = filterType.value;
+
+      tableRows.forEach(row => {
+        const code = (row.dataset.code || '').toLowerCase();
+        const type = row.dataset.type || '';
+        const status = row.dataset.status || '';
+
+        const matchesQuery = !query || code.includes(query);
+        const matchesStatus = statusVal === 'all' || status === statusVal;
+        const matchesType = typeVal === 'all' || type === typeVal;
+
+        if (matchesQuery && matchesStatus && matchesType) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (filterStatus) filterStatus.addEventListener('change', applyFilters);
+    if (filterType) filterType.addEventListener('change', applyFilters);
+
+    // Open & Highlight Drawer
+    if (openModalBtn && unitDrawer) {
+      openModalBtn.addEventListener('click', () => {
+        unitDrawer.classList.remove('opacity-60');
+        unitDrawer.classList.add('ring-2', 'ring-secondary');
+        unitDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(() => {
+          unitDrawer.classList.remove('ring-2', 'ring-secondary');
+        }, 1200);
+      });
+    }
+
+    if (closeDrawerBtn && unitDrawer) {
+      closeDrawerBtn.addEventListener('click', () => {
+        unitDrawer.classList.add('opacity-40');
+      });
+    }
+
+    if (cancelFormBtn && unitDrawer) {
+      cancelFormBtn.addEventListener('click', () => {
+        unitDrawer.classList.add('opacity-40');
+      });
+    }
+
+    // Simulate instant form save feedback
+    if (unitConfigForm) {
+      unitConfigForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = document.getElementById('formUnitCode').value;
+        alert('Storage Unit [' + code + '] successfully configured and logged to the SafeBox Thu Duc inventory registry.');
+      });
+    }
+  })();
+</script></main></div><script src="/js/auth-session.js"></script></body></html>
+

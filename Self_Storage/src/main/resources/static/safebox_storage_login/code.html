@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Sign in | SafeBox Storage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#00236f',
+            'primary-container': '#1e3a8a',
+            secondary: '#006398',
+            background: '#f8f9ff',
+            surface: '#ffffff',
+            'surface-low': '#eff4ff',
+            'on-surface': '#0b1c30',
+            'on-surface-variant': '#444651',
+            'error-container': '#ffdad6',
+            'on-error-container': '#93000a'
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            label: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { margin: 0; }
+    .warehouse-panel {
+      background:
+        linear-gradient(135deg, rgba(0, 35, 111, .97), rgba(30, 58, 138, .93) 55%, rgba(0, 99, 152, .88)),
+        url('https://lh3.googleusercontent.com/aida-public/AB6AXuBTn07nIRlgiFTd7CO9-joSM5LHazv20KHCU2p5cmdIuTYsATr7NeEHDscWfFEugsht7FdOyju-VSbY6WBfvDBc167ncYbXdOIIAP-ykpIiCKzImEAgKtiDxQ0QX4RMJ8__kquUpwrQAGCcaSQYXr1rMfazsf0lHEfipBrLwIXoVyE2M7zsu6i6VS_LDPcIzynRH8l-9Mc523NWXEnUA6oM3hrM1jpyDqyaWTDYxbw6T406pJ4aBBpihA') center/cover;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-background font-sans text-on-surface" data-auth-page="login">
+<header class="border-b border-slate-200 bg-white shadow-sm">
+  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-12">
+    <a class="flex items-center gap-2 text-xl font-bold text-primary" href="/">
+      <span class="material-symbols-outlined rounded-lg bg-primary p-1.5 text-white">inventory_2</span>
+      <span>SafeBox</span>
+    </a>
+    <a class="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-label text-sm font-semibold text-on-surface-variant transition hover:bg-surface-low hover:text-primary" href="/">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Back to Home
+    </a>
+  </div>
+</header>
+
+<main class="mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-6 py-10 lg:px-12">
+  <section class="grid w-full overflow-hidden rounded-2xl bg-white shadow-xl lg:grid-cols-12">
+    <div class="warehouse-panel relative hidden min-h-[620px] flex-col justify-between overflow-hidden p-10 text-white lg:col-span-5 lg:flex">
+      <div>
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 font-label text-xs font-semibold uppercase tracking-wider backdrop-blur">
+          <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+          Secure access
+        </div>
+        <h2 class="mt-10 text-4xl font-bold leading-tight">Enterprise-grade storage access</h2>
+        <p class="mt-4 max-w-md text-base leading-7 text-blue-100">
+          Sign in to access the workspace assigned to your SafeBox account. Your role is verified securely by the server.
+        </p>
+      </div>
+      <div class="rounded-xl bg-white/10 p-5 backdrop-blur">
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <div class="font-label text-xs uppercase tracking-wide text-blue-100">Security</div>
+            <div class="mt-1 font-semibold">24/7 monitored</div>
+          </div>
+          <div>
+            <div class="font-label text-xs uppercase tracking-wide text-blue-100">Session</div>
+            <div class="mt-1 font-semibold">JWT protected</div>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 border-t border-white/20 pt-4 text-sm text-blue-100">
+          <span class="material-symbols-outlined text-lg text-emerald-300">encrypted</span>
+          Credentials are sent over the configured secure connection.
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center p-7 sm:p-10 lg:col-span-7 lg:p-14">
+      <div class="mx-auto w-full max-w-xl">
+        <div class="mb-8">
+          <div class="flex items-center gap-3 text-primary">
+            <span class="material-symbols-outlined rounded-lg bg-primary p-2 text-white">lock</span>
+            <span class="text-xl font-bold">SafeBox Storage</span>
+          </div>
+          <h1 class="mt-5 text-3xl font-bold tracking-tight">Welcome back</h1>
+          <p class="mt-2 text-on-surface-variant">Enter your account email and password to continue.</p>
+        </div>
+
+        <form class="space-y-5" id="login-form">
+          <div>
+            <label class="mb-2 block font-label text-sm font-semibold" for="login-email">Email</label>
+            <div class="relative">
+              <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">mail</span>
+              <input autocomplete="email" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="login-email" name="email" placeholder="name@example.com" required type="email"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-2 block font-label text-sm font-semibold" for="login-password">Password</label>
+            <div class="relative">
+              <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">lock</span>
+              <input autocomplete="current-password" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-12 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="login-password" name="password" placeholder="Enter your password" required type="password"/>
+              <button aria-label="Show password" class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-primary" id="password-toggle" type="button">
+                <span class="material-symbols-outlined text-xl">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <label class="flex cursor-pointer items-center gap-2 text-sm text-on-surface-variant">
+            <input checked class="h-4 w-4 rounded border-slate-300 text-primary" id="remember-me" type="checkbox"/>
+            Remember me on this device
+          </label>
+
+          <div aria-live="polite" class="hidden rounded-xl bg-error-container px-4 py-3 text-sm font-medium text-on-error-container" id="login-error" role="alert"></div>
+
+          <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-container px-5 py-3.5 font-label text-sm font-semibold text-white shadow-md transition hover:bg-primary disabled:cursor-wait disabled:opacity-70" id="login-submit" type="submit">
+            <span class="material-symbols-outlined text-xl">login</span>
+            <span id="login-submit-label">Sign In to SafeBox</span>
+          </button>
+        </form>
+
+        <div class="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-low px-4 py-3 font-label text-xs text-on-surface-variant">
+          <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-emerald-700">encrypted</span>Protected authentication</span>
+          <span>Support: +84 (028) 3822 9900</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/js/auth-session.js"></script>
+<script>
+  const form = document.getElementById('login-form');
+  const emailInput = document.getElementById('login-email');
+  const passwordInput = document.getElementById('login-password');
+  const errorBox = document.getElementById('login-error');
+  const submitButton = document.getElementById('login-submit');
+  const submitLabel = document.getElementById('login-submit-label');
+
+  document.getElementById('password-toggle').addEventListener('click', function () {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    this.querySelector('.material-symbols-outlined').textContent = isPassword ? 'visibility_off' : 'visibility';
+  });
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    errorBox.classList.add('hidden');
+    errorBox.textContent = '';
+    submitButton.disabled = true;
+    submitLabel.textContent = 'Verifying credentials...';
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          email: emailInput.value.trim(),
+          password: passwordInput.value
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Email or password is incorrect.');
+        if (response.status === 403) throw new Error('Your account is not active. Please contact support.');
+        if (response.status === 400) throw new Error(payload.message || 'Please check your email and password.');
+        throw new Error('Unable to sign in. Please try again.');
+      }
+
+      if (!payload.token || !payload.user || !payload.user.role) {
+        throw new Error('The authentication response is incomplete.');
+      }
+
+      const destination = window.SafeBoxAuth.dashboardForRole(payload.user.role);
+      if (!destination) {
+        throw new Error('No dashboard is configured for this account role.');
+      }
+
+      window.SafeBoxAuth.saveAuthentication(
+        payload.token,
+        payload.user,
+        document.getElementById('remember-me').checked
+      );
+      window.location.replace(destination);
+    } catch (error) {
+      errorBox.textContent = error instanceof Error ? error.message : 'Unable to sign in. Please try again.';
+      errorBox.classList.remove('hidden');
+    } finally {
+      submitButton.disabled = false;
+      submitLabel.textContent = 'Sign In to SafeBox';
+    }
+  });
+</script>
+</body>
+</html>
+
