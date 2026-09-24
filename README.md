@@ -575,10 +575,27 @@ $env:DB_USERNAME = "sa"
 $env:DB_PASSWORD = "<mat-khau-SQL-Server-cua-ban>"
 ```
 
+Trên macOS/Linux (Bash hoặc zsh):
+
+```bash
+export DB_USERNAME=sa
+export DB_PASSWORD='<mat-khau-SQL-Server-cua-ban>'
+```
+
 Nếu SQL Server của bạn không chạy ở `localhost:1433`, chỉnh URL qua
 `spring.datasource.url` trong file local bị Git bỏ qua:
-`Self_Storage/src/main/resources/application-local.properties`, rồi chạy với
-`--spring.profiles.active=dev,local`. Không commit file local này.
+`Self_Storage/src/main/resources/application-local.properties`, rồi bật cả hai
+profile khi chạy Maven Wrapper:
+
+```powershell
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev,local
+```
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev,local
+```
+
+Không commit file local này.
 
 ---
 
