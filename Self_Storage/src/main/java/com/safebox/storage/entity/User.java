@@ -50,6 +50,29 @@ public class User {
     protected User() {
     }
 
+    public static User createRegisteredCustomer(
+            Role customerRole,
+            String email,
+            String passwordHash,
+            String fullName,
+            String phone
+    ) {
+        if (customerRole == null || !"CUSTOMER".equalsIgnoreCase(customerRole.getName())) {
+            throw new IllegalArgumentException("Public registration requires the CUSTOMER role");
+        }
+
+        User user = new User();
+        user.id = UUID.randomUUID();
+        user.role = customerRole;
+        user.email = email;
+        user.passwordHash = passwordHash;
+        user.fullName = fullName;
+        user.phone = phone;
+        user.status = "ACTIVE";
+        user.createdAt = LocalDateTime.now();
+        return user;
+    }
+
     public UUID getId() {
         return id;
     }

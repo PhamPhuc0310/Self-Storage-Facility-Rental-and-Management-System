@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Sign in | SafeBox Storage</title>
+  <title>Đăng nhập | SafeBox Storage</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -49,7 +49,7 @@
     </a>
     <a class="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-label text-sm font-semibold text-on-surface-variant transition hover:bg-surface-low hover:text-primary" href="/">
       <span class="material-symbols-outlined text-lg">arrow_back</span>
-      Back to Home
+      Về trang chủ
     </a>
   </div>
 </header>
@@ -60,27 +60,27 @@
       <div>
         <div class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 font-label text-xs font-semibold uppercase tracking-wider backdrop-blur">
           <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
-          Secure access
+          Truy cập an toàn
         </div>
-        <h2 class="mt-10 text-4xl font-bold leading-tight">Enterprise-grade storage access</h2>
+        <h2 class="mt-10 text-4xl font-bold leading-tight">Quản lý kho an toàn cùng SafeBox</h2>
         <p class="mt-4 max-w-md text-base leading-7 text-blue-100">
-          Sign in to access the workspace assigned to your SafeBox account. Your role is verified securely by the server.
+          Đăng nhập để vào không gian làm việc của bạn. SafeBox sẽ xác minh quyền truy cập của tài khoản.
         </p>
       </div>
       <div class="rounded-xl bg-white/10 p-5 backdrop-blur">
         <div class="grid grid-cols-2 gap-5">
           <div>
-            <div class="font-label text-xs uppercase tracking-wide text-blue-100">Security</div>
-            <div class="mt-1 font-semibold">24/7 monitored</div>
+            <div class="font-label text-xs uppercase tracking-wide text-blue-100">Bảo mật</div>
+            <div class="mt-1 font-semibold">Giám sát 24/7</div>
           </div>
           <div>
-            <div class="font-label text-xs uppercase tracking-wide text-blue-100">Session</div>
-            <div class="mt-1 font-semibold">JWT protected</div>
+            <div class="font-label text-xs uppercase tracking-wide text-blue-100">Phiên đăng nhập</div>
+            <div class="mt-1 font-semibold">Bảo vệ bằng JWT</div>
           </div>
         </div>
         <div class="mt-4 flex items-center gap-2 border-t border-white/20 pt-4 text-sm text-blue-100">
           <span class="material-symbols-outlined text-lg text-emerald-300">encrypted</span>
-          Credentials are sent over the configured secure connection.
+          Thông tin đăng nhập được gửi qua kết nối bảo mật.
         </div>
       </div>
     </div>
@@ -92,8 +92,8 @@
             <span class="material-symbols-outlined rounded-lg bg-primary p-2 text-white">lock</span>
             <span class="text-xl font-bold">SafeBox Storage</span>
           </div>
-          <h1 class="mt-5 text-3xl font-bold tracking-tight">Welcome back</h1>
-          <p class="mt-2 text-on-surface-variant">Enter your account email and password to continue.</p>
+          <h1 class="mt-5 text-3xl font-bold tracking-tight">Chào mừng bạn trở lại</h1>
+          <p class="mt-2 text-on-surface-variant">Nhập email và mật khẩu để tiếp tục.</p>
         </div>
 
         <form class="space-y-5" id="login-form">
@@ -101,16 +101,16 @@
             <label class="mb-2 block font-label text-sm font-semibold" for="login-email">Email</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">mail</span>
-              <input autocomplete="email" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="login-email" name="email" placeholder="name@example.com" required type="email"/>
+              <input autocomplete="email" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="login-email" name="email" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity(this.validity.valueMissing ? 'Vui lòng nhập email.' : 'Email không đúng định dạng.')" placeholder="name@example.com" required type="email"/>
             </div>
           </div>
 
           <div>
-            <label class="mb-2 block font-label text-sm font-semibold" for="login-password">Password</label>
+            <label class="mb-2 block font-label text-sm font-semibold" for="login-password">Mật khẩu</label>
             <div class="relative">
               <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">lock</span>
-              <input autocomplete="current-password" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-12 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="login-password" name="password" placeholder="Enter your password" required type="password"/>
-              <button aria-label="Show password" class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-primary" id="password-toggle" type="button">
+              <input autocomplete="current-password" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-12 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="login-password" name="password" oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('Vui lòng nhập mật khẩu.')" placeholder="Nhập mật khẩu" required type="password"/>
+              <button aria-label="Hiện mật khẩu" class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-primary" id="password-toggle" type="button">
                 <span class="material-symbols-outlined text-xl">visibility</span>
               </button>
             </div>
@@ -118,20 +118,25 @@
 
           <label class="flex cursor-pointer items-center gap-2 text-sm text-on-surface-variant">
             <input checked class="h-4 w-4 rounded border-slate-300 text-primary" id="remember-me" type="checkbox"/>
-            Remember me on this device
+            Ghi nhớ đăng nhập trên thiết bị này
           </label>
 
+          <div aria-live="polite" class="hidden rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" id="login-success" role="status"></div>
           <div aria-live="polite" class="hidden rounded-xl bg-error-container px-4 py-3 text-sm font-medium text-on-error-container" id="login-error" role="alert"></div>
 
           <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-container px-5 py-3.5 font-label text-sm font-semibold text-white shadow-md transition hover:bg-primary disabled:cursor-wait disabled:opacity-70" id="login-submit" type="submit">
             <span class="material-symbols-outlined text-xl">login</span>
-            <span id="login-submit-label">Sign In to SafeBox</span>
+            <span id="login-submit-label">Đăng nhập vào SafeBox</span>
           </button>
+          <p class="text-center text-sm text-on-surface-variant">
+            Chưa có tài khoản?
+            <a class="font-semibold text-secondary hover:text-primary hover:underline" href="/safebox_storage_register/code.html">Tạo tài khoản</a>
+          </p>
         </form>
 
         <div class="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-low px-4 py-3 font-label text-xs text-on-surface-variant">
-          <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-emerald-700">encrypted</span>Protected authentication</span>
-          <span>Support: +84 (028) 3822 9900</span>
+          <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-emerald-700">encrypted</span>Đăng nhập được bảo mật</span>
+          <span>Hỗ trợ: +84 (028) 3822 9900</span>
         </div>
       </div>
     </div>
@@ -144,13 +149,20 @@
   const emailInput = document.getElementById('login-email');
   const passwordInput = document.getElementById('login-password');
   const errorBox = document.getElementById('login-error');
+  const successBox = document.getElementById('login-success');
   const submitButton = document.getElementById('login-submit');
   const submitLabel = document.getElementById('login-submit-label');
+
+  if (new URLSearchParams(window.location.search).get('registered') === '1') {
+    successBox.textContent = 'Tạo tài khoản thành công. Vui lòng đăng nhập.';
+    successBox.classList.remove('hidden');
+    window.history.replaceState(null, '', window.location.pathname);
+  }
 
   document.getElementById('password-toggle').addEventListener('click', function () {
     const isPassword = passwordInput.type === 'password';
     passwordInput.type = isPassword ? 'text' : 'password';
-    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    this.setAttribute('aria-label', isPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
     this.querySelector('.material-symbols-outlined').textContent = isPassword ? 'visibility_off' : 'visibility';
   });
 
@@ -159,7 +171,7 @@
     errorBox.classList.add('hidden');
     errorBox.textContent = '';
     submitButton.disabled = true;
-    submitLabel.textContent = 'Verifying credentials...';
+    submitLabel.textContent = 'Đang xác minh thông tin...';
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -173,14 +185,14 @@
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        if (response.status === 401) throw new Error('Email or password is incorrect.');
-        if (response.status === 403) throw new Error('Your account is not active. Please contact support.');
-        if (response.status === 400) throw new Error(payload.message || 'Please check your email and password.');
-        throw new Error('Unable to sign in. Please try again.');
+        if (response.status === 401) throw new Error('Email hoặc mật khẩu không đúng.');
+        if (response.status === 403) throw new Error('Tài khoản chưa hoạt động. Vui lòng liên hệ hỗ trợ.');
+        if (response.status === 400) throw new Error(window.SafeBoxAuth.localizedError(payload.message, 'Vui lòng kiểm tra email và mật khẩu.'));
+        throw new Error('Không thể đăng nhập. Vui lòng thử lại.');
       }
 
       if (!payload.token || !payload.user || !payload.user.role) {
-        throw new Error('The authentication response is incomplete.');
+        throw new Error('Phản hồi đăng nhập chưa đầy đủ. Vui lòng thử lại.');
       }
 
       const destination = window.SafeBoxAuth.dashboardForRole(payload.user.role);
@@ -191,11 +203,11 @@
       );
       window.location.replace(destination || '/');
     } catch (error) {
-      errorBox.textContent = error instanceof Error ? error.message : 'Unable to sign in. Please try again.';
+      errorBox.textContent = error instanceof Error ? error.message : 'Không thể đăng nhập. Vui lòng thử lại.';
       errorBox.classList.remove('hidden');
     } finally {
       submitButton.disabled = false;
-      submitLabel.textContent = 'Sign In to SafeBox';
+      submitLabel.textContent = 'Đăng nhập vào SafeBox';
     }
   });
 </script>

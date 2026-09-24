@@ -41,6 +41,30 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.FORBIDDEN, exception.getMessage(), request);
     }
 
+    @ExceptionHandler(RegistrationValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleRegistrationValidation(
+            RegistrationValidationException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.BAD_REQUEST, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateEmail(
+            DuplicateEmailException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(RegistrationUnavailableException.class)
+    public ResponseEntity<ApiErrorResponse> handleRegistrationUnavailable(
+            RegistrationUnavailableException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage(), request);
+    }
+
     private ResponseEntity<ApiErrorResponse> error(
             HttpStatus status,
             String message,

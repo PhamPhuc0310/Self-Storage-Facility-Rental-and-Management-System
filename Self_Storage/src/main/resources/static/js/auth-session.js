@@ -10,6 +10,44 @@
     FACILITY_MANAGER: '/safebox_storage_facility_storage_unit_management/code.html'
   });
 
+  const roleLabels = Object.freeze({
+    CUSTOMER: 'Khách hàng',
+    FACILITY_STAFF: 'Nhân viên cơ sở',
+    FACILITY_MANAGER: 'Quản lý cơ sở',
+    BUSINESS_OPERATIONS_MANAGER: 'Quản lý vận hành',
+    SYSTEM_ADMIN: 'Quản trị viên hệ thống',
+    SYSTEM_ADMINISTRATOR: 'Quản trị viên hệ thống'
+  });
+
+  const authErrorLabels = Object.freeze({
+    'Email is required': 'Vui lòng nhập email.',
+    'Email must be valid': 'Email không đúng định dạng.',
+    'Enter a valid email address': 'Email không đúng định dạng.',
+    'Email must not exceed 255 characters': 'Email không được vượt quá 255 ký tự.',
+    'Password is required': 'Vui lòng nhập mật khẩu.',
+    'Password must be between 8 and 72 characters': 'Mật khẩu phải có từ 8 đến 72 ký tự.',
+    'Please confirm your password': 'Vui lòng xác nhận mật khẩu.',
+    'Password and confirmation do not match.': 'Mật khẩu xác nhận không khớp.',
+    'Full name is required': 'Vui lòng nhập họ và tên.',
+    'Full name must be at least 2 characters': 'Họ và tên phải có từ 2 ký tự trở lên.',
+    'Full name must be between 2 and 100 characters': 'Họ và tên phải có từ 2 đến 100 ký tự.',
+    'Phone number is required': 'Vui lòng nhập số điện thoại.',
+    'Phone number must be between 7 and 20 characters': 'Số điện thoại phải có từ 7 đến 20 ký tự.',
+    'Enter a valid phone number': 'Số điện thoại không hợp lệ.',
+    'An account with this email already exists.': 'Email này đã được sử dụng.',
+    'Registration is temporarily unavailable. Please try again later.': 'Tạm thời chưa thể đăng ký. Vui lòng thử lại sau.',
+    'Invalid email or password': 'Email hoặc mật khẩu không đúng.',
+    'User account is not active': 'Tài khoản chưa hoạt động. Vui lòng liên hệ hỗ trợ.',
+    'Authentication required': 'Vui lòng đăng nhập để tiếp tục.',
+    'Access denied': 'Bạn không có quyền truy cập.',
+    'Session expired': 'Phiên đăng nhập đã hết hạn.',
+    'Please sign in again': 'Vui lòng đăng nhập lại.'
+  });
+
+  function localizedError(message, fallback) {
+    return Object.hasOwn(authErrorLabels, message) ? authErrorLabels[message] : fallback;
+  }
+
   function clearStorage(storage) {
     storage.removeItem('accessToken');
     storage.removeItem('currentUser');
@@ -71,7 +109,7 @@
   function renderAuthenticatedUser(user) {
     setText('[data-auth-user="fullName"]', user.fullName);
     setText('[data-auth-user="email"]', user.email);
-    setText('[data-auth-user="role"]', user.role.replaceAll('_', ' '));
+    setText('[data-auth-user="role"]', Object.hasOwn(roleLabels, user.role) ? roleLabels[user.role] : user.role.replaceAll('_', ' '));
 
     const dashboard = dashboardForRole(user.role);
     document.querySelectorAll('[data-auth-dashboard]').forEach((element) => {
@@ -112,7 +150,7 @@
       return null;
     }
     if (!response.ok) {
-      throw new Error('Unable to validate authentication');
+      throw new Error('Không thể xác minh phiên đăng nhập.');
     }
 
     const user = await response.json();
@@ -151,7 +189,7 @@
     if (!authentication) {
       clearAuthentication();
       redirectToLogin();
-      throw new Error('Authentication is required');
+      throw new Error('Vui lòng đăng nhập để tiếp tục.');
     }
 
     const headers = new Headers(options.headers || {});
@@ -207,7 +245,7 @@
       return;
     }
 
-    if (pageMode === 'login') {
+    if (pageMode === 'login' || pageMode === 'register') {
       const authentication = getAuthentication();
       if (!authentication) return;
       const user = await verifySession({ redirectOnFailure: false });
@@ -233,6 +271,7 @@
     clearAuthentication,
     dashboardForRole,
     getAuthentication,
+    localizedError,
     saveAuthentication,
     verifySession
   });

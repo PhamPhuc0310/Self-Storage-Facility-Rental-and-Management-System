@@ -44,10 +44,12 @@ public class SecurityConfig {
                                 "/fonts/**",
                                 "/safebox_storage_home/**",
                                 "/safebox_storage_login/**",
+                                "/safebox_storage_register/**",
                                 "/safebox_storage_my_storage_dashboard/**",
                                 "/safebox_storage_reservation_requests_management/**",
                                 "/safebox_storage_facility_storage_unit_management/**",
                                 "/api/auth/login",
+                                "/api/auth/register",
                                 "/api/auth/logout"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()

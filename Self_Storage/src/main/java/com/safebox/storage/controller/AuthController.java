@@ -1,9 +1,11 @@
 package com.safebox.storage.controller;
 
 import com.safebox.storage.dto.request.LoginRequest;
+import com.safebox.storage.dto.request.RegisterRequest;
 import com.safebox.storage.dto.response.AuthenticatedUserResponse;
 import com.safebox.storage.dto.response.LoginResponse;
 import com.safebox.storage.dto.response.LogoutResponse;
+import com.safebox.storage.dto.response.RegisterResponse;
 import com.safebox.storage.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.status(201).body(authService.register(request));
     }
 
     @PostMapping("/logout")

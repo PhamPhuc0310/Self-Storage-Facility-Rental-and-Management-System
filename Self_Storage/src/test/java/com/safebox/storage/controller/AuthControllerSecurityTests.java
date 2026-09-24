@@ -3,6 +3,7 @@ package com.safebox.storage.controller;
 import com.safebox.storage.config.SecurityConfig;
 import com.safebox.storage.dto.response.AuthenticatedUserResponse;
 import com.safebox.storage.dto.response.LoginResponse;
+import com.safebox.storage.dto.response.RegisterResponse;
 import com.safebox.storage.exception.GlobalExceptionHandler;
 import com.safebox.storage.exception.InactiveUserException;
 import com.safebox.storage.exception.InvalidCredentialsException;
@@ -82,6 +83,51 @@ class AuthControllerSecurityTests {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void registrationIsPublicAndIgnoresRoleEscalationFields() throws Exception {
+        UUID userId = UUID.randomUUID();
+        when(authService.register(any())).thenReturn(new RegisterResponse(
+                userId,
+                "New Customer",
+                "new.customer@safebox.vn",
+                "CUSTOMER",
+                "Account created successfully. Please sign in."
+        ));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fullName":"New Customer",
+                                  "email":"new.customer@safebox.vn",
+                                  "phone":"0901234567",
+                                  "password":"SafeBox!2026",
+                                  "confirmPassword":"SafeBox!2026",
+                                  "role":"FACILITY_MANAGER"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role").value("CUSTOMER"))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
+    }
+
+    @Test
+    void registrationValidatesRequiredNameAndEmailFormat() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fullName":"",
+                                  "email":"not-an-email",
+                                  "phone":"0901234567",
+                                  "password":"SafeBox!2026",
+                                  "confirmPassword":"SafeBox!2026"
+                                }
+                                """))
                 .andExpect(status().isBadRequest());
     }
 

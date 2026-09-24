@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Tạo tài khoản | SafeBox Storage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#00236f',
+            'primary-container': '#1e3a8a',
+            secondary: '#006398',
+            background: '#f8f9ff',
+            'surface-low': '#eff4ff',
+            'on-surface': '#0b1c30',
+            'on-surface-variant': '#444651',
+            'error-container': '#ffdad6',
+            'on-error-container': '#93000a'
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            label: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-background font-sans text-on-surface" data-auth-page="register">
+<header class="absolute inset-x-0 top-0 z-20">
+  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-12">
+    <a class="inline-flex items-center gap-2 font-bold text-white lg:text-primary" href="/">
+      <span class="material-symbols-outlined">inventory_2</span>
+      <span>SafeBox</span>
+    </a>
+    <a class="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10 lg:text-primary lg:hover:bg-surface-low" href="/">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Về trang chủ
+    </a>
+  </div>
+</header>
+
+<main class="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
+  <section class="relative hidden overflow-hidden bg-primary px-12 pb-12 pt-32 text-white lg:flex lg:flex-col lg:justify-between">
+    <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 15% 20%,#60a5fa 0,transparent 35%),radial-gradient(circle at 80% 75%,#22d3ee 0,transparent 30%)"></div>
+    <div class="relative max-w-md">
+      <div class="mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20">
+        <span class="material-symbols-outlined text-3xl">person_add</span>
+      </div>
+      <h1 class="text-4xl font-bold leading-tight">Tạo tài khoản khách hàng SafeBox</h1>
+      <p class="mt-5 text-lg leading-8 text-blue-100">Một tài khoản an toàn để truy cập khu vực dành cho khách hàng. Đăng ký tại đây sẽ tạo tài khoản khách hàng thông thường.</p>
+    </div>
+    <div class="relative grid gap-4 text-sm text-blue-100 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+      <div class="rounded-xl bg-white/10 p-4 ring-1 ring-white/15"><span class="material-symbols-outlined mb-2">lock</span><p>Mật khẩu được bảo vệ bằng BCrypt.</p></div>
+      <div class="rounded-xl bg-white/10 p-4 ring-1 ring-white/15"><span class="material-symbols-outlined mb-2">verified_user</span><p>SafeBox cấp quyền truy cập an toàn cho tài khoản của bạn.</p></div>
+    </div>
+  </section>
+
+  <section class="flex items-center justify-center px-5 pb-12 pt-24 sm:px-8 lg:px-12 lg:pt-20">
+    <div class="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-blue-950/5 sm:p-9">
+      <div class="mb-8">
+        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-low text-primary lg:hidden">
+          <span class="material-symbols-outlined">person_add</span>
+        </div>
+        <p class="font-label text-xs font-bold uppercase tracking-[0.18em] text-secondary">SafeBox Storage</p>
+        <h2 class="mt-2 text-3xl font-bold tracking-tight">Tạo tài khoản</h2>
+        <p class="mt-2 text-on-surface-variant">Nhập thông tin để tạo tài khoản khách hàng.</p>
+      </div>
+
+      <form class="space-y-5" id="register-form" novalidate>
+        <div>
+          <label class="mb-2 block font-label text-sm font-semibold" for="register-full-name">Họ và tên</label>
+          <div class="relative">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">person</span>
+            <input autocomplete="name" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="register-full-name" maxlength="100" minlength="2" name="fullName" placeholder="Nhập họ và tên" required type="text"/>
+          </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="mb-2 block font-label text-sm font-semibold" for="register-email">Email</label>
+            <div class="relative">
+              <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">mail</span>
+              <input autocomplete="email" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="register-email" maxlength="255" name="email" placeholder="name@example.com" required type="email"/>
+            </div>
+          </div>
+          <div>
+            <label class="mb-2 block font-label text-sm font-semibold" for="register-phone">Số điện thoại</label>
+            <div class="relative">
+              <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xl text-slate-500">call</span>
+              <input autocomplete="tel" class="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="register-phone" maxlength="20" minlength="7" name="phone" placeholder="090 123 4567" required type="tel"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label class="mb-2 block font-label text-sm font-semibold" for="register-password">Mật khẩu</label>
+            <input autocomplete="new-password" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="register-password" maxlength="72" minlength="8" name="password" placeholder="Ít nhất 8 ký tự" required type="password"/>
+          </div>
+          <div>
+            <label class="mb-2 block font-label text-sm font-semibold" for="register-confirm-password">Xác nhận mật khẩu</label>
+            <input autocomplete="new-password" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-secondary focus:ring-2 focus:ring-blue-100" id="register-confirm-password" maxlength="72" name="confirmPassword" placeholder="Nhập lại mật khẩu" required type="password"/>
+          </div>
+        </div>
+
+        <div aria-live="polite" class="hidden rounded-xl bg-error-container px-4 py-3 text-sm font-medium text-on-error-container" id="register-error" role="alert"></div>
+
+        <button class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-container px-5 py-3.5 font-label text-sm font-semibold text-white shadow-md transition hover:bg-primary disabled:cursor-wait disabled:opacity-70" id="register-submit" type="submit">
+          <span class="material-symbols-outlined text-xl">person_add</span>
+          <span id="register-submit-label">Tạo tài khoản</span>
+        </button>
+
+        <p class="text-center text-sm text-on-surface-variant">
+          Đã có tài khoản?
+          <a class="font-semibold text-secondary hover:text-primary hover:underline" href="/safebox_storage_login/code.html">Đăng nhập</a>
+        </p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script src="/js/auth-session.js"></script>
+<script>
+  const form = document.getElementById('register-form');
+  const errorBox = document.getElementById('register-error');
+  const submitButton = document.getElementById('register-submit');
+  const submitLabel = document.getElementById('register-submit-label');
+
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.classList.remove('hidden');
+  }
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    errorBox.classList.add('hidden');
+    errorBox.textContent = '';
+
+    const fullName = document.getElementById('register-full-name').value.trim();
+    const emailInput = document.getElementById('register-email');
+    const email = emailInput.value.trim();
+    const phone = document.getElementById('register-phone').value.trim();
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+
+    if (!fullName) return showError('Vui lòng nhập họ và tên.');
+    if (fullName.length < 2) return showError('Họ và tên phải có từ 2 ký tự trở lên.');
+    if (!email) return showError('Vui lòng nhập email.');
+    if (!emailInput.validity.valid) return showError('Email không đúng định dạng.');
+    if (!phone) return showError('Vui lòng nhập số điện thoại.');
+    if (phone.length < 7) return showError('Vui lòng nhập số điện thoại hợp lệ.');
+    if (!password) return showError('Vui lòng nhập mật khẩu.');
+    if (password.length < 8 || password.length > 72) return showError('Mật khẩu phải có từ 8 đến 72 ký tự.');
+    if (!confirmPassword) return showError('Vui lòng xác nhận mật khẩu.');
+    if (password !== confirmPassword) return showError('Mật khẩu xác nhận không khớp.');
+
+    submitButton.disabled = true;
+    submitLabel.textContent = 'Đang tạo tài khoản...';
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ fullName, email, phone, password, confirmPassword })
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(window.SafeBoxAuth.localizedError(payload.message, 'Không thể tạo tài khoản. Vui lòng kiểm tra thông tin.'));
+      }
+      if (!payload.userId || payload.role !== 'CUSTOMER') {
+        throw new Error('Phản hồi đăng ký chưa đầy đủ. Vui lòng thử lại.');
+      }
+
+      window.location.replace('/safebox_storage_login/code.html?registered=1');
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Không thể tạo tài khoản. Vui lòng thử lại.');
+    } finally {
+      submitButton.disabled = false;
+      submitLabel.textContent = 'Tạo tài khoản';
+    }
+  });
+</script>
+</body>
+</html>
