@@ -92,7 +92,7 @@ SelfStorageFacilityDB
 
 ### Development Tools
 
-- IntelliJ IDEA
+- IntelliJ IDEA, VS Code hoặc Eclipse / Spring Tools
 - SQL Server Management Studio
 - Git
 - GitHub
@@ -462,10 +462,15 @@ spring.jpa.hibernate.ddl-auto=none
 Máy development cần:
 
 - JDK 21
-- IntelliJ IDEA
+- Một IDE bất kỳ hỗ trợ Maven, hoặc chỉ dùng terminal
 - Microsoft SQL Server
 - SQL Server Management Studio
 - Git
+
+Repo đã có Maven Wrapper trong `Self_Storage/`, nên không cần cài Maven riêng.
+Mở thư mục `Self_Storage` như một Maven project (IntelliJ: Open `pom.xml`;
+VS Code: Open Folder và dùng Java Extension Pack; Eclipse: Import Existing Maven Projects).
+Mọi thành viên dùng **JDK 21** và chạy cùng lệnh Maven Wrapper bên dưới.
 
 Kiểm tra Java:
 
@@ -550,7 +555,7 @@ Ví dụ:
 spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=SelfStorageFacilityDB;encrypt=true;trustServerCertificate=true
 
 spring.datasource.username=${DB_USERNAME:sa}
-spring.datasource.password=${DB_PASSWORD:12345}
+spring.datasource.password=${DB_PASSWORD}
 
 spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 ```
@@ -562,7 +567,37 @@ DB_USERNAME
 DB_PASSWORD
 ```
 
-thay vì sửa source code.
+thay vì sửa source code. Trên PowerShell, đặt biến cho phiên terminal đang chạy
+(dùng tài khoản SQL Server trên máy của mình):
+
+```powershell
+$env:DB_USERNAME = "sa"
+$env:DB_PASSWORD = "<mat-khau-SQL-Server-cua-ban>"
+```
+
+Trên macOS/Linux (Bash hoặc zsh):
+
+```bash
+export DB_USERNAME=sa
+export DB_PASSWORD='<mat-khau-SQL-Server-cua-ban>'
+```
+
+Nếu SQL Server của bạn không chạy ở `localhost:1433`, chỉnh URL qua
+`spring.datasource.url` trong file local bị Git bỏ qua:
+`Self_Storage/src/main/resources/application-local.properties`, rồi bật cả hai
+profile khi chạy Maven Wrapper:
+
+```powershell
+cd Self_Storage
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev,local
+```
+
+```bash
+cd Self_Storage
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev,local
+```
+
+Không commit file local này.
 
 ---
 
@@ -602,6 +637,46 @@ Test:
 
 ```powershell
 .\mvnw.cmd test
+```
+
+Trên macOS/Linux dùng `./mvnw verify` hoặc `./mvnw spring-boot:run`.
+Maven Wrapper, `pom.xml` và SQL script được commit để các IDE dùng chung bản build;
+việc chạy ứng dụng vẫn cần SQL Server và biến `DB_PASSWORD` ở mỗi máy.
+
+---
+
+## Quy trình Git và Pull Request
+
+- `main`: bản ổn định để demo; `develop`: tích hợp Sprint.
+- Mỗi task tạo `feature/<ten-task>` từ `develop`, push và mở PR vào `develop`.
+- Cuối Sprint mở PR `develop` → `main` sau khi kiểm tra.
+- PR vào `develop` hoặc `main` chạy GitHub Actions **Build and test** với JDK 21,
+  từ thư mục `Self_Storage`. CI chạy unit test, không kết nối SQL Server thật.
+- CodeRabbit tự review PR khi GitHub App đã được cài cho repo. File
+  `.coderabbit.yaml` thêm `develop` vào danh sách nhánh được tự review.
+  Draft PR được review khi chuyển sang Ready for review.
+
+Thiết lập một lần trong GitHub sau khi workflow có một lượt chạy:
+
+1. Cài CodeRabbit GitHub App, cấp quyền **chỉ repo này**; kiểm tra bot trên một PR.
+2. Tạo nhánh `develop` từ `main` nếu chưa có.
+3. Trong **Settings → Rules → Rulesets**, tạo ruleset cho `develop` và `main`:
+   yêu cầu PR, yêu cầu status check **Build and test**, giải quyết hội thoại,
+   chặn force push và xóa nhánh. Không yêu cầu check trước khi nó xuất hiện
+   lần đầu trong Actions.
+4. Khi hai nhánh đã được bảo vệ, mọi thay đổi đi qua PR; bot AI gợi ý sửa,
+   còn status check của CI quyết định build/test có đạt hay không.
+
+Ví dụ trên PowerShell:
+
+```powershell
+git switch develop
+git pull origin develop
+git switch -c feature/login-validation
+# code và kiểm tra
+git add .
+git commit -m "feat: validate login request"
+git push -u origin feature/login-validation
 ```
 
 ---
