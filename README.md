@@ -588,10 +588,12 @@ Nếu SQL Server của bạn không chạy ở `localhost:1433`, chỉnh URL qua
 profile khi chạy Maven Wrapper:
 
 ```powershell
+cd Self_Storage
 .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev,local
 ```
 
 ```bash
+cd Self_Storage
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev,local
 ```
 
