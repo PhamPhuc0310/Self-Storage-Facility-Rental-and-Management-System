@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#001229","on-surface":"#131b2e","on-secondary":"#ffffff","surface-variant":"#dae2fd","error":"#ba1a1a","surface-container-lowest":"#ffffff","tertiary-fixed-dim":"#68dba9","on-primary-container":"#798fb1","on-secondary-container":"#fefcff","primary-fixed":"#d4e3ff","surface-dim":"#d2d9f4","on-tertiary-fixed-variant":"#005137","surface-bright":"#faf8ff","secondary-fixed-dim":"#b4c5ff","outline-variant":"#c4c6ce","surface-container":"#eaedff","tertiary":"#00160c","on-primary-fixed":"#021c39","surface":"#faf8ff","on-tertiary":"#ffffff","tertiary-container":"#002d1d","on-error-container":"#93000a","secondary-fixed":"#dbe1ff","tertiary-fixed":"#85f8c4","surface-container-low":"#f2f3ff","on-tertiary-container":"#1fa072","inverse-surface":"#283044","on-tertiary-fixed":"#002114","surface-container-high":"#e2e7ff","surface-container-highest":"#dae2fd","secondary-container":"#316bf3","outline":"#74777e","on-primary-fixed-variant":"#324866","secondary":"#0051d5","on-surface-variant":"#44474d","primary-fixed-dim":"#b2c8ed","on-error":"#ffffff","primary-container":"#0f2744","surface-tint":"#4a5f7f","on-secondary-fixed-variant":"#003ea8","on-secondary-fixed":"#00174b","error-container":"#ffdad6","on-background":"#131b2e","inverse-primary":"#b2c8ed","on-primary":"#ffffff","background":"#faf8ff","inverse-on-surface":"#eef0ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin-mobile":"1rem","gutter-mobile":"1rem","space-md":"1rem","margin":"2rem","space-xl":"2.5rem","space-xs":"0.25rem","space-sm":"0.5rem","space-lg":"1.5rem","gutter":"1.5rem"},fontFamily:{"headline-sm":["Be Vietnam Pro"],"headline-md":["Be Vietnam Pro"],"headline-lg-mobile":["Be Vietnam Pro"],"body-sm":["Be Vietnam Pro"],"display-hero":["Be Vietnam Pro"],"label-numeric-price":["Be Vietnam Pro"],"display-hero-mobile":["Be Vietnam Pro"],"headline-lg":["Be Vietnam Pro"],"body-md":["Be Vietnam Pro"],"label-button":["Be Vietnam Pro"],"label-badge":["Be Vietnam Pro"],"body-lg":["Be Vietnam Pro"]},fontSize:{"headline-sm":["18px",{"lineHeight":"26px","fontWeight":"600"}],"headline-md":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"display-hero":["44px",{"lineHeight":"54px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-numeric-price":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"700"}],"display-hero-mobile":["30px",{"lineHeight":"38px","letterSpacing":"-0.015em","fontWeight":"700"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.015em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"label-button":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"label-badge":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}]}}}}</script></head><body style="visibility:hidden" class="bg-surface text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-72 bg-primary-container text-on-secondary-container z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-20 px-6 flex items-center gap-3 bg-primary/40"><img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-white tracking-tight">SafeBox Admin</span><span class="font-body-sm text-body-sm text-on-primary-container">Quản lý cơ sở kho</span></div></div><nav class="px-4 py-6 space-y-1.5" data-active-classes="bg-secondary-container text-on-secondary font-bold rounded-lg"><a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="tong-quan" href="#"><span class="material-symbols-outlined mr-3">dashboard</span><span class="font-label-button text-label-button">Tổng quan</span></a><a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="co-so-cua-toi" href="#"><span class="material-symbols-outlined mr-3">domain</span><span class="font-label-button text-label-button">Cơ sở của tôi</span></a><a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="loai-kho" href="#"><span class="material-symbols-outlined mr-3">category</span><span class="font-label-button text-label-button">Loại kho</span></a><a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="kho-vat-ly" href="#"><span class="material-symbols-outlined mr-3">inventory_2</span><span class="font-label-button text-label-button">Kho vật lý</span></a><a aria-current="page" class="flex items-center justify-between px-4 py-3 transition-colors bg-secondary-container text-on-secondary font-bold rounded-lg" data-path="yeu-cau-dat-kho" href="#"><div class="flex items-center"><span class="material-symbols-outlined mr-3">assignment</span><span class="font-label-button text-label-button">Yêu cầu đặt kho</span></div><span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary font-label-badge text-label-badge">4 MỚI</span></a></nav></div><div class="p-4 mb-4"><a class="flex items-center px-4 py-3 rounded-lg text-error-container hover:bg-error/20 hover:text-on-error transition-colors" data-path="dang-nhap" href="#"><span class="material-symbols-outlined mr-3 text-error">logout</span><span class="font-label-button text-label-button">Đăng xuất</span></a></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-20 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-8 flex items-center justify-between"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary text-2xl">location_city</span><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface">SafeBox Thủ Đức (Khu A)</span><span class="font-body-sm text-body-sm text-on-surface-variant">Hôm nay: Thứ Tư, 15/10/2025 • Hệ thống IoT: Ổn định</span></div></div><div class="flex items-center gap-6"><div class="flex items-center gap-2"><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors relative" type="button"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-xl">tune</span></button></div><div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAwSgqQwpv1L1HUNuJh2vAIp9T8ZgduJe-AxPi1FnqpEUApk7yM0WenyiHsdi2R2Bv1pubDF1XyjVRKpPEJ-fxSJgvnlkvLR4C2UxKTWVkQvWg7X_3Z7T-5TX3h6KgUtYBLHalR95FxNbWCmhtjEkm8HAyKVEj6zRdJ83erXdLRIBtBcf4MKZyeHNMPAB6bBPo3CxSJXuPC3QP31NS9D2zjaVU726MOh_4_EuzTfB77fzlHYf_38m6HA"/><div class="flex flex-col text-left"><span class="font-label-button text-label-button text-on-surface leading-tight">Nguyễn Văn Minh</span><span class="font-body-sm text-body-sm text-secondary font-medium">Quản lý cơ sở</span></div></div></div></header><main class="w-full pt-20 px-8 bg-surface min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full pb-16">
+<!-- Top Operational Banner & Meta Context -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div class="flex flex-col space-y-1.5">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary/10 text-secondary font-label-badge text-label-badge font-semibold tracking-wide">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+          SPRINT 1 • LOGISTICS WORKFLOW
+        </span>
+<span class="text-outline text-body-sm">•</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-base text-outline">verified</span>
+          SafeBox Thủ Đức (Khu A)
+        </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">
+        Quản lý yêu cầu đặt kho
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+        Cơ sở: <span class="font-semibold text-on-surface">SafeBox Thủ Đức</span> — Xử lý phê duyệt và từ chối các yêu cầu thuê kho từ khách hàng cá nhân &amp; doanh nghiệp.
+      </p>
+</div>
+<!-- Right Quick Actions & Search Metric -->
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-surface-container px-3.5 py-2 rounded-lg text-on-surface-variant gap-2 shadow-sm">
+<span class="material-symbols-outlined text-secondary text-xl">inventory_2</span>
+<div class="flex flex-col text-left">
+<span class="font-body-sm text-body-sm text-on-surface-variant leading-none">Công suất sử dụng</span>
+<span class="font-label-button text-label-button text-primary font-bold">87.4% (Khoang thường)</span>
+</div>
+</div>
+<button class="px-4 py-2.5 rounded-lg bg-primary text-on-primary font-label-button text-label-button hover:bg-primary-container transition-all flex items-center gap-2 shadow-sm" onclick="openModal('modal-approve')" type="button">
+<span class="material-symbols-outlined text-base">checklist</span>
+<span>Duyệt nhanh #0891</span>
+</button>
+</div>
+</div>
+<!-- KPI Quick Metric Rail -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Chờ xử lý ngay</span>
+<span class="font-label-numeric-price text-label-numeric-price text-secondary mt-1">03 đơn</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">SLA trung bình: 15 phút</span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">hourglass_top</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Đã duyệt tháng này</span>
+<span class="font-label-numeric-price text-label-numeric-price text-on-surface mt-1">18 hợp đồng</span>
+<span class="font-body-sm text-body-sm text-on-tertiary-container font-medium mt-0.5 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12% so tháng trước
+        </span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-tertiary-container/30 text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">task_alt</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tỷ lệ chấp thuận</span>
+<span class="font-label-numeric-price text-label-numeric-price text-on-surface mt-1">82.5%</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">4 từ chối do quá tải</span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">pie_chart</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Doanh số tiềm năng</span>
+<span class="font-label-numeric-price text-label-numeric-price text-primary font-bold mt-1">32.700.000 đ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Từ 3 booking đang chờ</span>
+</div>
+<div class="w-11 h-11 rounded-lg bg-primary-fixed text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+</div>
+</div>
+<!-- Operational Filter Hub -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+<!-- Status Filter Tabs -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+<button class="px-4 py-2 rounded-lg bg-secondary text-on-secondary font-label-button text-label-button shadow-sm flex items-center gap-2 shrink-0" type="button">
+<span>Chờ xác nhận</span>
+<span class="w-5 h-5 rounded-full bg-white/25 text-white font-label-badge text-label-badge flex items-center justify-center">3</span>
+</button>
+<button class="px-4 py-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-button text-label-button transition-colors flex items-center gap-2 shrink-0" type="button">
+<span>Đã xác nhận</span>
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant font-label-badge text-label-badge flex items-center justify-center">18</span>
+</button>
+<button class="px-4 py-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-button text-label-button transition-colors flex items-center gap-2 shrink-0" type="button">
+<span>Bị từ chối</span>
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant font-label-badge text-label-badge flex items-center justify-center">4</span>
+</button>
+<button class="px-4 py-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-button text-label-button transition-colors flex items-center gap-2 shrink-0" type="button">
+<span>Đã hủy</span>
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface-variant font-label-badge text-label-badge flex items-center justify-center">2</span>
+</button>
+</div>
+<!-- Quick Search & Facility Selector -->
+<div class="flex items-center gap-3">
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+<input class="w-full pl-9 pr-3 py-2 rounded-lg bg-surface text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest shadow-sm placeholder:text-outline-variant" placeholder="Tìm theo mã hoặc tên..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant transition-colors shadow-sm" title="Bộ lọc nâng cao" type="button">
+<span class="material-symbols-outlined text-xl">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Primary Booking Data Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mb-12">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-body-sm text-body-sm tracking-wider uppercase">
+<th class="py-3.5 px-6 font-semibold">Mã yêu cầu</th>
+<th class="py-3.5 px-6 font-semibold">Khách hàng</th>
+<th class="py-3.5 px-6 font-semibold">Loại kho &amp; Diện tích</th>
+<th class="py-3.5 px-6 font-semibold">Thời gian thuê</th>
+<th class="py-3.5 px-6 font-semibold text-right">Giá dự kiến</th>
+<th class="py-3.5 px-6 font-semibold">Ngày gửi</th>
+<th class="py-3.5 px-6 font-semibold">Trạng thái</th>
+<th class="py-3.5 px-6 font-semibold text-center">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y-0">
+<!-- Row 1: Tran Nhat Quan -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-secondary font-bold hover:underline cursor-pointer">#SB-REQ-0891</span>
+<span class="font-body-sm text-body-sm text-outline-variant flex items-center gap-1 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Cá nhân
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-surface font-semibold">Trần Nhật Quân</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-0.5">
+<span class="material-symbols-outlined text-sm text-outline">call</span> 0908 123 456
+                  </span>
+</div>
+<span class="font-body-sm text-body-sm text-outline truncate max-w-xs mt-0.5">quan.tran@gmail.com</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-button text-label-button text-on-surface">Kho thường</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-label-badge text-label-badge">10 m²</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-outline">straighten</span> 3.0m x 3.3m x 2.4m
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-surface">15/10/2024 - 15/01/2025</span>
+<span class="font-body-sm text-body-sm text-secondary font-medium mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">schedule</span> 3 tháng trọn gói
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-numeric-price text-label-numeric-price text-primary">7.500.000 đ</span>
+<span class="font-body-sm text-body-sm text-outline">2.500.000 đ/tháng</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface">12/10/2024</span>
+<span class="font-body-sm text-body-sm text-outline">09:30 AM</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-badge text-label-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Chờ xác nhận
+              </span>
+</td>
+<td class="py-4 px-6 align-top text-center">
+<div class="flex items-center justify-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-button text-label-button hover:bg-primary-container transition-all flex items-center gap-1 shadow-sm" onclick="openModal('modal-approve')" title="Duyệt yêu cầu này" type="button">
+<span class="material-symbols-outlined text-sm">done</span>
+<span>Xác nhận</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-error-container text-on-error-container font-label-button text-label-button hover:bg-error hover:text-on-error transition-all flex items-center gap-1 shadow-sm" onclick="openModal('modal-reject')" title="Từ chối yêu cầu này" type="button">
+<span class="material-symbols-outlined text-sm">close</span>
+<span>Từ chối</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Nam A Logistics -->
+<tr class="bg-surface/50 hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-secondary font-bold hover:underline cursor-pointer">#SB-REQ-0890</span>
+<span class="font-body-sm text-body-sm text-outline-variant flex items-center gap-1 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> Doanh nghiệp
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-surface font-semibold">Công ty TNHH Logistics Nam Á</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-0.5">
+<span class="material-symbols-outlined text-sm text-outline">call</span> 028 3829 9999
+                  </span>
+</div>
+<span class="font-body-sm text-body-sm text-outline truncate max-w-xs mt-0.5">contact@namalogistics.vn</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-button text-label-button text-on-surface">Kho lạnh</span>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-primary font-label-badge text-label-badge">15 m²</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-secondary">ac_unit</span> Điều nhiệt: 18°C - 22°C
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-surface">01/11/2024 - 01/05/2025</span>
+<span class="font-body-sm text-body-sm text-secondary font-medium mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">schedule</span> 6 tháng (Kỳ hạn dài)
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-numeric-price text-label-numeric-price text-primary">25.200.000 đ</span>
+<span class="font-body-sm text-body-sm text-outline">4.200.000 đ/tháng</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface">12/10/2024</span>
+<span class="font-body-sm text-body-sm text-outline">08:15 AM</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-badge text-label-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Chờ xác nhận
+              </span>
+</td>
+<td class="py-4 px-6 align-top text-center">
+<div class="flex items-center justify-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-button text-label-button hover:bg-primary-container transition-all flex items-center gap-1 shadow-sm" onclick="openModal('modal-approve')" title="Duyệt yêu cầu này" type="button">
+<span class="material-symbols-outlined text-sm">done</span>
+<span>Xác nhận</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-error-container text-on-error-container font-label-button text-label-button hover:bg-error hover:text-on-error transition-all flex items-center gap-1 shadow-sm" onclick="openModal('modal-reject')" title="Từ chối yêu cầu này" type="button">
+<span class="material-symbols-outlined text-sm">close</span>
+<span>Từ chối</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Minor context example for completeness -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-secondary font-bold hover:underline cursor-pointer">#SB-REQ-0888</span>
+<span class="font-body-sm text-body-sm text-outline-variant flex items-center gap-1 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Cá nhân
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-surface font-semibold">Phạm Hải Yến</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-0.5">
+<span class="material-symbols-outlined text-sm text-outline">call</span> 0912 888 777
+                  </span>
+</div>
+<span class="font-body-sm text-body-sm text-outline truncate max-w-xs mt-0.5">haiyen.pham@outlook.com</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-button text-label-button text-on-surface">Kho Mini Box</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-label-badge text-label-badge">5 m²</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-outline">lock</span> Khóa thông minh BLE
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-surface">20/10/2024 - 20/11/2024</span>
+<span class="font-body-sm text-body-sm text-secondary font-medium mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">schedule</span> 1 tháng thử nghiệm
+                </span>
+</div>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex flex-col items-end">
+<span class="font-label-numeric-price text-label-numeric-price text-primary">1.500.000 đ</span>
+<span class="font-body-sm text-body-sm text-outline">1.500.000 đ/tháng</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface">11/10/2024</span>
+<span class="font-body-sm text-body-sm text-outline">16:45 PM</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-badge text-label-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Chờ xác nhận
+              </span>
+</td>
+<td class="py-4 px-6 align-top text-center">
+<div class="flex items-center justify-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-button text-label-button hover:bg-primary-container transition-all flex items-center gap-1 shadow-sm" onclick="openModal('modal-approve')" type="button">
+<span class="material-symbols-outlined text-sm">done</span>
+<span>Xác nhận</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-error-container text-on-error-container font-label-button text-label-button hover:bg-error hover:text-on-error transition-all flex items-center gap-1 shadow-sm" onclick="openModal('modal-reject')" type="button">
+<span class="material-symbols-outlined text-sm">close</span>
+<span>Từ chối</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination & Bulk Status Bar -->
+<div class="p-4 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="font-body-sm text-body-sm">Đang hiển thị 1-3 trong tổng số 27 yêu cầu</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-outline hover:text-on-surface disabled:opacity-40" disabled="" type="button">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-secondary text-on-secondary font-label-button text-label-button flex items-center justify-center shadow-sm" type="button">
+          1
+        </button>
+<button class="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-on-surface-variant hover:bg-surface-container font-label-button text-label-button transition-colors" type="button">
+          2
+        </button>
+<button class="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-on-surface-variant hover:bg-surface-container font-label-button text-label-button transition-colors" type="button">
+          3
+        </button>
+<button class="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Operational Edge Cases & System Exceptions Section (Empty State & Error Simulation) -->
+<div class="space-y-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline text-xl">tune</span>
+<h2 class="font-headline-sm text-headline-sm text-primary">Các kịch bản hệ thống &amp; Xử lý ngoại lệ (UX Sprint 1)</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- State 1: Conflict Error State (409 Conflict) -->
+<div class="p-6 rounded-xl bg-error-container/40 flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 text-error/10 pointer-events-none">
+<span class="material-symbols-outlined text-9xl">event_busy</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-3">
+<span class="px-2 py-0.5 rounded bg-error text-on-error font-label-badge text-label-badge font-bold">LỖI 409 CONFLICT</span>
+<span class="font-body-sm text-body-sm text-error font-medium">Xung đột lịch đặt chỗ</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-error-container mb-2">Kho vừa hết chỗ trong khoảng thời gian bạn chọn</h3>
+<p class="font-body-md text-body-md text-on-error-container/80 mb-4 max-w-md">
+            Một quản trị viên khác vừa duyệt hợp đồng chiếm toàn bộ diện tích 10m² tại SafeBox Thủ Đức trong khung ngày 15/10/2024 - 15/01/2025. Vui lòng chuyển cơ sở hoặc điều chỉnh lại loại kho.
+          </p>
+</div>
+<div class="flex flex-wrap items-center gap-3 pt-2">
+<button class="px-4 py-2 rounded-lg bg-error text-on-error font-label-button text-label-button hover:bg-error/90 transition-colors shadow-sm" type="button">
+            Điều phối sang SafeBox Quận 9
+          </button>
+<button class="px-4 py-2 rounded-lg bg-surface text-on-surface-variant hover:text-on-surface font-label-button text-label-button shadow-sm" type="button">
+            Tải lại bảng dữ liệu
+          </button>
+</div>
+</div>
+<!-- State 2: Empty State Section -->
+<div class="p-6 rounded-xl bg-surface-container-lowest flex flex-col items-center justify-center text-center shadow-sm">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-outline mb-3">
+<span class="material-symbols-outlined text-3xl">inbox</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Không tìm thấy yêu cầu đặt kho phù hợp</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm mb-4">
+          Bạn chưa có yêu cầu nào trong danh mục bộ lọc hiện tại hoặc tất cả các yêu cầu đã được xử lý hoàn tất.
+        </p>
+<button class="px-4 py-2 rounded-lg bg-surface-container text-primary font-label-button text-label-button hover:bg-surface-container-high transition-colors" type="button">
+          Xóa tất cả bộ lọc
+        </button>
+</div>
+</div>
+</div>
+<!-- ==================== MODAL 1: DUYỆT YÊU CẦU ==================== -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden transition-opacity" id="modal-approve">
+<div class="bg-surface-container-lowest rounded-xl max-w-xl w-full shadow-2xl overflow-hidden flex flex-col transform transition-transform">
+<!-- Modal Header -->
+<div class="p-6 bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">approval</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Xác nhận yêu cầu thuê kho</span>
+<span class="font-body-sm text-body-sm text-secondary font-bold">Mã hồ sơ: #SB-REQ-0891</span>
+</div>
+</div>
+<button class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onclick="closeModal('modal-approve')" type="button">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-6">
+<!-- Customer & Unit Quick Specs Matrix -->
+<div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-surface-container">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Khách hàng</span>
+<span class="font-label-button text-label-button text-primary font-semibold">Trần Nhật Quân</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">0908 123 456</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cơ sở lưu trữ</span>
+<span class="font-label-button text-label-button text-primary font-semibold">SafeBox Thủ Đức</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Khuếch đại Khu A</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Loại kho &amp; Quy chuẩn</span>
+<span class="font-label-button text-label-button text-primary font-semibold">Kho thường • 10 m²</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Thể tích ước lượng: ~24 m³</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Thời hạn thuê</span>
+<span class="font-label-button text-label-button text-primary font-semibold">03 Tháng</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">15/10/2024 → 15/01/2025</span>
+</div>
+</div>
+<!-- Total Price Card -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-primary-fixed/30">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-primary-fixed-variant">Tổng giá trị dự kiến (chưa VAT)</span>
+<span class="font-body-sm text-body-sm text-outline">Đã áp dụng chiết khấu kỳ hạn 3 tháng</span>
+</div>
+<span class="font-label-numeric-price text-label-numeric-price text-primary font-bold">7.500.000 đ</span>
+</div>
+<!-- Sprint 1 Operational Technical Note -->
+<div class="p-4 rounded-xl bg-secondary-fixed/40 flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-xl shrink-0 mt-0.5">info</span>
+<div class="flex flex-col">
+<span class="font-label-button text-label-button text-on-secondary-fixed font-semibold">Ghi chú hệ thống (Sprint 1)</span>
+<p class="font-body-sm text-body-sm text-on-secondary-fixed-variant mt-0.5 leading-relaxed">
+              Theo phạm vi thiết kế Sprint 1: Thao tác này ghi nhận xác nhận nhu cầu của khách hàng. <strong>Chưa gán mã kho vật lý cụ thể</strong> (như Box #A-102 hay #A-105). Việc bố trí và bàn giao mã khóa điện tử sẽ được thực hiện tại Sprint 2.
+            </p>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-4 bg-surface-container-low flex items-center justify-end gap-3">
+<button class="px-5 py-2.5 rounded-lg bg-surface text-on-surface-variant hover:text-on-surface font-label-button text-label-button transition-colors shadow-sm" onclick="closeModal('modal-approve')" type="button">
+          Quay lại
+        </button>
+<button class="px-6 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-label-button text-label-button transition-all shadow-md flex items-center gap-2" onclick="handleConfirmApproval()" type="button">
+<span class="material-symbols-outlined text-base">check_circle</span>
+<span>Xác nhận duyệt yêu cầu</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ==================== MODAL 2: TỪ CHỐI YÊU CẦU ==================== -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden transition-opacity" id="modal-reject">
+<div class="bg-surface-container-lowest rounded-xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col transform transition-transform">
+<!-- Modal Warning Header -->
+<div class="p-6 bg-error-container/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-error text-on-error flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-2xl">warning</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-error">Từ chối yêu cầu thuê kho</span>
+<span class="font-body-sm text-body-sm text-on-error-container font-bold">Mã hồ sơ: #SB-REQ-0888</span>
+</div>
+</div>
+<button class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onclick="closeModal('modal-reject')" type="button">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 space-y-4">
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Vui lòng cung cấp lý do từ chối cụ thể để bộ phận CSKH liên hệ hỗ trợ hoặc hệ thống tự động thông báo phương án thay thế cho khách hàng.
+        </p>
+<div class="flex flex-col space-y-1.5">
+<label class="font-label-button text-label-button text-on-surface font-semibold flex items-center justify-between" for="reject-reason">
+<span>Lý do từ chối <span class="text-error">*</span></span>
+<span class="font-body-sm text-body-sm text-outline font-normal">Bắt buộc</span>
+</label>
+<textarea class="w-full p-3.5 rounded-xl bg-surface-container text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-low focus:ring-2 focus:ring-error transition-all" id="reject-reason" placeholder="Ví dụ: Cơ sở hiện đã hết diện tích 10m² trong khung thời gian yêu cầu, đề xuất khách hàng tham khảo cơ sở SafeBox Tân Bình..." rows="4">Cơ sở hiện đã hết diện tích 10m² trong khung thời gian yêu cầu, đề xuất khách hàng tham khảo cơ sở SafeBox Tân Bình.</textarea>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-base text-outline">notifications_active</span>
+<span class="font-body-sm text-body-sm">Email tự động kèm coupon hỗ trợ giảm 5% sẽ được gửi tới khách hàng.</span>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-4 bg-surface-container-low flex items-center justify-end gap-3">
+<button class="px-5 py-2.5 rounded-lg bg-surface text-on-surface-variant hover:text-on-surface font-label-button text-label-button transition-colors shadow-sm" onclick="closeModal('modal-reject')" type="button">
+          Quay lại
+        </button>
+<button class="px-6 py-2.5 rounded-lg bg-error text-on-error hover:bg-error/90 font-label-button text-label-button transition-all shadow-md flex items-center gap-2" onclick="handleConfirmRejection()" type="button">
+<span class="material-symbols-outlined text-base">block</span>
+<span>Xác nhận từ chối</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function handleConfirmApproval() {
+    closeModal('modal-approve');
+    alert('Đã phê duyệt thành công yêu cầu thuê kho #SB-REQ-0891 (Sprint 1: Trạng thái cập nhật thành Đã xác nhận).');
+  }
+
+  function handleConfirmRejection() {
+    const reason = document.getElementById('reject-reason').value;
+    if (!reason.trim()) {
+      alert('Vui lòng nhập lý do từ chối.');
+      return;
+    }
+    closeModal('modal-reject');
+    alert('Đã từ chối yêu cầu thuê kho #SB-REQ-0888 với lý do: ' + reason);
+  }
+
+  // Close modals on Esc key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeModal('modal-approve');
+      closeModal('modal-reject');
+    }
+  });
+</script></main></div><script src="/auth.js"></script><script>SafeBoxAuth.requireRole('FACILITY_MANAGER'); document.querySelectorAll('[data-path="dang-nhap"]').forEach(link => link.addEventListener('click', event => { event.preventDefault(); SafeBoxAuth.logout(); }));</script></body></html>

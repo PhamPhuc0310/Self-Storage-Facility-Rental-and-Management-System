@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#001229","on-surface":"#131b2e","on-secondary":"#ffffff","surface-variant":"#dae2fd","error":"#ba1a1a","surface-container-lowest":"#ffffff","tertiary-fixed-dim":"#68dba9","on-primary-container":"#798fb1","on-secondary-container":"#fefcff","primary-fixed":"#d4e3ff","surface-dim":"#d2d9f4","on-tertiary-fixed-variant":"#005137","surface-bright":"#faf8ff","secondary-fixed-dim":"#b4c5ff","outline-variant":"#c4c6ce","surface-container":"#eaedff","tertiary":"#00160c","on-primary-fixed":"#021c39","surface":"#faf8ff","on-tertiary":"#ffffff","tertiary-container":"#002d1d","on-error-container":"#93000a","secondary-fixed":"#dbe1ff","tertiary-fixed":"#85f8c4","surface-container-low":"#f2f3ff","on-tertiary-container":"#1fa072","inverse-surface":"#283044","on-tertiary-fixed":"#002114","surface-container-high":"#e2e7ff","surface-container-highest":"#dae2fd","secondary-container":"#316bf3","outline":"#74777e","on-primary-fixed-variant":"#324866","secondary":"#0051d5","on-surface-variant":"#44474d","primary-fixed-dim":"#b2c8ed","on-error":"#ffffff","primary-container":"#0f2744","surface-tint":"#4a5f7f","on-secondary-fixed-variant":"#003ea8","on-secondary-fixed":"#00174b","error-container":"#ffdad6","on-background":"#131b2e","inverse-primary":"#b2c8ed","on-primary":"#ffffff","background":"#faf8ff","inverse-on-surface":"#eef0ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"margin-mobile":"1rem","gutter-mobile":"1rem","space-md":"1rem","margin":"2rem","space-xl":"2.5rem","space-xs":"0.25rem","space-sm":"0.5rem","space-lg":"1.5rem","gutter":"1.5rem"},fontFamily:{"headline-sm":["Be Vietnam Pro"],"headline-md":["Be Vietnam Pro"],"headline-lg-mobile":["Be Vietnam Pro"],"body-sm":["Be Vietnam Pro"],"display-hero":["Be Vietnam Pro"],"label-numeric-price":["Be Vietnam Pro"],"display-hero-mobile":["Be Vietnam Pro"],"headline-lg":["Be Vietnam Pro"],"body-md":["Be Vietnam Pro"],"label-button":["Be Vietnam Pro"],"label-badge":["Be Vietnam Pro"],"body-lg":["Be Vietnam Pro"]},fontSize:{"headline-sm":["18px",{"lineHeight":"26px","fontWeight":"600"}],"headline-md":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"display-hero":["44px",{"lineHeight":"54px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-numeric-price":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"700"}],"display-hero-mobile":["30px",{"lineHeight":"38px","letterSpacing":"-0.015em","fontWeight":"700"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.015em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"label-button":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"label-badge":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}]}}}}</script></head><body style="visibility:hidden" class="bg-surface text-on-surface font-body-md text-body-md"><header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between"><div class="flex items-center gap-6"><div class="flex items-center gap-3"><img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">SafeBox Storage</span><span class="font-body-sm text-body-sm text-on-surface-variant">Hệ thống lưu trữ thông minh</span></div></div><nav class="hidden md:flex items-center gap-6 ml-6" data-active-classes="bg-surface-container-high text-on-surface font-bold rounded-lg px-3 py-1.5"><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="trang-chu" href="#">Trang chủ</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="tim-kho" href="#">Tìm kho</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="co-so" href="#">Cơ sở</a><a aria-current="page" class="transition-colors inline-flex items-center gap-2 bg-surface-container-high text-on-surface font-bold rounded-lg px-3 py-1.5" data-path="yeu-cau-cua-toi" href="#"><span>Yêu cầu của tôi</span><span class="px-2 py-0.5 rounded-full bg-secondary text-on-secondary font-label-badge text-label-badge">2</span></a></nav></div><div class="flex items-center gap-5"><a class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high hover:text-on-surface transition-colors text-on-surface" href="tel:19008868"><span class="material-symbols-outlined text-secondary text-lg">call</span><span class="font-label-button text-label-button">1900 8868</span></a><div class="flex items-center gap-3 pl-2"><div class="flex items-center gap-3"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAwSgqQwpv1L1HUNuJh2vAIp9T8ZgduJe-AxPi1FnqpEUApk7yM0WenyiHsdi2R2Bv1pubDF1XyjVRKpPEJ-fxSJgvnlkvLR4C2UxKTWVkQvWg7X_3Z7T-5TX3h6KgUtYBLHalR95FxNbWCmhtjEkm8HAyKVEj6zRdJ83erXdLRIBtBcf4MKZyeHNMPAB6bBPo3CxSJXuPC3QP31NS9D2zjaVU726MOh_4_EuzTfB77fzlHYf_38m6HA"/><div class="hidden sm:flex flex-col text-left"><span class="font-label-button text-label-button text-on-surface leading-tight">Trần Nhật Quân</span><span class="font-body-sm text-body-sm text-on-surface-variant">Khách hàng cá nhân</span></div></div><div class="hidden md:flex items-center gap-2"><a class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="tai-khoan" href="#" title="Tài khoản"><span class="material-symbols-outlined text-xl">settings</span></a><a class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dang-nhap" href="#" title="Đăng xuất"><span class="material-symbols-outlined text-xl">logout</span></a></div></div></div></div></header><main class="w-full pt-20 bg-surface min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-12 py-8 space-y-8">
+<!-- Top Action Breadcrumb & Notification Banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-primary via-primary-container to-secondary/80 text-on-primary p-6 md:p-8 rounded-xl shadow-lg relative overflow-hidden">
+<div class="relative z-10 space-y-2 max-w-2xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-secondary-fixed text-body-sm font-body-sm">
+<span class="material-symbols-outlined text-sm">shield_person</span>
+<span>Cổng Quản Lý Khách Hàng Cá Nhân</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg tracking-tight text-white">Yêu cầu thuê kho của tôi</h1>
+<p class="font-body-md text-body-md text-surface-container-highest/90">
+          Theo dõi tiến độ duyệt yêu cầu, thông tin cơ sở và thời gian thuê kho của bạn.
+        </p>
+</div>
+<!-- Quick KPI Pill Widget -->
+<div class="relative z-10 flex items-center gap-3 bg-surface-container-lowest/10 backdrop-blur-md p-3.5 rounded-xl border-none">
+<div class="flex items-center gap-3 pr-3">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-bold text-base">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-sm font-body-sm text-surface-variant/80">Cần xử lý</span>
+<span class="font-headline-sm text-headline-sm text-white">01 Yêu cầu</span>
+</div>
+</div>
+<div class="h-8 w-px bg-white/20"></div>
+<a class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-white font-label-button text-label-button hover:bg-secondary-container transition-all shadow-sm" data-path="tim-kho" href="#">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>Thuê kho mới</span>
+</a>
+</div>
+<!-- Ambient Background SVG Grid Geometry -->
+<svg class="absolute -right-8 -bottom-12 w-96 h-96 opacity-15 pointer-events-none text-white" fill="none" viewbox="0 0 200 200">
+<circle cx="100" cy="100" r="80" stroke="currentColor" stroke-dasharray="4 4" stroke-width="1.5"></circle>
+<circle cx="100" cy="100" r="50" stroke="currentColor" stroke-width="2"></circle>
+<path d="M20 100 H180 M100 20 V180" stroke="currentColor" stroke-width="1"></path>
+</svg>
+</div>
+<!-- Interactive Navigation Tabs -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low p-2 rounded-xl">
+<div class="flex flex-wrap items-center gap-1.5" id="status-tabs-container">
+<button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant font-label-button text-label-button hover:bg-surface-container-high transition-all" id="tab-btn-ALL" onclick="switchTab('ALL')">
+<span>Tất cả</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-badge text-label-badge">4</span>
+</button>
+<button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-container-lowest text-secondary shadow-sm font-label-button text-label-button transition-all" id="tab-btn-PENDING" onclick="switchTab('PENDING')">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+<span>Chờ xác nhận</span>
+<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-label-badge text-label-badge">1</span>
+</button>
+<button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant font-label-button text-label-button hover:bg-surface-container-high transition-all" id="tab-btn-CONFIRMED" onclick="switchTab('CONFIRMED')">
+<span>Đã xác nhận</span>
+<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-badge text-label-badge">1</span>
+</button>
+<button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant font-label-button text-label-button hover:bg-surface-container-high transition-all" id="tab-btn-REJECTED" onclick="switchTab('REJECTED')">
+<span>Bị từ chối</span>
+<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-label-badge text-label-badge">1</span>
+</button>
+<button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant font-label-button text-label-button hover:bg-surface-container-high transition-all" id="tab-btn-CANCELLED" onclick="switchTab('CANCELLED')">
+<span>Đã hủy</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-badge text-label-badge">1</span>
+</button>
+</div>
+<!-- Quick Filter & Search Bar Utility -->
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-lowest rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-outline text-lg">search</span>
+<input class="bg-transparent border-none text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:outline-none w-48 sm:w-56" id="filter-search" oninput="filterRequests(this.value)" placeholder="Tìm mã yêu cầu (#SB-REQ...)" type="text"/>
+</div>
+</div>
+<!-- Active Reservations Container -->
+<div class="space-y-6" id="reservations-list">
+<!-- CARD 1: PENDING -->
+<div class="reservation-card bg-surface-container-lowest rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col xl:flex-row gap-6" data-req="#SB-REQ-2024-0891" data-status="PENDING">
+<!-- Thumbnail / Scheme preview -->
+<div class="xl:w-72 w-full h-48 xl:h-auto rounded-lg overflow-hidden relative flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Modern indoor self-storage unit facility with polished concrete flooring, clean blue roll-up doors, pristine white partition walls, and soft overhead commercial LED light strips in Ho Chi Minh City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDks2OdZO1dEu4xmZrWX2OgRPYBqVutKQiJM-DJhxywF5NAfMTOEsaGQQhYUCHtHYurGzpnJIiUTq7-SMMG3Ij9EihfskzpE65q3o-p_XLKyyWWs4weHm_yJQ8MRPETyOKoX7dFdPuMlTuzcL8o9CXPfDdU5ykZZqmiKLv13E7qpvbCDeOENZtCbanxhIMJ7T1fRb7YyqsOPmhT9QnONLLRfI0aNTyeVfrtlZowN3i3cU93Pe7HwUp2GA"/>
+<div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-amber-500 text-white font-label-badge text-label-badge shadow flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">hourglass_top</span>
+<span>Chờ xác nhận</span>
+</div>
+<div class="absolute bottom-3 left-3 right-3 bg-primary/80 backdrop-blur-sm px-2.5 py-1.5 rounded text-white text-body-sm font-body-sm flex items-center justify-between">
+<span>Diện tích: 10 m²</span>
+<span>Tiêu chuẩn</span>
+</div>
+</div>
+<!-- Details Column -->
+<div class="flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2.5">
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-primary font-mono font-headline-sm text-headline-sm">#SB-REQ-2024-0891</span>
+<span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 font-label-badge text-label-badge inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Chờ ban quản lý duyệt
+                </span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">calendar_clock</span>
+                Gửi lúc: 12/10/2024 09:30
+              </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+<div class="space-y-1.5">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-lg mt-0.5">warehouse</span>
+<div>
+<span class="font-label-button text-label-button text-on-surface block">SafeBox Thủ Đức</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">123 Võ Văn Ngân, P. Linh Chiểu, TP. Thủ Đức, TP.HCM</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<span class="material-symbols-outlined text-outline text-lg">category</span>
+<span class="text-body-md font-body-md text-on-surface">Loại kho: <strong>Kho tự quản thường - 10 m²</strong></span>
+</div>
+</div>
+<!-- Rental Timeline Matrix -->
+<div class="bg-surface-container-low p-3.5 rounded-lg space-y-2">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Thời hạn thuê:</span>
+<span class="font-bold text-on-surface">3 tháng</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Bắt đầu:</span>
+<span class="text-on-surface font-mono font-medium">15/10/2024</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Kết thúc:</span>
+<span class="text-on-surface font-mono font-medium">15/01/2025</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Price & Action Footer -->
+<div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest">
+<div>
+<span class="text-body-sm font-body-sm text-on-surface-variant block">Ước tính tổng chi phí</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-numeric-price text-label-numeric-price text-primary">7.500.000 đ</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(2.500.000 đ / tháng)</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<a class="px-4 py-2 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-label-button text-label-button flex items-center gap-1.5" href="tel:19008868">
+<span class="material-symbols-outlined text-base">support_agent</span>
+<span>Hỗ trợ cơ sở</span>
+</a>
+<!-- Trigger Cancel Confirmation Modal -->
+<button class="px-4 py-2 rounded-lg bg-error-container text-error hover:bg-rose-200 transition-colors font-label-button text-label-button flex items-center gap-1.5 shadow-sm" onclick="openCancelModal('#SB-REQ-2024-0891', 'SafeBox Thủ Đức - 10m²')">
+<span class="material-symbols-outlined text-base">cancel</span>
+<span>Hủy yêu cầu</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- CARD 2: CONFIRMED -->
+<div class="reservation-card bg-surface-container-lowest rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col xl:flex-row gap-6" data-req="#SB-REQ-2024-0742" data-status="CONFIRMED">
+<!-- Thumbnail -->
+<div class="xl:w-72 w-full h-48 xl:h-auto rounded-lg overflow-hidden relative flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Temperature controlled climate storage facility unit interior with pristine metallic insulated panels, digital wall thermostat showing 22 degrees Celsius, and secure biometric electronic handle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDM_Wad2-iNaLNazJKx7QpJ4sCEzrexHk3_vG6AkutiwC-zreQfiM1S8u-68b4Oh_emfCQWURrl8Y-UsLmd6HOwBgQ1zKiyXz_KD4caHzuD7IO7zB6FMiady-BLDoKa8pHbOvvxT0SqfIgUI7_zLDpYm4X9OdG33CCwXnDlqrrs6eTNRprhoIqkBsWxC0hqpbDYc1cFiCutmSEfZFAFNdt1MBFiTPlyeHlt9oC1tajwdizmg94ebZtsA"/>
+<div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-emerald-600 text-white font-label-badge text-label-badge shadow flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Đã xác nhận</span>
+</div>
+<div class="absolute bottom-3 left-3 right-3 bg-primary-container/90 backdrop-blur-sm px-2.5 py-1.5 rounded text-white text-body-sm font-body-sm flex items-center justify-between">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-sky-400">ac_unit</span>
+              Kho lạnh 22°C
+            </span>
+<span>15 m² (36 m³)</span>
+</div>
+</div>
+<!-- Details Column -->
+<div class="flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2.5">
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-primary font-mono font-headline-sm text-headline-sm">#SB-REQ-2024-0742</span>
+<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-badge text-label-badge inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">verified</span> Sẵn sàng bàn giao
+                </span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">event_available</span>
+                Ngày gửi: 28/09/2024
+              </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+<div class="space-y-1.5">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-secondary text-lg mt-0.5">location_on</span>
+<div>
+<span class="font-label-button text-label-button text-on-surface block">SafeBox Nam Sài Gòn</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">456 Nguyễn Hữu Thọ, P. Tân Phong, Quận 7, TP.HCM</span>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1 text-on-surface text-body-md font-body-md">
+<span class="material-symbols-outlined text-sky-600 text-lg">ac_unit</span>
+<span>Kho lạnh kiểm soát nhiệt độ độ ẩm cao cấp - <strong>15 m²</strong></span>
+</div>
+</div>
+<!-- Rental Timeline Matrix -->
+<div class="bg-surface-container-low p-3.5 rounded-lg space-y-2">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Thời hạn thuê:</span>
+<span class="font-bold text-emerald-700">6 tháng</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Bắt đầu:</span>
+<span class="text-on-surface font-mono font-medium">01/10/2024</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Kết thúc:</span>
+<span class="text-on-surface font-mono font-medium">01/04/2025</span>
+</div>
+</div>
+</div>
+<!-- Facility Manager Note Box -->
+<div class="mt-4 p-3.5 rounded-lg bg-surface-container-high/60 flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-lg mt-0.5">info</span>
+<div class="text-body-sm font-body-sm">
+<span class="font-bold text-on-surface block mb-0.5">Ghi chú từ Quản lý cơ sở:</span>
+<p class="text-on-surface-variant">
+                  “Yêu cầu đã được Quản lý cơ sở phê duyệt. Vui lòng chuẩn bị CMND/CCCD khi đến nhận kho.”
+                </p>
+</div>
+</div>
+</div>
+<!-- Bottom Price & Contact Actions (NO Cancel button per business rules) -->
+<div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest">
+<div>
+<span class="text-body-sm font-body-sm text-on-surface-variant block">Tổng giá trị hợp đồng (6 tháng)</span>
+<div class="flex items-baseline gap-2">
+<span class="font-label-numeric-price text-label-numeric-price text-primary">25.200.000 đ</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">(4.200.000 đ / tháng)</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-button text-label-button flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-base">directions</span>
+<span>Chỉ đường</span>
+</button>
+<button class="px-4 py-2 rounded-lg bg-secondary text-white hover:bg-secondary-container font-label-button text-label-button flex items-center gap-1.5 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-base">pin</span>
+<span>Xem mã PIN cửa ra vào</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- CARD 3: REJECTED -->
+<div class="reservation-card bg-surface-container-lowest rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col xl:flex-row gap-6" data-req="#SB-REQ-2024-0610" data-status="REJECTED">
+<!-- Thumbnail / Scheme preview -->
+<div class="xl:w-72 w-full h-40 xl:h-auto rounded-lg overflow-hidden relative flex-shrink-0 bg-surface-container opacity-90">
+<img class="w-full h-full object-cover grayscale" data-alt="Warehouse hallway filled with private steel lockers and boxes under industrial surveillance lighting in Cau Giay Hanoi branch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANRQJ2-b5vimdPEKvMtNhFOlYGGMbIF4LT0uNWWUSiipa9X9kCFwIShn62NPyltRAz0aNx-yIhEC9iI3Ic2GjtMN4wq8nwKrWJYVb2Bmh8yxQbvBk_agQvCufAOszkPsZlhx72DtF4f7Fsfsi66dpuY4E-mKqw4luvUT1y-WhQGJqv-FrPQ-RcEr6jIpUFPk6rA_RiW6Je-Iw8FaXwJXqMWChAdVChQuarMKs1MVtve8lHYD2MEU7oNw"/>
+<div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-rose-600 text-white font-label-badge text-label-badge shadow flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">block</span>
+<span>Bị từ chối</span>
+</div>
+<div class="absolute bottom-3 left-3 right-3 bg-surface-container-highest/90 px-2.5 py-1 rounded text-on-surface text-body-sm font-body-sm">
+            Kho thường 5 m²
+          </div>
+</div>
+<!-- Details Column -->
+<div class="flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2.5">
+<span class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant font-mono font-headline-sm text-headline-sm">#SB-REQ-2024-0610</span>
+<span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-800 font-label-badge text-label-badge inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">cancel</span> Không thể xếp chỗ
+                </span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Đã phản hồi</span>
+</div>
+<div class="space-y-1.5 mt-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-lg mt-0.5">store</span>
+<div>
+<span class="font-label-button text-label-button text-on-surface block">SafeBox Cầu Giấy</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Tòa nhà Cầu Giấy Center, Duy Tân, Cầu Giấy, Hà Nội</span>
+</div>
+</div>
+<div class="text-body-md font-body-md text-on-surface-variant pt-1">
+                Loại kho yêu cầu: <strong>Kho tiêu chuẩn 5 m²</strong>
+</div>
+</div>
+<!-- Rejection Reason Warning Box -->
+<div class="mt-4 p-4 rounded-lg bg-rose-50/80 flex items-start gap-3">
+<span class="material-symbols-outlined text-rose-600 text-lg mt-0.5">report_problem</span>
+<div class="text-body-sm font-body-sm space-y-1">
+<span class="font-bold text-rose-900 block">Lý do từ chối từ Ban Quản Lý:</span>
+<p class="text-rose-800">
+                  “Kho loại 5m² tại cơ sở Cầu Giấy đã kín chỗ trong tuần này, xin quý khách đổi sang loại 8m² hoặc chuyển sang cơ sở Nguyễn Xiển.”
+                </p>
+</div>
+</div>
+</div>
+<!-- Bottom Action -->
+<div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest">
+<span class="text-body-sm font-body-sm text-on-surface-variant">Quý khách không bị tính bất kỳ khoản phí nào cho yêu cầu này.</span>
+<div class="flex items-center gap-3">
+<a class="px-4 py-2 rounded-lg bg-secondary text-white hover:bg-secondary-container transition-colors font-label-button text-label-button flex items-center gap-1.5" data-path="tim-kho" href="#">
+<span class="material-symbols-outlined text-base">autorenew</span>
+<span>Chọn kho loại 8m²</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- CARD 4: CANCELLED -->
+<div class="reservation-card bg-surface-container-lowest rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col xl:flex-row gap-6 opacity-75" data-req="#SB-REQ-2024-0550" data-status="CANCELLED">
+<!-- Thumbnail -->
+<div class="xl:w-72 w-full h-36 xl:h-auto rounded-lg overflow-hidden relative flex-shrink-0 bg-surface-container-high">
+<div class="w-full h-full flex flex-col items-center justify-center text-outline-variant bg-surface-container-highest p-4 text-center">
+<span class="material-symbols-outlined text-4xl mb-1">inventory_2</span>
+<span class="text-body-sm font-body-sm">SafeBox Bình Thạnh</span>
+</div>
+<div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-slate-500 text-white font-label-badge text-label-badge shadow flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">remove_circle_outline</span>
+<span>Đã hủy</span>
+</div>
+</div>
+<!-- Details Column -->
+<div class="flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2.5">
+<span class="px-2.5 py-1 rounded-md bg-surface-container-high text-on-surface-variant font-mono font-headline-sm text-headline-sm">#SB-REQ-2024-0550</span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-badge text-label-badge">
+                  Đã hủy bởi người thuê
+                </span>
+</div>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Lưu trữ lịch sử</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant">
+              Yêu cầu kho Locker mini gia đình (2 m²) tại cơ sở Điện Biên Phủ, Bình Thạnh đã được bạn chủ động hủy bỏ vào ngày 15/09/2024.
+            </p>
+</div>
+<div class="pt-3 flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<span>Không còn hiệu lực giữ chỗ</span>
+<button class="text-secondary font-label-button text-label-button hover:underline flex items-center gap-1" onclick="switchTab('ALL')">
+<span>Xem tất cả yêu cầu khác</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State Component (Interactive Preview Toggleable) -->
+<div class="hidden bg-surface-container-lowest rounded-xl p-12 text-center max-w-xl mx-auto shadow-sm my-8" id="empty-state-view">
+<div class="w-20 h-20 mx-auto rounded-full bg-surface-container flex items-center justify-center text-secondary mb-4">
+<span class="material-symbols-outlined text-4xl">inbox</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Bạn chưa có yêu cầu thuê kho nào trong danh mục này</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">
+        Hãy khám phá hệ thống 15+ cơ sở kho tự quản thông minh của SafeBox trên toàn quốc với mức giá ưu đãi và bảo hiểm miễn phí.
+      </p>
+<div class="flex items-center justify-center gap-3">
+<a class="px-6 py-2.5 rounded-lg bg-secondary text-white font-label-button text-label-button hover:bg-secondary-container transition-colors shadow-sm inline-flex items-center gap-2" data-path="tim-kho" href="#">
+<span class="material-symbols-outlined text-base">search</span>
+<span>Tìm kho ngay</span>
+</a>
+<button class="px-4 py-2.5 rounded-lg bg-surface-container text-on-surface font-label-button text-label-button hover:bg-surface-container-high transition-colors" onclick="switchTab('ALL')">
+          Quay lại danh sách đầy đủ
+        </button>
+</div>
+</div>
+<!-- Helpful Storage Tips Bento Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+<div class="bg-surface-container-low p-5 rounded-xl flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined">fingerprint</span>
+</div>
+<div class="space-y-1">
+<span class="font-label-button text-label-button text-on-surface block">Nhận mã thông minh</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Ngay sau khi yêu cầu được duyệt và ký hợp đồng điện tử, mã PIN và quyền FaceID sẽ cấp tự động trên ứng dụng.</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-xl flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined">security</span>
+</div>
+<div class="space-y-1">
+<span class="font-label-button text-label-button text-on-surface block">Bảo hiểm tài sản 500 triệu</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tất cả hợp đồng đã xác nhận đều được kích hoạt gói bảo hiểm cháy nổ và rủi ro tự nhiên từ Bảo Việt.</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-xl flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest text-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div class="space-y-1">
+<span class="font-label-button text-label-button text-on-surface block">Hỗ trợ xe đẩy &amp; bốc xếp</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mọi cơ sở SafeBox đều trang bị sẵn xe đẩy tải trọng 500kg, thang xếp dỡ và xe nâng pallet miễn phí cho khách hàng.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Cancel Confirmation Modal (Overlay Preview) -->
+<div class="fixed inset-0 z-50 bg-primary/60 backdrop-blur-sm hidden flex items-center justify-center p-4" id="cancel-modal">
+<div class="bg-surface-container-lowest max-w-md w-full rounded-2xl p-6 shadow-2xl relative space-y-4 animate-in fade-in zoom-in duration-150">
+<div class="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-2xl">warning</span>
+</div>
+<div class="text-center space-y-2">
+<h3 class="font-headline-md text-headline-md text-on-surface">Bạn có chắc muốn hủy yêu cầu này?</h3>
+<p class="font-body-md text-body-md text-on-surface-variant" id="modal-desc">
+          Yêu cầu thuê mã <strong class="text-primary" id="modal-req-code">#SB-REQ-2024-0891</strong> sẽ được hủy ngay lập tức và vị trí kho sẽ được giải phóng cho khách hàng khác.
+        </p>
+</div>
+<div class="bg-surface-container-low p-3.5 rounded-lg text-body-sm font-body-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-base">info</span>
+<span>Hành động này không thể hoàn tác sau khi xác nhận.</span>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-2">
+<button class="w-full py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-button text-label-button transition-colors" onclick="closeCancelModal()">
+          Không
+        </button>
+<button class="w-full py-2.5 rounded-lg bg-error hover:bg-rose-700 text-white font-label-button text-label-button transition-colors shadow-sm" onclick="confirmCancelAction()">
+          Xác nhận hủy
+        </button>
+</div>
+</div>
+</div>
+<!-- Client-side Interactive Logic -->
+<script>
+    let activeFilter = 'PENDING';
+    let targetCancelCode = '';
+
+    function switchTab(status) {
+      activeFilter = status;
+      
+      // Update Tab Styles
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('bg-surface-container-lowest', 'text-secondary', 'shadow-sm');
+        btn.classList.add('text-on-surface-variant');
+      });
+
+      const activeBtn = document.getElementById(`tab-btn-${status}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-on-surface-variant');
+        activeBtn.classList.add('bg-surface-container-lowest', 'text-secondary', 'shadow-sm');
+      }
+
+      applyFilters();
+    }
+
+    function filterRequests(searchQuery) {
+      applyFilters(searchQuery);
+    }
+
+    function applyFilters(query = '') {
+      const q = (query || document.getElementById('filter-search').value || '').trim().toLowerCase();
+      const cards = document.querySelectorAll('.reservation-card');
+      const emptyState = document.getElementById('empty-state-view');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        const cardReq = card.getAttribute('data-req').toLowerCase();
+        
+        const matchesStatus = (activeFilter === 'ALL' || cardStatus === activeFilter);
+        const matchesQuery = (!q || cardReq.includes(q) || card.textContent.toLowerCase().includes(q));
+
+        if (matchesStatus && matchesQuery) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      if (visibleCount === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+    }
+
+    function openCancelModal(reqCode, details) {
+      targetCancelCode = reqCode;
+      document.getElementById('modal-req-code').innerText = reqCode;
+      document.getElementById('cancel-modal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+      document.getElementById('cancel-modal').classList.add('hidden');
+    }
+
+    function confirmCancelAction() {
+      if (targetCancelCode) {
+        const targetCard = document.querySelector(`[data-req="${targetCancelCode}"]`);
+        if (targetCard) {
+          targetCard.setAttribute('data-status', 'CANCELLED');
+          targetCard.classList.add('opacity-75');
+          
+          // Update status badge UI visually
+          const badgeSlot = targetCard.querySelector('.font-label-badge');
+          if (badgeSlot) {
+            badgeSlot.className = 'px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-badge text-label-badge';
+            badgeSlot.innerHTML = 'Đã hủy';
+          }
+        }
+      }
+      closeCancelModal();
+      switchTab('CANCELLED');
+    }
+
+    // Initialize Default State to PENDING tab on first load
+    document.addEventListener('DOMContentLoaded', () => {
+      switchTab('PENDING');
+    });
+    // Trigger immediately in case DOM is already parsed
+    switchTab('PENDING');
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-16 pt-12 pb-8"><div class="max-w-7xl mx-auto px-6 lg:px-12"><div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12"><div class="space-y-4"><div class="flex items-center gap-3"><img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/><span class="font-headline-sm text-headline-sm text-primary">SafeBox Storage</span></div><p class="font-body-md text-body-md text-on-surface-variant">Hệ thống kho tự quản thông minh dẫn đầu Việt Nam. Tích hợp công nghệ bảo mật IoT, kiểm soát nhiệt độ và giám sát 24/7 an toàn tuyệt đối.</p><div class="flex items-center gap-3 text-secondary"><span class="material-symbols-outlined">verified_user</span><span class="font-label-badge text-label-badge text-on-surface-variant">Chứng chỉ ISO 9001:2015 &amp; PCCC Tiêu chuẩn Quốc gia</span></div></div><div class="space-y-3"><span class="font-headline-sm text-headline-sm text-on-surface block">Văn phòng &amp; Cơ sở</span><div class="space-y-2 text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-start gap-2"><span class="material-symbols-outlined text-base mt-0.5 text-secondary">location_on</span><span>Trụ sở chính: Tòa nhà SafeBox Tower, 182 Lê Văn Việt, TP. Thủ Đức, TP.HCM</span></div><div class="flex items-start gap-2"><span class="material-symbols-outlined text-base mt-0.5 text-secondary">location_on</span><span>Chi nhánh Hà Nội: 45 Nguyễn Xiển, Thanh Xuân, Hà Nội</span></div><div class="flex items-start gap-2"><span class="material-symbols-outlined text-base mt-0.5 text-secondary">mail</span><span>contact@safebox.vn</span></div></div></div><div class="space-y-3"><span class="font-headline-sm text-headline-sm text-on-surface block">Dịch vụ lưu trữ</span><ul class="space-y-2"><li class="font-body-md text-body-md text-on-surface-variant">Kho mini gia đình (Locker &amp; Mini Box)</li><li class="font-body-md text-body-md text-on-surface-variant">Kho lưu trữ doanh nghiệp &amp; hồ sơ</li><li class="font-body-md text-body-md text-on-surface-variant">Kho lạnh điều hòa nhiệt độ ổn định</li><li class="font-body-md text-body-md text-on-surface-variant">Dịch vụ đóng gói &amp; xe nâng hỗ trợ</li></ul></div><div class="space-y-3"><span class="font-headline-sm text-headline-sm text-on-surface block">Chính sách an toàn</span><ul class="space-y-2"><li class="font-body-md text-body-md text-on-surface-variant">Bảo hiểm hàng hóa lên đến 500.000.000đ</li><li class="font-body-md text-body-md text-on-surface-variant">Kiểm soát ra vào vân tay / Face ID 24/7</li><li class="font-body-md text-body-md text-on-surface-variant">Quy chuẩn phòng cháy chữa cháy tự động</li><li class="font-body-md text-body-md text-on-surface-variant">Điều khoản dịch vụ &amp; Bảo mật thông tin</li></ul></div></div><div class="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 font-body-sm text-body-sm text-on-surface-variant"><p>© 2025 SafeBox Storage Vietnam Corporation. Tất cả quyền được bảo lưu.</p><div class="flex items-center gap-6"><span class="hover:text-on-surface cursor-pointer">Điều khoản hợp đồng</span><span class="hover:text-on-surface cursor-pointer">Chính sách bảo hiểm</span><span class="hover:text-on-surface cursor-pointer">Hỗ trợ kỹ thuật 24/7</span></div></div></div></footer><script src="/auth.js"></script><script>SafeBoxAuth.requireRole('CUSTOMER'); document.querySelectorAll('[data-path="dang-nhap"]').forEach(link => link.addEventListener('click', event => { event.preventDefault(); SafeBoxAuth.logout(); }));</script></body></html>
