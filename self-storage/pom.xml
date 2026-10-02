@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<exec.mainClass>com.safebox.self_storage.SafeStorageApplication</exec.mainClass>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -101,3 +102,4 @@
 	</build>
 
 </project>
+
