@@ -1,4 +1,4 @@
-package com.safebox.self_storage.controller;
+﻿package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.config.SecurityConfig;
 import com.safebox.self_storage.entity.Role;
@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -24,8 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfig.class)
 class AuthApiTest {
     @Autowired MockMvc mvc;
-    @MockitoBean AuthService auth;
-    @MockitoBean JwtService jwt;
+    @MockBean AuthService auth;
+    @MockBean JwtService jwt;
     private final UUID id = UUID.randomUUID();
 
     @BeforeEach
@@ -64,3 +64,4 @@ class AuthApiTest {
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
     }
 }
+
