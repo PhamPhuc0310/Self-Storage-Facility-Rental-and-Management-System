@@ -32,6 +32,7 @@ class AuthServiceTest {
         user.setFullName("Customer");
         user.setRole(role);
         user.setStatus("ACTIVE");
+        user.setEmailVerified(true);
         user.setPasswordHash(encoder.encode("correct-password"));
     }
 

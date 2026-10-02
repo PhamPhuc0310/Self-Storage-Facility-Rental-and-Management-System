@@ -37,6 +37,12 @@ public class Facility {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @Column(name = "demo_intro") private String demoIntro;
+    @Column(name = "demo_safety") private String demoSafety;
+    @Column(name = "demo_access") private String demoAccess;
+    @Column(name = "demo_terms") private String demoTerms;
+    @Column(name = "image_path") private String imagePath;
+
     public UUID getFacilityId() { return facilityId; }
     public void setFacilityId(UUID facilityId) { this.facilityId = facilityId; }
     public String getName() { return name; }
@@ -55,4 +61,14 @@ public class Facility {
     public void setClosingTime(LocalTime closingTime) { this.closingTime = closingTime; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getDemoIntro() { return demoIntro; }
+    public void setDemoIntro(String demoIntro) { this.demoIntro = demoIntro; }
+    public String getDemoSafety() { return demoSafety; }
+    public void setDemoSafety(String demoSafety) { this.demoSafety = demoSafety; }
+    public String getDemoAccess() { return demoAccess; }
+    public void setDemoAccess(String demoAccess) { this.demoAccess = demoAccess; }
+    public String getDemoTerms() { return demoTerms; }
+    public void setDemoTerms(String demoTerms) { this.demoTerms = demoTerms; }
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 }

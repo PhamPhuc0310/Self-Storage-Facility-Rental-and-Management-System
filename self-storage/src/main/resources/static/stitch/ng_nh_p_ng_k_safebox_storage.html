@@ -54,7 +54,7 @@
 <input class="w-4 h-4 rounded text-secondary bg-surface-container-low focus:ring-0 cursor-pointer" id="remember-me" type="checkbox">
 <span class="font-body-sm text-body-sm text-on-surface-variant">Ghi nhớ đăng nhập</span>
 </label>
-<a class="font-body-sm text-body-sm text-secondary hover:underline font-medium" href="#" onclick="showQuickToast('Chức năng đặt lại mật khẩu chưa được triển khai')">
+<a class="font-body-sm text-body-sm text-secondary hover:underline font-medium" href="#" data-auth-mode="forgot">
             Quên mật khẩu?
           </a>
 </div>
@@ -67,7 +67,7 @@
 <!-- System Role Resolution Assurance Note -->
 
 <!-- Switch to Register Link -->
-<div class="text-center pt-2"><p class="font-body-md text-body-md text-on-surface-variant">Chưa có tài khoản? <a class="text-secondary font-semibold hover:underline ml-1" href="#" data-auth-mode="register">Đăng ký ngay</a></p><div class="mt-4 pt-3 border-t border-surface-container flex justify-center"><a class="inline-flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="/"><span class="material-symbols-outlined text-[16px]">arrow_back</span><span class="">Quay lại trang chủ</span></a></div></div>
+<div class="text-center pt-1"><p class="font-body-md text-body-md text-on-surface-variant">Chưa có tài khoản? <a class="text-secondary font-semibold hover:underline ml-1" href="#" data-auth-mode="register">Đăng ký ngay</a></p><div class="mt-3 pt-3 border-t border-surface-container flex justify-center"><a class="inline-flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="/"><span class="material-symbols-outlined text-[16px]">arrow_back</span><span class="">Quay lại trang chủ</span></a></div></div>
 </form>
 <!-- REGISTER FORM (/register) -->
 <form class="hidden flex-col gap-3.5" id="form-register" onsubmit="handleRegisterSubmit(event)">
@@ -136,6 +136,24 @@
 <!-- Switch to Login Link -->
 <div class="text-center pt-1"><p class="font-body-md text-body-md text-on-surface-variant">Đã có tài khoản? <a class="text-secondary font-semibold hover:underline ml-1" href="#" data-auth-mode="login">Đăng nhập</a></p><div class="mt-4 pt-3 border-t border-surface-container flex justify-center"><a class="inline-flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="/"><span class="material-symbols-outlined text-[16px]">arrow_back</span><span class="">Quay lại trang chủ</span></a></div></div>
 </form>
+<form class="hidden flex-col gap-4" id="form-forgot" onsubmit="handleForgotSubmit(event)">
+<div class="flex flex-col gap-1.5 text-left"><label class="font-label-badge text-label-badge text-on-surface font-medium" for="forgot-email">Email</label><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none">mail</span><input class="w-full pl-11 pr-4 py-2.5 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest shadow-sm transition-colors" id="forgot-email" type="email" autocomplete="email" placeholder="Nhập email của bạn" required></div></div>
+<button class="w-full mt-2 py-3 px-4 bg-primary-container hover:bg-primary text-on-primary rounded-lg font-label-button text-label-button shadow-md transition-all" id="forgot-submit" type="submit">Gửi liên kết đặt lại mật khẩu</button>
+<div class="hidden rounded-lg bg-surface-container-low p-4 text-center" id="forgot-success" role="status"><p class="font-body-md text-body-md text-on-surface">Nếu email đã được đăng ký, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.</p><button class="w-full mt-4 py-3 px-4 bg-primary-container hover:bg-primary text-on-primary rounded-lg font-label-button text-label-button disabled:opacity-60 disabled:cursor-not-allowed" id="forgot-resend" type="button" onclick="handleForgotResend()">Gửi lại email đặt lại mật khẩu</button></div>
+<a href="#" class="text-secondary text-center font-body-sm text-body-sm font-medium hover:underline" data-auth-mode="login">Quay về đăng nhập</a>
+</form>
+<form class="hidden flex-col gap-4" id="form-pending" onsubmit="handleResendSubmit(event)">
+<div class="flex flex-col gap-1.5 text-left"><label class="font-label-badge text-label-badge text-on-surface font-medium" for="resend-email">Email cần xác thực</label><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none">mail</span><input class="w-full pl-11 pr-4 py-2.5 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest shadow-sm transition-colors" id="resend-email" type="email" autocomplete="email" placeholder="Nhập email của bạn" required></div></div>
+<button class="w-full mt-2 py-3 px-4 bg-primary-container hover:bg-primary text-on-primary rounded-lg font-label-button text-label-button shadow-md transition-all" type="submit">Gửi lại email xác thực</button>
+<a href="#" class="text-secondary text-center font-body-sm text-body-sm font-medium hover:underline" data-auth-mode="login">Quay về đăng nhập</a>
+</form>
+<form class="hidden flex-col gap-4" id="form-reset" onsubmit="handleResetSubmit(event)">
+<label for="reset-password">Mật khẩu mới</label><input class="w-full p-3 bg-surface-container-low rounded-lg" id="reset-password" type="password" minlength="8" required>
+<label for="reset-confirm">Xác nhận mật khẩu</label><input class="w-full p-3 bg-surface-container-low rounded-lg" id="reset-confirm" type="password" minlength="8" required>
+<button class="w-full py-3 bg-primary-container text-white rounded-lg" type="submit">Đặt lại mật khẩu</button>
+<a href="#" class="text-secondary text-center" data-auth-mode="login">Quay về đăng nhập</a>
+</form>
+<p id="demo-inbox" class="hidden text-center text-xs mt-4"><a class="text-secondary hover:underline" href="http://localhost:8025" target="_blank" rel="noopener">Mở hộp thư demo</a></p>
 </div>
 <!-- Security & Support Footer Strip -->
 
@@ -143,12 +161,29 @@
 <!-- Login and registration UI behavior -->
 <script src="/auth.js"></script>
 <script>
+    let demoInboxEnabled = false;
+    let forgotCooldownTimer;
+
     function switchAuthMode(mode) {
       const loginForm = document.getElementById('form-login');
       const registerForm = document.getElementById('form-register');
       const tabLogin = document.getElementById('tab-login-btn');
       const tabRegister = document.getElementById('tab-register-btn');
       const alertBox = document.getElementById('auth-alert');
+
+      for (const name of ['login', 'register', 'forgot', 'pending', 'reset']) {
+        const form = document.getElementById('form-' + name);
+        form.classList.toggle('hidden', name !== mode);
+        form.classList.toggle('flex', name === mode);
+      }
+
+      document.getElementById('demo-inbox').classList.toggle('hidden', !demoInboxEnabled || !['pending', 'forgot'].includes(mode));
+      if (mode !== 'login' && mode !== 'register') {
+        document.getElementById('auth-heading').textContent = ({forgot:'Quên mật khẩu', pending:'Chờ xác thực email', reset:'Đặt lại mật khẩu'})[mode];
+        document.getElementById('auth-subheading').textContent = ({forgot:'Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu.', pending:'Vui lòng kiểm tra email để xác thực tài khoản.', reset:'Tạo mật khẩu mới cho tài khoản của bạn.'})[mode];
+        alertBox.classList.add('hidden');
+        return;
+      }
 
       alertBox.classList.add('hidden');
       document.getElementById('auth-heading').textContent = mode === 'register' ? 'Đăng ký' : 'Đăng nhập';
@@ -250,11 +285,23 @@
           body: JSON.stringify({ email, password })
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Đăng nhập không thành công.');
+        if (!response.ok) {
+          const error = new Error(data.message || 'Đăng nhập không thành công.');
+          error.status = response.status;
+          throw error;
+        }
         SafeBoxAuth.saveAuth(data.token, data.user, document.getElementById('remember-me').checked);
-        SafeBoxAuth.redirectForRole(data.user.role);
+        const returnTo = SafeBoxAuth.safeReturnTo(new URLSearchParams(location.search).get('returnTo'));
+        if (returnTo) location.replace(returnTo);
+        else SafeBoxAuth.redirectForRole(data.user.role);
       } catch (error) {
-        showAlert('error', 'Đăng nhập không thành công', error.message || 'Không thể kết nối máy chủ.');
+        if (error.status === 403 && error.message.includes('chưa xác thực')) {
+          document.getElementById('resend-email').value = email;
+          switchAuthMode('pending');
+          showAlert('error', 'Tài khoản chưa xác thực', 'Vui lòng kiểm tra email xác thực. Bạn có thể gửi lại email tại đây.');
+        } else {
+          showAlert('error', 'Đăng nhập không thành công', error.message || 'Không thể kết nối máy chủ.');
+        }
       } finally {
         button.disabled = false;
         spinner.classList.add('hidden');
@@ -262,9 +309,101 @@
       }
     }
 
-    function handleRegisterSubmit(e) {
+    async function postAuth(path, body) {
+      const response = await fetch('/api/auth/' + path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const data = await response.json();
+      if (!response.ok) {
+        const error = new Error(data.message || 'Không thể hoàn tất yêu cầu. Vui lòng thử lại.');
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    }
+
+    async function handleRegisterSubmit(e) {
       e.preventDefault();
-      showAlert('info', 'Chưa hỗ trợ đăng ký', 'Chức năng đăng ký sẽ được triển khai sau.');
+      const fullName = document.getElementById('reg-fullname').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const password = document.getElementById('reg-password').value;
+      if (!fullName || !isValidEmail(email) || !phone || password.length < 8 || password.length > 72) {
+        showAlert('error', 'Lỗi nhập liệu', 'Vui lòng nhập họ tên, email, số điện thoại và mật khẩu 8–72 ký tự.'); return;
+      }
+      if (password !== document.getElementById('reg-password-confirm').value) {
+        showAlert('error', 'Lỗi nhập liệu', 'Mật khẩu xác nhận không khớp.'); return;
+      }
+      const button = document.getElementById('btn-register-submit'); button.disabled = true;
+      try {
+        const confirmPassword = document.getElementById('reg-password-confirm').value;
+        const result = await postAuth('register', {fullName, email, phone, password, confirmPassword});
+        document.getElementById('resend-email').value = email;
+        switchAuthMode('pending');
+        showAlert('success', 'Đăng ký thành công', result.message);
+      } catch (error) {
+        if (error.status === 503 || error.status === 409) {
+          document.getElementById('resend-email').value = email;
+          switchAuthMode('pending');
+        }
+        showAlert('error', 'Không thể đăng ký', error.message);
+      }
+      finally { button.disabled = false; }
+    }
+
+    async function handleResendSubmit(e) {
+      e.preventDefault();
+      try { const result = await postAuth('resend-verification', {email:document.getElementById('resend-email').value}); showAlert('success', 'Yêu cầu đã xử lý', result.message); }
+      catch (error) { showAlert('error', 'Chưa gửi được email', error.message); }
+    }
+
+    function startForgotCooldown() {
+      clearInterval(forgotCooldownTimer);
+      const button = document.getElementById('forgot-resend');
+      const until = Date.now() + 60_000;
+      const update = () => {
+        const seconds = Math.ceil((until - Date.now()) / 1000);
+        button.disabled = seconds > 0;
+        button.textContent = seconds > 0 ? `Gửi lại sau ${seconds} giây` : 'Gửi lại email đặt lại mật khẩu';
+        if (seconds <= 0) clearInterval(forgotCooldownTimer);
+      };
+      update();
+      forgotCooldownTimer = setInterval(update, 1000);
+    }
+
+    async function requestPasswordReset() {
+      const email = document.getElementById('forgot-email').value.trim();
+      if (!isValidEmail(email)) { showAlert('error', 'Email không hợp lệ', 'Vui lòng nhập email đúng định dạng.'); return; }
+      const primary = document.getElementById('forgot-submit');
+      const resend = document.getElementById('forgot-resend');
+      primary.disabled = true; resend.disabled = true;
+      try {
+        await postAuth('forgot-password', {email});
+        primary.classList.add('hidden');
+        document.getElementById('forgot-success').classList.remove('hidden');
+        document.getElementById('auth-alert').classList.add('hidden');
+        startForgotCooldown();
+      } catch (error) {
+        showAlert('error', 'Chưa gửi được email', error.message);
+        if (error.status === 429) startForgotCooldown();
+        else resend.disabled = false;
+      } finally { primary.disabled = false; }
+    }
+
+    function handleForgotSubmit(e) {
+      e.preventDefault();
+      requestPasswordReset();
+    }
+
+    function handleForgotResend() {
+      requestPasswordReset();
+    }
+
+    async function handleResetSubmit(e) {
+      e.preventDefault();
+      const password = document.getElementById('reset-password').value;
+      const confirmPassword = document.getElementById('reset-confirm').value;
+      try { const result = await postAuth('reset-password', {token:new URLSearchParams(location.search).get('token'), password, confirmPassword});
+        history.replaceState(null, '', location.pathname); switchAuthMode('login'); showAlert('success', 'Thành công', result.message);
+      } catch (error) { showAlert('error', 'Không thể đặt lại mật khẩu', error.message); }
     }
 
     document.querySelectorAll('[data-auth-mode]').forEach(link => {
@@ -274,9 +413,20 @@
       });
     });
 
-    if (new URLSearchParams(window.location.search).get('mode') === 'register') {
-      switchAuthMode('register');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'register') switchAuthMode('register');
+    if (params.get('mode') === 'reset') switchAuthMode('reset');
+    if (params.get('mode') === 'verify') {
+      fetch('/api/auth/verify?token=' + encodeURIComponent(params.get('token') || ''), {method:'POST'})
+        .then(async response => { const data = await response.json(); if (!response.ok) throw new Error(data.message); return data; })
+        .then(data => { history.replaceState(null, '', location.pathname); switchAuthMode('login'); showAlert('success', 'Xác thực thành công', data.message); })
+        .catch(error => { switchAuthMode('pending'); showAlert('error', 'Không thể xác thực', error.message); });
     }
+    fetch('/api/auth/demo-config').then(r => r.json()).then(config => {
+      demoInboxEnabled = !!config.demoInbox;
+      const mode = ['pending', 'forgot'].find(name => !document.getElementById('form-' + name).classList.contains('hidden'));
+      document.getElementById('demo-inbox').classList.toggle('hidden', !demoInboxEnabled || !mode);
+    }).catch(() => {});
   </script>
 </div></main>
 

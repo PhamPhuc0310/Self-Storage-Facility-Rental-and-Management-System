@@ -12,6 +12,12 @@ public record FacilityUnitTypeDetailDto(
     BigDecimal height,
     BigDecimal area,
     String features,
+    BigDecimal minTemperature,
+    BigDecimal maxTemperature,
+    String demoIntro,
+    String demoGoods,
+    String demoConditions,
+    String imagePath,
     BigDecimal monthlyPrice,
     BigDecimal depositAmount,
     Long availableUnits

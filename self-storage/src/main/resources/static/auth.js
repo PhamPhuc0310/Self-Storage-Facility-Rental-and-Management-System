@@ -32,6 +32,14 @@
     if (!destination) throw new Error('Vai trò tài khoản không được hỗ trợ.');
     location.replace(destination);
   }
+  function safeReturnTo(value) {
+    if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return null;
+    try {
+      const url = new URL(value, location.origin);
+      if (url.origin !== location.origin || url.pathname !== '/stitch/chi_ti_t_kho_10m_safebox_th_c.html') return null;
+      return url.pathname + url.search;
+    } catch (_) { return null; }
+  }
   function deny() {
     document.body.style.visibility = 'visible';
     document.body.innerHTML = '<main style="font:16px sans-serif;padding:3rem"><h1>403 · Không có quyền truy cập</h1><p>Tài khoản của bạn không có quyền xem trang này.</p><a href="/">Về trang chủ</a></main>';
@@ -71,6 +79,6 @@
     clearAuth();
     location.replace(loginPath);
   }
-  window.SafeBoxAuth = { getToken, getCurrentUser, isAuthenticated: () => !!getToken(), authFetch,
+  window.SafeBoxAuth = { getToken, getCurrentUser, safeReturnTo, isAuthenticated: () => !!getToken(), authFetch,
     logout, requireAuth: () => requireRole(), requireRole, saveAuth, redirectForRole, clearAuth };
 })();

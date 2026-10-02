@@ -8,6 +8,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.Date;
 import java.util.UUID;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(user.getUserId().toString())
                 .claim("role", user.getRole().getRoleName())
+                .claim("pwd", fingerprint(user.getPasswordHash()))
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMillis))
                 .signWith(key)
@@ -48,5 +52,17 @@ public class JwtService {
     public UUID userId(String token) {
         Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
         return UUID.fromString(claims.getSubject());
+    }
+
+    public boolean isCurrent(String token, User user) {
+        Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        return fingerprint(user.getPasswordHash()).equals(claims.get("pwd", String.class));
+    }
+
+    private String fingerprint(String passwordHash) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(passwordHash.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); }
     }
 }

@@ -25,12 +25,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthApiTest {
     @Autowired MockMvc mvc;
     @MockBean AuthService auth;
+    @MockBean com.safebox.self_storage.service.AccountFlowService flow;
     @MockBean JwtService jwt;
     private final UUID id = UUID.randomUUID();
 
     @BeforeEach
     void setup() {
         when(jwt.userId("valid")).thenReturn(id);
+        when(jwt.isCurrent(eq("valid"), any(User.class))).thenReturn(true);
         Role role = new Role();
         role.setRoleName("CUSTOMER");
         User user = new User();
@@ -39,6 +41,7 @@ class AuthApiTest {
         user.setFullName("Customer");
         user.setEmail("customer@safebox.vn");
         user.setStatus("ACTIVE");
+        user.setEmailVerified(true);
         when(auth.activeUser(id)).thenReturn(user);
     }
 
