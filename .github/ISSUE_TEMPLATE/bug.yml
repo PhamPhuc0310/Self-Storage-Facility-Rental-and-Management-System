@@ -1,0 +1,24 @@
+name: Báo lỗi
+description: Mô tả lỗi để người khác có thể tái hiện
+title: "[Bug] "
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Các bước tái hiện
+      placeholder: "1. Mở trang...\n2. Nhập...\n3. Bấm..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Kết quả mong đợi
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Kết quả thực tế
+      description: Thêm ảnh hoặc log đã xóa thông tin nhạy cảm nếu cần.
+    validations:
+      required: true
