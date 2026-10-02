@@ -1,4 +1,4 @@
-﻿package com.safebox.self_storage.config;
+package com.safebox.self_storage.config;
 
 import com.safebox.self_storage.security.JwtAuthenticationFilter;
 import com.safebox.self_storage.security.JwtService;
