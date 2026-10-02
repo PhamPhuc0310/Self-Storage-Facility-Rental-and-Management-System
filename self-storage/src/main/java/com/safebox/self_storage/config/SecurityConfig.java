@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/auth/login", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico").permitAll()
+                        .requestMatchers("/api/auth/login", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities/**", "/api/pricing/**", "/safebox_storage_home/**", "/js/**").permitAll()
                         .requestMatchers("/api/role/customer").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/staff").hasRole("FACILITY_STAFF")
                         .requestMatchers("/api/role/manager").hasRole("FACILITY_MANAGER")
@@ -51,3 +51,6 @@ public class SecurityConfig {
         response.getWriter().write("{\"status\":" + status + ",\"message\":\"" + message + "\"}");
     }
 }
+
+
+
