@@ -1,4 +1,4 @@
-package com.safebox.self_storage.controller;
+﻿package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.config.SecurityConfig;
 import com.safebox.self_storage.entity.Role;
@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -64,4 +64,5 @@ class AuthApiTest {
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
     }
 }
+
 
