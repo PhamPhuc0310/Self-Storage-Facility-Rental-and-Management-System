@@ -1,0 +1,31 @@
+name: Task
+description: Phân công một công việc có đầu ra rõ ràng
+title: "[Task] "
+body:
+  - type: input
+    id: sprint
+    attributes:
+      label: Sprint / Use Case
+      placeholder: "Sprint 1 / UC02"
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Công việc cần làm
+      description: Ghi API, quy tắc xử lý, dữ liệu đầu vào và kết quả cần trả về.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Điều kiện hoàn thành
+      description: Liệt kê kết quả có thể kiểm tra để xác nhận task đã xong.
+      placeholder: "- [ ] Trường hợp hợp lệ xử lý thành công.\n- [ ] Dữ liệu không hợp lệ được từ chối với lỗi rõ ràng."
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Phụ thuộc / ghi chú
+      description: Liên kết task cần hoàn thành trước, nếu có. Chọn người phụ trách ở Assignees.
