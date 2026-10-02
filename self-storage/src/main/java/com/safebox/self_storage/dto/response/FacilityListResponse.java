@@ -8,6 +8,7 @@ public record FacilityListResponse(
     UUID facilityId,
     String name,
     String address,
+    String imagePath,
     Long availableUnitsCount,
     BigDecimal startingPrice,
     List<FacilityUnitTypeDto> unitTypes

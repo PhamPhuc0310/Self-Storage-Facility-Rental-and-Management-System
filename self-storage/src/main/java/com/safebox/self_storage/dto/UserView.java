@@ -3,8 +3,8 @@ package com.safebox.self_storage.dto;
 import com.safebox.self_storage.entity.User;
 import java.util.UUID;
 
-public record UserView(UUID userId, String fullName, String email, String role) {
+public record UserView(UUID userId, String fullName, String email, String role, String status, boolean emailVerified) {
     public static UserView from(User user) {
-        return new UserView(user.getUserId(), user.getFullName(), user.getEmail(), user.getRole().getRoleName());
+        return new UserView(user.getUserId(), user.getFullName(), user.getEmail(), user.getRole().getRoleName(), user.getStatus(), user.isEmailVerified());
     }
 }

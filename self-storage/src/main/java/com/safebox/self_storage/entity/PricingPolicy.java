@@ -2,6 +2,7 @@ package com.safebox.self_storage.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -28,6 +29,12 @@ public class PricingPolicy {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @Column(name = "effective_from", nullable = false)
+    private LocalDate effectiveFrom;
+
+    @Column(name = "effective_to")
+    private LocalDate effectiveTo;
+
     public UUID getPricingId() { return pricingId; }
     public void setPricingId(UUID pricingId) { this.pricingId = pricingId; }
     public UUID getFacilityId() { return facilityId; }
@@ -40,4 +47,8 @@ public class PricingPolicy {
     public void setDepositAmount(BigDecimal depositAmount) { this.depositAmount = depositAmount; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public LocalDate getEffectiveFrom() { return effectiveFrom; }
+    public void setEffectiveFrom(LocalDate effectiveFrom) { this.effectiveFrom = effectiveFrom; }
+    public LocalDate getEffectiveTo() { return effectiveTo; }
+    public void setEffectiveTo(LocalDate effectiveTo) { this.effectiveTo = effectiveTo; }
 }

@@ -35,6 +35,7 @@ class JwtServiceTest {
         User user = new User();
         user.setUserId(UUID.randomUUID());
         user.setRole(role);
+        user.setPasswordHash("encoded-password");
         return user;
     }
 }

@@ -7,7 +7,9 @@ import com.safebox.self_storage.repository.PricingPolicyRepository;
 import com.safebox.self_storage.repository.StorageUnitTypeRepository;
 import com.safebox.self_storage.service.PricingService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
@@ -40,10 +42,8 @@ public class PricingServiceImpl implements PricingService {
         
         // Lấy bảng giá hiện tại (BR04.2)
         List<PricingPolicy> policies = pricingPolicyRepository.findByFacilityIdAndStatus(facilityId, "ACTIVE");
-        PricingPolicy policy = policies.stream()
-            .filter(p -> p.getTypeId().equals(typeId))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy bảng giá cho loại kho này tại cơ sở"));
+        PricingPolicy policy = CurrentPricing.forType(policies, typeId, LocalDate.now())
+            .orElseThrow(() -> new NoSuchElementException("Cơ sở chưa có bảng giá đang hiệu lực cho loại kho này"));
             
         BigDecimal monthlyPrice = policy.getMonthlyPrice();
         

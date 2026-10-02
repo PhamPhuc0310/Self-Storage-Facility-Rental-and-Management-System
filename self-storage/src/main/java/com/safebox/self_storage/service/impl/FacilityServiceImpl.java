@@ -13,6 +13,7 @@ import com.safebox.self_storage.repository.StorageUnitRepository;
 import com.safebox.self_storage.repository.StorageUnitTypeRepository;
 import com.safebox.self_storage.service.FacilityService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,34 +48,26 @@ public class FacilityServiceImpl implements FacilityService {
             long availableUnitsCount = storageUnitRepository.countAvailableUnitsByFacility(facility.getFacilityId());
             
             List<PricingPolicy> pricingPolicies = pricingPolicyRepository.findByFacilityIdAndStatus(facility.getFacilityId(), "ACTIVE");
-            BigDecimal startingPrice = pricingPolicies.stream()
-                .map(PricingPolicy::getMonthlyPrice)
-                .min(BigDecimal::compareTo)
-                .orElse(null);
-                
             List<FacilityUnitTypeDto> unitTypes = new ArrayList<>();
-            for (PricingPolicy policy : pricingPolicies) {
-                long typeAvailable = storageUnitRepository.countAvailableUnitsByFacilityAndType(facility.getFacilityId(), policy.getTypeId());
-                if (typeAvailable > 0) {
-                    Optional<StorageUnitType> typeOpt = storageUnitTypeRepository.findById(policy.getTypeId());
-                    if (typeOpt.isPresent()) {
-                        StorageUnitType type = typeOpt.get();
-                        BigDecimal area = type.getWidth().multiply(type.getLength());
-                        unitTypes.add(new FacilityUnitTypeDto(
-                            type.getTypeId(),
-                            type.getSizeName(),
-                            type.getStorageMode(),
-                            area,
-                            policy.getMonthlyPrice()
-                        ));
-                    }
+            for (Integer typeId : storageUnitRepository.findAvailableTypeIdsByFacility(facility.getFacilityId())) {
+                Optional<StorageUnitType> typeOpt = storageUnitTypeRepository.findById(typeId);
+                if (typeOpt.isPresent() && "ACTIVE".equals(typeOpt.get().getStatus())) {
+                    StorageUnitType type = typeOpt.get();
+                    BigDecimal area = type.getWidth().multiply(type.getLength());
+                    BigDecimal monthlyPrice = CurrentPricing.forType(pricingPolicies, typeId, LocalDate.now())
+                        .map(PricingPolicy::getMonthlyPrice).orElse(null);
+                    unitTypes.add(new FacilityUnitTypeDto(typeId, type.getSizeName(),
+                        type.getStorageMode(), area, monthlyPrice));
                 }
             }
+            BigDecimal startingPrice = unitTypes.stream().map(FacilityUnitTypeDto::monthlyPrice)
+                .filter(p -> p != null).min(BigDecimal::compareTo).orElse(null);
             
             return new FacilityListResponse(
                 facility.getFacilityId(),
                 facility.getName(),
                 facility.getAddress(),
+                facility.getImagePath(),
                 availableUnitsCount,
                 startingPrice,
                 unitTypes
@@ -95,12 +88,13 @@ public class FacilityServiceImpl implements FacilityService {
         List<PricingPolicy> pricingPolicies = pricingPolicyRepository.findByFacilityIdAndStatus(facilityId, "ACTIVE");
         
         List<FacilityUnitTypeDetailDto> unitTypes = new ArrayList<>();
-        for (PricingPolicy policy : pricingPolicies) {
-            long available = storageUnitRepository.countAvailableUnitsByFacilityAndType(facilityId, policy.getTypeId());
-            Optional<StorageUnitType> typeOpt = storageUnitTypeRepository.findById(policy.getTypeId());
-            if (typeOpt.isPresent()) {
+        for (Integer typeId : storageUnitRepository.findAvailableTypeIdsByFacility(facilityId)) {
+            long available = storageUnitRepository.countAvailableUnitsByFacilityAndType(facilityId, typeId);
+            Optional<StorageUnitType> typeOpt = storageUnitTypeRepository.findById(typeId);
+            if (typeOpt.isPresent() && "ACTIVE".equals(typeOpt.get().getStatus())) {
                 StorageUnitType type = typeOpt.get();
                 BigDecimal area = type.getWidth().multiply(type.getLength());
+                Optional<PricingPolicy> policy = CurrentPricing.forType(pricingPolicies, typeId, LocalDate.now());
                 
                 unitTypes.add(new FacilityUnitTypeDetailDto(
                     type.getTypeId(),
@@ -112,8 +106,14 @@ public class FacilityServiceImpl implements FacilityService {
                     type.getHeight(),
                     area,
                     type.getFeatures(),
-                    policy.getMonthlyPrice(),
-                    policy.getDepositAmount(),
+                    type.getMinTemperature(),
+                    type.getMaxTemperature(),
+                    type.getDemoIntro(),
+                    type.getDemoGoods(),
+                    type.getDemoConditions(),
+                    type.getImagePath(),
+                    policy.map(PricingPolicy::getMonthlyPrice).orElse(null),
+                    policy.map(PricingPolicy::getDepositAmount).orElse(null),
                     available
                 ));
             }
@@ -123,6 +123,11 @@ public class FacilityServiceImpl implements FacilityService {
             facility.getFacilityId(),
             facility.getName(),
             facility.getAddress(),
+            facility.getImagePath(),
+            facility.getDemoIntro(),
+            facility.getDemoSafety(),
+            facility.getDemoAccess(),
+            facility.getDemoTerms(),
             facility.getLatitude(),
             facility.getLongitude(),
             facility.getPhone(),
