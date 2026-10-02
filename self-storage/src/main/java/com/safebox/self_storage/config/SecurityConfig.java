@@ -1,4 +1,4 @@
-package com.safebox.self_storage.config;
+﻿package com.safebox.self_storage.config;
 
 import com.safebox.self_storage.security.JwtAuthenticationFilter;
 import com.safebox.self_storage.security.JwtService;
@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/auth/login", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/uc04-facility-detail.html", "/js/**").permitAll()
+.requestMatchers("/api/auth/login", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/uc04-facility-detail.html", "/safebox_storage_home/**", "/js/**").permitAll()
                         .requestMatchers("/api/role/customer").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/staff").hasRole("FACILITY_STAFF")
                         .requestMatchers("/api/role/manager").hasRole("FACILITY_MANAGER")
@@ -51,6 +51,7 @@ public class SecurityConfig {
         response.getWriter().write("{\"status\":" + status + ",\"message\":\"" + message + "\"}");
     }
 }
+
 
 
 
