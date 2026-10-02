@@ -1,0 +1,4 @@
+# Local demo UI only. SMTP defaults and environment overrides live in application.properties.
+app:
+  mail:
+    demo-inbox: true

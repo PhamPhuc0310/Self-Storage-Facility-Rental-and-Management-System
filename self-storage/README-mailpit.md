@@ -48,7 +48,7 @@ $env:JWT_SECRET = '<chuỗi ngẫu nhiên bí mật, tối thiểu 32 ký tự>'
 
 Mở `http://localhost:8080/stitch/ng_nh_p_ng_k_safebox_storage.html`. Nếu dùng cổng khác, đặt `$env:SERVER_PORT = '8081'` trước khi chạy. `APP_PUBLIC_BASE_URL` mặc định theo `localhost` và `SERVER_PORT`; khi truy cập qua tên máy khác hoặc proxy, đặt `$env:APP_PUBLIC_BASE_URL = 'http://ten-may:cong'` để liên kết trong email đúng địa chỉ.
 
-Profile `local` hiển thị liên kết nhỏ “Mở hộp thư demo” trên trang tài khoản. Các profile khác không hiển thị liên kết này. SMTP mặc định trỏ `localhost:1025`, không xác thực và không TLS. Để đổi sang SMTP thật về sau, đặt `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_STARTTLS`, `SMTP_SSL`, `MAIL_FROM` qua biến môi trường; giữ bí mật ngoài Git.
+Profile `local` dùng `src/main/resources/application-local.yml` (không chứa bí mật) để hiển thị liên kết nhỏ “Mở hộp thư demo” trên trang tài khoản. Các profile khác không hiển thị liên kết này. SMTP mặc định trỏ `localhost:1025`, không xác thực và không TLS. Để đổi sang SMTP thật về sau, đặt `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTH`, `SMTP_STARTTLS`, `SMTP_SSL`, `MAIL_FROM` qua biến môi trường; giữ bí mật ngoài Git.
 
 ## Kịch bản demo nhanh
 
