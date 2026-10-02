@@ -1,4 +1,4 @@
-﻿package com.safebox.self_storage.controller;
+package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.config.SecurityConfig;
 import com.safebox.self_storage.entity.Role;
