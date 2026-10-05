@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PricingPolicyRepository extends JpaRepository<PricingPolicy, UUID> {
     List<PricingPolicy> findByFacilityIdAndStatus(UUID facilityId, String status);
+    List<PricingPolicy> findByFacilityId(UUID facilityId);
+    boolean existsByTypeIdAndFacilityIdNot(Integer typeId, UUID facilityId);
 }
