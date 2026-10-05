@@ -1,6 +1,7 @@
 package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.config.SecurityConfig;
+import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 import com.safebox.self_storage.entity.Role;
@@ -20,11 +21,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -125,5 +128,33 @@ class ReservationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // =========================================================================
+    // UC06: Xem và hủy yêu cầu của tôi
+    // =========================================================================
+    @Test
+    void getMyReservations_customer_returnsList() throws Exception {
+        when(reservationService.getMyReservations(eq(customerId), any(), any()))
+                .thenReturn(List.of(sampleResponse("PENDING")));
+
+        mvc.perform(get("/api/reservations/my")
+                        .header("Authorization", "Bearer customer-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].requestCode").value("#SB-REQ-2026-0001"))
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
+    }
+
+    @Test
+    void cancelMyReservation_customer_returnsUpdatedReservation() throws Exception {
+        when(reservationService.cancelMyReservation(eq(customerId), eq(reservationId), any(CancelReservationRequest.class)))
+                .thenReturn(sampleResponse("CANCELLED"));
+
+        mvc.perform(post("/api/reservations/my/" + reservationId + "/cancel")
+                        .header("Authorization", "Bearer customer-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cancellationReason\":\"Bận việc đột xuất\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 }
