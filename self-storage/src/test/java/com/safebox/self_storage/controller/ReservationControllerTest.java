@@ -3,6 +3,7 @@ package com.safebox.self_storage.controller;
 import com.safebox.self_storage.config.SecurityConfig;
 import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
+import com.safebox.self_storage.dto.RejectReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 import com.safebox.self_storage.entity.Role;
 import com.safebox.self_storage.entity.User;
@@ -43,6 +44,7 @@ class ReservationControllerTest {
     @MockBean private JwtService jwt;
 
     private final UUID customerId = UUID.randomUUID();
+    private final UUID managerId = UUID.randomUUID();
     private final UUID reservationId = UUID.randomUUID();
     private final UUID facilityId = UUID.randomUUID();
 
@@ -59,6 +61,18 @@ class ReservationControllerTest {
         customer.setEmailVerified(true);
         when(jwt.isCurrent(eq("customer-token"), any(User.class))).thenReturn(true);
         when(auth.activeUser(customerId)).thenReturn(customer);
+
+        // Manager setup
+        when(jwt.userId("manager-token")).thenReturn(managerId);
+        Role managerRole = new Role();
+        managerRole.setRoleName("FACILITY_MANAGER");
+        User manager = new User();
+        manager.setUserId(managerId);
+        manager.setRole(managerRole);
+        manager.setStatus("ACTIVE");
+        manager.setEmailVerified(true);
+        when(jwt.isCurrent(eq("manager-token"), any(User.class))).thenReturn(true);
+        when(auth.activeUser(managerId)).thenReturn(manager);
     }
 
     private ReservationResponse sampleResponse(String status) {

@@ -2,6 +2,7 @@ package com.safebox.self_storage.service;
 
 import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
+import com.safebox.self_storage.dto.RejectReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 import com.safebox.self_storage.entity.*;
 import com.safebox.self_storage.repository.*;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 

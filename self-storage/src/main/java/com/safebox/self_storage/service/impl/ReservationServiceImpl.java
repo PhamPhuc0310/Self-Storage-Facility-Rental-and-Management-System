@@ -2,6 +2,7 @@ package com.safebox.self_storage.service.impl;
 
 import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
+import com.safebox.self_storage.dto.RejectReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 import com.safebox.self_storage.entity.*;
 import com.safebox.self_storage.repository.*;

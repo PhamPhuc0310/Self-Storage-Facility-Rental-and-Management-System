@@ -2,13 +2,14 @@ package com.safebox.self_storage.service;
 
 import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
+import com.safebox.self_storage.dto.RejectReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Service định nghĩa các nghiệp vụ xử lý yêu cầu đặt kho (Reservation):
+ * Interface định nghĩa các nghiệp vụ cốt lõi về đặt kho (Reservation):
  * - UC05: Tạo yêu cầu đặt kho (Create Storage Reservation Request)
  * - UC06: Xem và hủy yêu cầu đặt kho của tôi (View and Cancel My Reservation Requests)
  */
@@ -16,10 +17,13 @@ public interface ReservationService {
 
     /**
      * UC05: Tạo mới một yêu cầu đặt kho cho khách hàng.
+     * Kiểm tra trạng thái tài khoản khách hàng, tính hợp lệ của cơ sở, loại kho,
+     * số lượng kho còn trống, ngày thuê, áp dụng bảng giá hiện hành để tính tiền thuê và tiền cọc dự kiến,
+     * thiết lập thời hạn giữ chỗ (hold_expires_at) và lưu trạng thái PENDING.
      *
-     * @param customerId ID tài khoản khách hàng thực hiện yêu cầu
-     * @param request    Thông tin chi tiết yêu cầu đặt kho
-     * @return DTO kết quả đặt kho đã được khởi tạo
+     * @param customerId Mã UUID của khách hàng đặt kho
+     * @param request    Thông tin chi tiết về cơ sở, loại kho, ngày bắt đầu và thời gian thuê
+     * @return DTO chứa thông tin đầy đủ của yêu cầu vừa tạo
      */
     ReservationResponse createReservation(UUID customerId, CreateReservationRequest request);
 
