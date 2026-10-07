@@ -1,7 +1,9 @@
 package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.config.SecurityConfig;
+import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
+import com.safebox.self_storage.dto.RejectReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 import com.safebox.self_storage.entity.Role;
 import com.safebox.self_storage.entity.User;
@@ -20,11 +22,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +44,7 @@ class ReservationControllerTest {
     @MockBean private JwtService jwt;
 
     private final UUID customerId = UUID.randomUUID();
+    private final UUID managerId = UUID.randomUUID();
     private final UUID reservationId = UUID.randomUUID();
     private final UUID facilityId = UUID.randomUUID();
 
@@ -56,6 +61,18 @@ class ReservationControllerTest {
         customer.setEmailVerified(true);
         when(jwt.isCurrent(eq("customer-token"), any(User.class))).thenReturn(true);
         when(auth.activeUser(customerId)).thenReturn(customer);
+
+        // Manager setup
+        when(jwt.userId("manager-token")).thenReturn(managerId);
+        Role managerRole = new Role();
+        managerRole.setRoleName("FACILITY_MANAGER");
+        User manager = new User();
+        manager.setUserId(managerId);
+        manager.setRole(managerRole);
+        manager.setStatus("ACTIVE");
+        manager.setEmailVerified(true);
+        when(jwt.isCurrent(eq("manager-token"), any(User.class))).thenReturn(true);
+        when(auth.activeUser(managerId)).thenReturn(manager);
     }
 
     private ReservationResponse sampleResponse(String status) {
@@ -125,5 +142,78 @@ class ReservationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // =========================================================================
+    // UC06: Xem và hủy yêu cầu của tôi
+    // =========================================================================
+    @Test
+    void getMyReservations_customer_returnsList() throws Exception {
+        when(reservationService.getMyReservations(eq(customerId), any(), any()))
+                .thenReturn(List.of(sampleResponse("PENDING")));
+
+        mvc.perform(get("/api/reservations/my")
+                        .header("Authorization", "Bearer customer-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].requestCode").value("#SB-REQ-2026-0001"))
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
+    }
+
+    @Test
+    void cancelMyReservation_customer_returnsUpdatedReservation() throws Exception {
+        when(reservationService.cancelMyReservation(eq(customerId), eq(reservationId), any(CancelReservationRequest.class)))
+                .thenReturn(sampleResponse("CANCELLED"));
+
+        mvc.perform(post("/api/reservations/my/" + reservationId + "/cancel")
+                        .header("Authorization", "Bearer customer-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cancellationReason\":\"Bận việc đột xuất\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+    }
+
+    // =========================================================================
+    // UC08: Xác nhận hoặc từ chối yêu cầu đặt kho
+    // =========================================================================
+    @Test
+    void getAllReservations_manager_returnsList() throws Exception {
+        when(reservationService.getAllReservations(any(), any(), any()))
+                .thenReturn(List.of(sampleResponse("PENDING")));
+
+        mvc.perform(get("/api/reservations")
+                        .header("Authorization", "Bearer manager-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].requestCode").value("#SB-REQ-2026-0001"));
+    }
+
+    @Test
+    void getAllReservations_customer_forbidden() throws Exception {
+        mvc.perform(get("/api/reservations")
+                        .header("Authorization", "Bearer customer-token"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void approveReservation_manager_returnsConfirmed() throws Exception {
+        when(reservationService.approveReservation(reservationId))
+                .thenReturn(sampleResponse("CONFIRMED"));
+
+        mvc.perform(post("/api/reservations/" + reservationId + "/approve")
+                        .header("Authorization", "Bearer manager-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
+    void rejectReservation_manager_returnsRejected() throws Exception {
+        when(reservationService.rejectReservation(eq(reservationId), any(RejectReservationRequest.class)))
+                .thenReturn(sampleResponse("REJECTED"));
+
+        mvc.perform(post("/api/reservations/" + reservationId + "/reject")
+                        .header("Authorization", "Bearer manager-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"rejectionReason\":\"Không đủ thông tin hàng hóa\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("REJECTED"));
     }
 }

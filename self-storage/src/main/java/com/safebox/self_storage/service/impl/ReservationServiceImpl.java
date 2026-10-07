@@ -1,6 +1,8 @@
 package com.safebox.self_storage.service.impl;
 
+import com.safebox.self_storage.dto.CancelReservationRequest;
 import com.safebox.self_storage.dto.CreateReservationRequest;
+import com.safebox.self_storage.dto.RejectReservationRequest;
 import com.safebox.self_storage.dto.response.ReservationResponse;
 import com.safebox.self_storage.entity.*;
 import com.safebox.self_storage.repository.*;
@@ -17,6 +19,8 @@ import java.util.*;
 /**
  * Lớp cài đặt (Implementation) các nghiệp vụ đặt kho:
  * - UC05: Tạo yêu cầu đặt kho
+ * - UC06: Xem danh sách, chi tiết và hủy yêu cầu của tôi
+ * - UC08: Xem tất cả yêu cầu, duyệt hoặc từ chối yêu cầu đặt kho
  */
 @Service
 public class ReservationServiceImpl implements ReservationService {
@@ -158,8 +162,220 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     // =========================================================================
+    // UC06: Xem và hủy yêu cầu đặt kho của tôi (Customer)
+    // =========================================================================
+
+    /**
+     * Triển khai nghiệp vụ UC06: Lấy danh sách yêu cầu đặt kho của khách hàng hiện tại.
+     * Cho phép lọc theo trạng thái (PENDING, CONFIRMED, REJECTED, CANCELLED)
+     * và tìm kiếm theo chuỗi ký tự (mã yêu cầu, tên kho,...).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getMyReservations(UUID customerId, String status, String search) {
+        if (customerId == null) {
+            throw new IllegalArgumentException("Khách hàng không hợp lệ");
+        }
+
+        List<Reservation> list;
+        // Nếu có chỉ định trạng thái khác ALL thì lọc theo trạng thái
+        if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status.trim())) {
+            list = reservationRepository.findByCustomerIdAndStatusOrderByCreatedAtDesc(customerId, status.trim().toUpperCase());
+        } else {
+            // Mặc định lấy toàn bộ sắp xếp theo thời gian tạo mới nhất
+            list = reservationRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+        }
+
+        return list.stream()
+                .map(this::toResponse)
+                .filter(res -> matchesSearch(res, search))
+                .toList();
+    }
+
+    /**
+     * Triển khai nghiệp vụ UC06: Xem chi tiết một yêu cầu đặt kho của khách hàng hiện tại.
+     * Đảm bảo kiểm tra quyền sở hữu (yêu cầu phải thuộc customerId tương ứng).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public ReservationResponse getMyReservationDetail(UUID customerId, UUID reservationId) {
+        if (customerId == null || reservationId == null) {
+            throw new IllegalArgumentException("Thông tin yêu cầu không hợp lệ");
+        }
+        Reservation reservation = reservationRepository.findByReservationIdAndCustomerId(reservationId, customerId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy yêu cầu đặt kho của bạn"));
+        return toResponse(reservation);
+    }
+
+    /**
+     * Triển khai nghiệp vụ UC06: Khách hàng tự hủy yêu cầu đặt kho của mình.
+     * Quy tắc nghiệp vụ:
+     * - Yêu cầu phải thuộc về khách hàng đang đăng nhập.
+     * - Không thể hủy yêu cầu đã bị hủy trước đó (CANCELLED).
+     * - Không thể hủy yêu cầu đã bị từ chối (REJECTED).
+     * - Chỉ cho phép hủy khi đang ở trạng thái PENDING hoặc CONFIRMED (trước khi nhận phòng).
+     * - Cập nhật trạng thái thành CANCELLED, lưu ngày giờ hủy và lý do hủy.
+     */
+    @Override
+    @Transactional
+    public ReservationResponse cancelMyReservation(UUID customerId, UUID reservationId, CancelReservationRequest request) {
+        if (customerId == null || reservationId == null) {
+            throw new IllegalArgumentException("Thông tin yêu cầu không hợp lệ");
+        }
+        Reservation reservation = reservationRepository.findByReservationIdAndCustomerId(reservationId, customerId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy yêu cầu đặt kho của bạn"));
+
+        String currentStatus = reservation.getStatus();
+        if ("CANCELLED".equalsIgnoreCase(currentStatus)) {
+            throw new IllegalStateException("Yêu cầu đặt kho này đã được hủy trước đó");
+        }
+        if ("REJECTED".equalsIgnoreCase(currentStatus)) {
+            throw new IllegalStateException("Yêu cầu này đã bị từ chối, không thể hủy");
+        }
+        if (!"PENDING".equalsIgnoreCase(currentStatus) && !"CONFIRMED".equalsIgnoreCase(currentStatus)) {
+            throw new IllegalStateException("Không thể hủy yêu cầu ở trạng thái: " + currentStatus);
+        }
+
+        reservation.setStatus("CANCELLED");
+        reservation.setCancelledAt(LocalDateTime.now());
+        String reason = (request != null && request.cancellationReason() != null && !request.cancellationReason().isBlank())
+                ? request.cancellationReason().trim()
+                : "Khách hàng yêu cầu hủy";
+        reservation.setCancellationReason(reason);
+
+        Reservation updated = reservationRepository.save(reservation);
+        return toResponse(updated);
+    }
+
+    // =========================================================================
+    // UC08: Xác nhận hoặc từ chối yêu cầu đặt kho (Manager / Staff)
+    // =========================================================================
+
+    /**
+     * Triển khai nghiệp vụ UC08: Xem tất cả yêu cầu đặt kho dành cho cấp quản lý/nhân viên.
+     * Hỗ trợ bộ lọc đa điều kiện: trạng thái, cơ sở kho và từ khóa tìm kiếm.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getAllReservations(String status, UUID facilityId, String search) {
+        String filterStatus = (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status.trim()))
+                ? status.trim().toUpperCase()
+                : null;
+
+        List<Reservation> list = reservationRepository.searchReservations(null, filterStatus, facilityId);
+
+        return list.stream()
+                .map(this::toResponse)
+                .filter(res -> matchesSearch(res, search))
+                .toList();
+    }
+
+    /**
+     * Triển khai nghiệp vụ UC08: Xem chi tiết một yêu cầu bất kỳ theo mã reservationId.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public ReservationResponse getReservationDetail(UUID reservationId) {
+        if (reservationId == null) {
+            throw new IllegalArgumentException("Mã yêu cầu không hợp lệ");
+        }
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy yêu cầu đặt kho"));
+        return toResponse(reservation);
+    }
+
+    /**
+     * Triển khai nghiệp vụ UC08: Phê duyệt (Xác nhận) yêu cầu đặt kho từ khách hàng.
+     * Quy tắc nghiệp vụ:
+     * - Yêu cầu phải tồn tại và đang ở trạng thái PENDING.
+     * - Kiểm tra số ô kho thực tế còn trống tại thời điểm duyệt.
+     * - Nếu còn chỗ, cập nhật trạng thái sang CONFIRMED.
+     */
+    @Override
+    @Transactional
+    public ReservationResponse approveReservation(UUID reservationId) {
+        if (reservationId == null) {
+            throw new IllegalArgumentException("Mã yêu cầu không hợp lệ");
+        }
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy yêu cầu đặt kho"));
+
+        // Kiểm tra trạng thái hiện tại
+        if (!"PENDING".equalsIgnoreCase(reservation.getStatus())) {
+            throw new IllegalStateException("Chỉ có thể xác nhận yêu cầu ở trạng thái Chờ xác nhận (PENDING). Trạng thái hiện tại: " + reservation.getStatus());
+        }
+
+        // Kiểm tra xem kho còn ô trống khả dụng hay không
+        long availableUnits = storageUnitRepository.countAvailableUnitsByFacilityAndType(reservation.getFacilityId(), reservation.getTypeId());
+        if (availableUnits <= 0) {
+            throw new IllegalStateException("Không thể xác nhận yêu cầu vì cơ sở hiện không còn ô kho trống cho loại kho này");
+        }
+
+        reservation.setStatus("CONFIRMED");
+        Reservation updated = reservationRepository.save(reservation);
+        return toResponse(updated);
+    }
+
+    /**
+     * Triển khai nghiệp vụ UC08: Từ chối yêu cầu đặt kho của khách hàng.
+     * Quy tắc nghiệp vụ:
+     * - Yêu cầu phải tồn tại và đang ở trạng thái PENDING.
+     * - Cập nhật trạng thái sang REJECTED, ghi nhận thời gian từ chối và lý do từ chối.
+     */
+    @Override
+    @Transactional
+    public ReservationResponse rejectReservation(UUID reservationId, RejectReservationRequest request) {
+        if (reservationId == null) {
+            throw new IllegalArgumentException("Mã yêu cầu không hợp lệ");
+        }
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy yêu cầu đặt kho"));
+
+        // Kiểm tra trạng thái hiện tại
+        if (!"PENDING".equalsIgnoreCase(reservation.getStatus())) {
+            throw new IllegalStateException("Chỉ có thể từ chối yêu cầu ở trạng thái Chờ xác nhận (PENDING). Trạng thái hiện tại: " + reservation.getStatus());
+        }
+
+        reservation.setStatus("REJECTED");
+        reservation.setCancelledAt(LocalDateTime.now());
+        String reason = (request != null && request.rejectionReason() != null && !request.rejectionReason().isBlank())
+                ? request.rejectionReason().trim()
+                : "Ban quản lý từ chối yêu cầu đặt kho";
+        reservation.setCancellationReason(reason);
+
+        Reservation updated = reservationRepository.save(reservation);
+        return toResponse(updated);
+    }
+
+    // =========================================================================
     // Các hàm phụ trợ (Helper Methods)
     // =========================================================================
+
+    /**
+     * Hàm phụ trợ: Kiểm tra xem một yêu cầu đặt kho có khớp với từ khóa tìm kiếm hay không.
+     * So khớp trên: mã yêu cầu (#SB-REQ-...), tên cơ sở, loại kho, họ tên khách hàng, số điện thoại.
+     */
+    private boolean matchesSearch(ReservationResponse res, String search) {
+        if (search == null || search.isBlank()) return true;
+        String q = search.trim().toLowerCase();
+        return (res.requestCode() != null && res.requestCode().toLowerCase().contains(q))
+                || (res.facilityName() != null && res.facilityName().toLowerCase().contains(q))
+                || (res.typeName() != null && res.typeName().toLowerCase().contains(q))
+                || (res.customerName() != null && res.customerName().toLowerCase().contains(q))
+                || (res.customerPhone() != null && res.customerPhone().toLowerCase().contains(q));
+    }
+
+    /**
+     * Hàm phụ trợ: Chuyển đổi thực thể Reservation thành DTO ReservationResponse
+     * bằng cách tự động tra cứu các thông tin liên quan (khách hàng, cơ sở, loại kho, chính sách giá).
+     */
+    private ReservationResponse toResponse(Reservation res) {
+        User customer = userRepository.findById(res.getCustomerId()).orElse(null);
+        Facility facility = facilityRepository.findById(res.getFacilityId()).orElse(null);
+        StorageUnitType unitType = storageUnitTypeRepository.findById(res.getTypeId()).orElse(null);
+        PricingPolicy policy = pricingPolicyRepository.findById(res.getPricingId()).orElse(null);
+        return toResponse(res, customer, facility, unitType, policy);
+    }
 
     /**
      * Hàm phụ trợ: Ánh xạ đầy đủ các thuộc tính của Reservation và các thực thể liên quan
