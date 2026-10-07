@@ -31,6 +31,11 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(new ApiError(400, "Dữ liệu nhập không hợp lệ. Vui lòng kiểm tra lại các trường."));
     }
 
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    ResponseEntity<ApiError> businessRuleError(RuntimeException ex) {
+        return ResponseEntity.badRequest().body(new ApiError(400, ex.getMessage()));
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     ResponseEntity<ApiError> unauthorized(BadCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
