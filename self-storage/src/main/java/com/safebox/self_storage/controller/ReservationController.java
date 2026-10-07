@@ -18,7 +18,6 @@ import java.util.UUID;
  * Controller xử lý các yêu cầu API liên quan đến quy trình đặt kho (Reservation):
  * - UC05: Tạo yêu cầu đặt kho (Khách hàng)
  * - UC06: Xem danh sách, xem chi tiết và hủy yêu cầu đặt kho của tôi (Khách hàng)
- * - UC08: Xem tất cả yêu cầu, duyệt hoặc từ chối yêu cầu đặt kho (Quản lý / Nhân viên)
  */
 @RestController
 @RequestMapping("/api/reservations")
@@ -140,90 +139,5 @@ public class ReservationController {
             @PathVariable("id") UUID id,
             @RequestBody(required = false) CancelReservationRequest request) {
         return cancelMyReservation(id, request);
-    }
-
-    // =========================================================================
-    // UC08: Xem tất cả yêu cầu đặt kho (Quản lý / Nhân viên / Admin)
-    // =========================================================================
-
-    /**
-     * Chức năng UC08: Xem danh sách tất cả các yêu cầu đặt kho trên hệ thống dành cho ban quản lý.
-     * 
-     * Endpoint: GET /api/reservations
-     * Quyền truy cập: Nhân viên, Quản lý cơ sở, Quản lý vận hành, Quản trị hệ thống
-     *
-     * @param status     (Tùy chọn) Lọc theo trạng thái yêu cầu (PENDING, CONFIRMED, REJECTED, CANCELLED)
-     * @param facilityId (Tùy chọn) Lọc theo mã cơ sở kho
-     * @param search     (Tùy chọn) Tìm kiếm theo mã yêu cầu, tên khách hàng, số điện thoại,...
-     * @return Danh sách yêu cầu đặt kho thỏa điều kiện tìm kiếm
-     */
-    @GetMapping
-    public ResponseEntity<List<ReservationResponse>> getAllReservations(
-            @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "facilityId", required = false) UUID facilityId,
-            @RequestParam(value = "search", required = false) String search) {
-        return ResponseEntity.ok(reservationService.getAllReservations(status, facilityId, search));
-    }
-
-    /**
-     * Chức năng UC08: Xem thông tin chi tiết một yêu cầu đặt kho bất kỳ theo mã ID.
-     * 
-     * Endpoint: GET /api/reservations/{id}
-     * Quyền truy cập: Nhân viên, Quản lý cơ sở, Quản trị hệ thống
-     *
-     * @param id Mã định danh UUID của yêu cầu đặt kho
-     * @return Chi tiết yêu cầu đặt kho tương ứng
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<ReservationResponse> getReservationDetail(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(reservationService.getReservationDetail(id));
-    }
-
-    /**
-     * Chức năng UC08: Xác nhận (phê duyệt) yêu cầu đặt kho của khách hàng.
-     * Kiểm tra trạng thái hiện tại phải là PENDING và cơ sở còn ô kho trống, chuyển trạng thái sang CONFIRMED.
-     * 
-     * Endpoint: POST /api/reservations/{id}/approve
-     * Quyền truy cập: Nhân viên, Quản lý cơ sở, Quản trị hệ thống
-     *
-     * @param id Mã định danh UUID của yêu cầu cần duyệt
-     * @return Chi tiết yêu cầu đặt kho với trạng thái mới là CONFIRMED (Đã xác nhận)
-     */
-    @PostMapping("/{id}/approve")
-    public ResponseEntity<ReservationResponse> approveReservation(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(reservationService.approveReservation(id));
-    }
-
-    /**
-     * Chức năng UC08 (Alias confirm): Xác nhận yêu cầu đặt kho.
-     * Tương tự phương thức approveReservation.
-     * 
-     * Endpoint: POST /api/reservations/{id}/confirm
-     * Quyền truy cập: Nhân viên, Quản lý cơ sở, Quản trị hệ thống
-     *
-     * @param id Mã định danh UUID của yêu cầu cần duyệt
-     * @return Chi tiết yêu cầu đặt kho với trạng thái mới là CONFIRMED
-     */
-    @PostMapping("/{id}/confirm")
-    public ResponseEntity<ReservationResponse> confirmReservation(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(reservationService.approveReservation(id));
-    }
-
-    /**
-     * Chức năng UC08: Từ chối yêu cầu đặt kho của khách hàng.
-     * Kiểm tra trạng thái hiện tại phải là PENDING, ghi nhận lý do từ chối và chuyển trạng thái sang REJECTED.
-     * 
-     * Endpoint: POST /api/reservations/{id}/reject
-     * Quyền truy cập: Nhân viên, Quản lý cơ sở, Quản trị hệ thống
-     *
-     * @param id      Mã định danh UUID của yêu cầu bị từ chối
-     * @param request (Tùy chọn) Chứa lý do từ chối (rejectionReason) từ ban quản lý
-     * @return Chi tiết yêu cầu đặt kho với trạng thái mới là REJECTED (Bị từ chối)
-     */
-    @PostMapping("/{id}/reject")
-    public ResponseEntity<ReservationResponse> rejectReservation(
-            @PathVariable("id") UUID id,
-            @RequestBody(required = false) RejectReservationRequest request) {
-        return ResponseEntity.ok(reservationService.rejectReservation(id, request));
     }
 }

@@ -171,49 +171,4 @@ class ReservationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
-
-    // =========================================================================
-    // UC08: Xác nhận hoặc từ chối yêu cầu đặt kho
-    // =========================================================================
-    @Test
-    void getAllReservations_manager_returnsList() throws Exception {
-        when(reservationService.getAllReservations(any(), any(), any()))
-                .thenReturn(List.of(sampleResponse("PENDING")));
-
-        mvc.perform(get("/api/reservations")
-                        .header("Authorization", "Bearer manager-token"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].requestCode").value("#SB-REQ-2026-0001"));
-    }
-
-    @Test
-    void getAllReservations_customer_forbidden() throws Exception {
-        mvc.perform(get("/api/reservations")
-                        .header("Authorization", "Bearer customer-token"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void approveReservation_manager_returnsConfirmed() throws Exception {
-        when(reservationService.approveReservation(reservationId))
-                .thenReturn(sampleResponse("CONFIRMED"));
-
-        mvc.perform(post("/api/reservations/" + reservationId + "/approve")
-                        .header("Authorization", "Bearer manager-token"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
-    }
-
-    @Test
-    void rejectReservation_manager_returnsRejected() throws Exception {
-        when(reservationService.rejectReservation(eq(reservationId), any(RejectReservationRequest.class)))
-                .thenReturn(sampleResponse("REJECTED"));
-
-        mvc.perform(post("/api/reservations/" + reservationId + "/reject")
-                        .header("Authorization", "Bearer manager-token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"rejectionReason\":\"Không đủ thông tin hàng hóa\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REJECTED"));
-    }
 }
