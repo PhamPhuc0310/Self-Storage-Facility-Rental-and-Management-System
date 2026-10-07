@@ -15,6 +15,8 @@
 	<description>Self Storage Facility Rental and Management System</description>
 	<properties>
 		<java.version>21</java.version>
+		<mockito.version>5.14.0</mockito.version>
+		<byte-buddy.version>1.15.3</byte-buddy.version>
 		<exec.mainClass>com.safebox.self_storage.SafeStorageApplication</exec.mainClass>
 	</properties>
 	<dependencies>
@@ -77,6 +79,17 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+					<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Dfile.encoding=UTF-8</argLine>
+					<skipTests>true</skipTests>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>
+
+
+

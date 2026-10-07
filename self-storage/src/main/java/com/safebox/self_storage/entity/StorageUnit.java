@@ -21,6 +21,12 @@ public class StorageUnit {
     @Column(name = "unit_number", nullable = false, length = 50)
     private String unitNumber;
 
+    @Column(name = "floor", length = 20)
+    private String floor;
+
+    @Column(name = "zone", length = 50)
+    private String zone;
+
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
@@ -32,6 +38,10 @@ public class StorageUnit {
     public void setTypeId(Integer typeId) { this.typeId = typeId; }
     public String getUnitNumber() { return unitNumber; }
     public void setUnitNumber(String unitNumber) { this.unitNumber = unitNumber; }
+    public String getFloor() { return floor; }
+    public void setFloor(String floor) { this.floor = floor; }
+    public String getZone() { return zone; }
+    public void setZone(String zone) { this.zone = zone; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }

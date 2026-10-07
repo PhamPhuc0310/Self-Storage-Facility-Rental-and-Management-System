@@ -13,6 +13,10 @@ import com.safebox.self_storage.service.AuthFlowException;
 
 @RestControllerAdvice(basePackages = "com.safebox.self_storage.controller")
 public class ApiExceptionHandler {
+    @ExceptionHandler(BusinessException.class)
+    ResponseEntity<ApiError> business(BusinessException ex) {
+        return ResponseEntity.status(ex.status()).body(new ApiError(ex.status().value(), ex.getMessage()));
+    }
     @ExceptionHandler(AuthFlowException.class)
     ResponseEntity<ApiError> authFlow(AuthFlowException ex) {
         return ResponseEntity.status(ex.status()).body(new ApiError(ex.status().value(), ex.getMessage()));
