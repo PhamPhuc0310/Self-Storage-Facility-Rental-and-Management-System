@@ -29,7 +29,8 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-.requestMatchers("/api/auth/**", "/error", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/uc04-facility-detail.html", "/safebox_storage_home/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/error", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/api/availability", "/uc04-facility-detail.html", "/safebox_storage_home/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/manager/**").hasRole("FACILITY_MANAGER")
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/reservations").hasRole("CUSTOMER")
                         .requestMatchers("/api/reservations/my", "/api/reservations/my/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/reservations/*/approve", "/api/reservations/*/confirm", "/api/reservations/*/reject").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER", "BUSINESS_OPERATIONS_MANAGER", "SYSTEM_ADMIN")
