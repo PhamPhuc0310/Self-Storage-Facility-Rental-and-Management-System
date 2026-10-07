@@ -1,6 +1,7 @@
 package com.safebox.self_storage.repository;
 
 import com.safebox.self_storage.entity.Reservation;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -105,4 +106,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     List<Reservation> searchReservations(@Param("customerId") UUID customerId,
                                          @Param("status") String status,
                                          @Param("facilityId") UUID facilityId);
+
+    /**
+     * Đếm số lượng yêu cầu đã xác nhận (CONFIRMED) trùng lặp khoảng thời gian tại cơ sở và loại kho.
+     * Phục vụ tính khả dụng kho theo thời gian (UC03).
+     */
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.facilityId = :facilityId AND r.typeId = :typeId "
+            + "AND r.status = 'CONFIRMED' AND r.startDate < :endDate AND r.endDate > :startDate")
+    long countConfirmedOverlapping(@Param("facilityId") UUID facilityId, @Param("typeId") Integer typeId,
+                                   @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }
