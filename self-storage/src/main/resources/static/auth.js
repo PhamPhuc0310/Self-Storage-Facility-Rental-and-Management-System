@@ -1,8 +1,8 @@
 (function () {
   const loginPath = '/stitch/ng_nh_p_ng_k_safebox_storage.html';
   const destinations = {
-    CUSTOMER: '/stitch/y_u_c_u_c_a_t_i_safebox_storage.html',
-    FACILITY_STAFF: '/role-home.html',
+    CUSTOMER: '/stitch/kho_dang_thue_safebox_storage.html',
+    FACILITY_STAFF: '/stitch/t_ng_quan_qu_n_l_safebox_manager.html',
     FACILITY_MANAGER: '/stitch/t_ng_quan_qu_n_l_safebox_manager.html',
     BUSINESS_OPERATIONS_MANAGER: '/role-home.html',
     SYSTEM_ADMIN: '/role-home.html'
