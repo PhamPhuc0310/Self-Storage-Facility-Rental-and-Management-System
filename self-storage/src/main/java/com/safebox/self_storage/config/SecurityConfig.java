@@ -33,6 +33,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/manager/**").hasRole("FACILITY_MANAGER")
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/reservations").hasRole("CUSTOMER")
                         .requestMatchers("/api/reservations/my", "/api/reservations/my/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/customer/rentals", "/api/customer/rentals/**", "/api/rentals/my", "/api/rentals/my/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/facility/rentals", "/api/facility/rentals/**").hasAnyRole("FACILITY_MANAGER", "SYSTEM_ADMIN")
                         .requestMatchers("/api/role/customer").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/staff").hasRole("FACILITY_STAFF")
                         .requestMatchers("/api/role/manager").hasRole("FACILITY_MANAGER")

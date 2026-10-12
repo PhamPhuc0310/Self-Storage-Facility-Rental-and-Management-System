@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Kho Đang Thuê Của Tôi - SafeBox Storage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#001229",
+            "on-surface": "#131b2e",
+            "on-secondary": "#ffffff",
+            "surface-variant": "#dae2fd",
+            "error": "#ba1a1a",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed-dim": "#68dba9",
+            "on-primary-container": "#798fb1",
+            "on-secondary-container": "#fefcff",
+            "primary-fixed": "#d4e3ff",
+            "surface-dim": "#d2d9f4",
+            "surface-bright": "#faf8ff",
+            "secondary-fixed-dim": "#b4c5ff",
+            "outline-variant": "#c4c6ce",
+            "surface-container": "#eaedff",
+            "tertiary": "#00160c",
+            "surface": "#faf8ff",
+            "secondary-fixed": "#dbe1ff",
+            "tertiary-fixed": "#85f8c4",
+            "surface-container-low": "#f2f3ff",
+            "surface-container-high": "#e2e7ff",
+            "surface-container-highest": "#dae2fd",
+            "secondary-container": "#316bf3",
+            "outline": "#74777e",
+            "secondary": "#0051d5",
+            "on-surface-variant": "#44474d",
+            "primary-container": "#0f2744",
+            "surface-tint": "#4a5f7f"
+          },
+          fontFamily: {
+            "headline-sm": ["Be Vietnam Pro"],
+            "headline-md": ["Be Vietnam Pro"],
+            "headline-lg": ["Be Vietnam Pro"],
+            "body-sm": ["Be Vietnam Pro"],
+            "body-md": ["Be Vietnam Pro"],
+            "label-button": ["Be Vietnam Pro"],
+            "label-badge": ["Be Vietnam Pro"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-sm">
+
+  <!-- Fixed Top Header Navigation -->
+  <header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-20 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <a href="/stitch/trang_ch_safebox_storage.html" class="flex items-center gap-3">
+          <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
+          <div class="flex flex-col">
+            <span class="font-headline-sm font-semibold text-primary tracking-tight">SafeBox Storage</span>
+            <span class="text-xs text-on-surface-variant">Hệ thống lưu trữ thông minh</span>
+          </div>
+        </a>
+        <nav class="hidden md:flex items-center gap-3 ml-6">
+          <a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/trang_ch_safebox_storage.html">Trang chủ</a>
+          <a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/t_m_kho_l_u_tr_safebox_storage.html">Tìm kho</a>
+          <a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/y_u_c_u_c_a_t_i_safebox_storage.html">Yêu cầu của tôi</a>
+          <a aria-current="page" class="inline-flex items-center gap-2 bg-surface-container-high text-on-surface font-bold rounded-lg px-3 py-1.5 text-primary" href="/stitch/kho_dang_thue_safebox_storage.html">
+            <span class="material-symbols-outlined text-base">warehouse</span>
+            <span>Kho đang thuê</span>
+            <span id="nav-active-count-badge" class="px-2 py-0.5 rounded-full bg-secondary text-white text-xs font-semibold">0</span>
+          </a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <a class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface" href="tel:19008868">
+          <span class="material-symbols-outlined text-secondary text-lg">call</span>
+          <span class="font-semibold text-xs">1900 8868</span>
+        </a>
+        <div class="flex items-center gap-3 pl-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold text-sm">
+              <span class="material-symbols-outlined text-base">person</span>
+            </div>
+            <div class="hidden sm:flex flex-col text-left">
+              <span id="current-user-name" class="font-semibold text-xs leading-tight text-on-surface">Đang tải...</span>
+              <span id="current-user-role" class="text-xs text-on-surface-variant">Khách hàng</span>
+            </div>
+          </div>
+          <button onclick="SafeBoxAuth.logout()" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-rose-600 transition-colors" title="Đăng xuất">
+            <span class="material-symbols-outlined text-xl">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="w-full pt-24 pb-16 bg-surface min-h-[calc(100vh-80px)]">
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-12 space-y-8">
+
+      <!-- Breadcrumbs & Banner -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-gradient-to-r from-primary via-primary-container to-secondary/80 text-white p-6 md:p-8 rounded-2xl shadow-lg relative overflow-hidden">
+        <div class="relative z-10 space-y-2 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-secondary-fixed text-xs font-medium">
+            <span class="material-symbols-outlined text-sm">inventory_2</span>
+            <span>UC15 · Quản Lý Hợp Đồng &amp; Kho Đang Thuê</span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">Kho đang thuê của tôi</h1>
+          <p class="text-sm text-surface-container-highest/90">
+            Theo dõi chi tiết tình trạng kho thực tế, thời hạn hợp đồng, lịch sử thanh toán và đặt lịch trả kho tiện lợi.
+          </p>
+        </div>
+
+        <!-- Quick KPI Widget -->
+        <div class="relative z-10 flex flex-wrap items-center gap-3 bg-surface-container-lowest/10 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
+          <div class="flex items-center gap-3 pr-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined">vpn_key</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs text-white/70">Đang thuê hoạt động</span>
+              <span id="kpi-active-count" class="text-lg font-bold text-white">-- kho</span>
+            </div>
+          </div>
+          <div class="h-8 w-px bg-white/20 hidden sm:block"></div>
+          <div class="flex items-center gap-3 pr-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined">hourglass_top</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs text-white/70">Chờ bàn giao</span>
+              <span id="kpi-pending-count" class="text-lg font-bold text-white">-- kho</span>
+            </div>
+          </div>
+          <a href="/stitch/t_m_kho_l_u_tr_safebox_storage.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-secondary text-white text-xs font-semibold hover:bg-secondary-container transition-all shadow-sm">
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span>Thuê thêm kho</span>
+          </a>
+        </div>
+
+        <!-- Background SVG Deco -->
+        <svg class="absolute -right-8 -bottom-12 w-96 h-96 opacity-10 pointer-events-none text-white" fill="none" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-dasharray="4 4" stroke-width="1.5"></circle>
+          <circle cx="100" cy="100" r="50" stroke="currentColor" stroke-width="2"></circle>
+          <path d="M20 100 H180 M100 20 V180" stroke="currentColor" stroke-width="1"></path>
+        </svg>
+      </div>
+
+      <!-- Navigation & Filter Tabs (BR15.4) -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-low p-2 rounded-xl">
+        <div class="flex flex-wrap items-center gap-1.5" id="status-tabs-container">
+          <button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-container-lowest text-secondary shadow-sm font-semibold transition-all" id="tab-btn-ALL" onclick="switchFilterTab('ALL')">
+            <span>Tất cả kho</span>
+            <span id="badge-tab-ALL" class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-xs">0</span>
+          </button>
+          <button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high font-medium transition-all" id="tab-btn-ACTIVE" onclick="switchFilterTab('ACTIVE')">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Đang thuê</span>
+            <span id="badge-tab-ACTIVE" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs">0</span>
+          </button>
+          <button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high font-medium transition-all" id="tab-btn-PENDING_HANDOVER" onclick="switchFilterTab('PENDING_HANDOVER')">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>Chờ bàn giao</span>
+            <span id="badge-tab-PENDING_HANDOVER" class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs">0</span>
+          </button>
+          <button class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high font-medium transition-all" id="tab-btn-ENDED" onclick="switchFilterTab('ENDED')">
+            <span>Đã kết thúc</span>
+            <span id="badge-tab-ENDED" class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs">0</span>
+          </button>
+        </div>
+
+        <!-- Quick Search Bar -->
+        <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-lowest rounded-lg shadow-sm border border-slate-200">
+          <span class="material-symbols-outlined text-outline text-lg">search</span>
+          <input class="bg-transparent border-none text-xs text-on-surface placeholder:text-outline focus:outline-none w-56 sm:w-64" id="filter-search" oninput="handleSearchInput(this.value)" placeholder="Tìm mã hợp đồng, mã kho, cơ sở..." type="text"/>
+          <button onclick="clearSearch()" id="clear-search-btn" class="hidden text-outline hover:text-on-surface text-xs">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div id="loading-spinner" class="py-16 text-center">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-secondary border-t-transparent mb-3"></div>
+        <p class="text-sm text-on-surface-variant">Đang tải danh sách kho đang thuê...</p>
+      </div>
+
+      <!-- Empty State View (BR15.4: trả rỗng không coi là lỗi) -->
+      <div id="empty-state-view" class="hidden bg-surface-container-lowest rounded-2xl p-12 text-center shadow-sm border border-slate-100 max-w-xl mx-auto my-8">
+        <div class="w-16 h-16 rounded-full bg-surface-container-high text-secondary flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-3xl">warehouse</span>
+        </div>
+        <h3 class="text-lg font-bold text-primary mb-1">Không có kho nào phù hợp</h3>
+        <p class="text-xs text-on-surface-variant mb-6" id="empty-state-message">
+          Hiện tại bạn chưa có hợp đồng thuê kho nào thuộc nhóm trạng thái này.
+        </p>
+        <div class="flex items-center justify-center gap-3">
+          <button onclick="switchFilterTab('ALL')" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-xs font-semibold transition-all">
+            Xem tất cả kho
+          </button>
+          <a href="/stitch/t_m_kho_l_u_tr_safebox_storage.html" class="px-4 py-2 rounded-lg bg-secondary text-white text-xs font-semibold hover:bg-secondary-container transition-all">
+            Khám phá kho mới
+          </a>
+        </div>
+      </div>
+
+      <!-- Active Rentals Card List Container (BR15.2, BR15.3) -->
+      <div class="space-y-6" id="rentals-list-container">
+        <!-- Dynamic Cards rendered here via JavaScript -->
+      </div>
+
+      <!-- Pagination Footer -->
+      <div id="pagination-container" class="hidden flex items-center justify-between pt-6 border-t border-slate-200 text-xs text-on-surface-variant">
+        <div>
+          Hiển thị <span id="page-start-idx" class="font-semibold text-primary">0</span> - <span id="page-end-idx" class="font-semibold text-primary">0</span> trên tổng số <span id="page-total-items" class="font-semibold text-primary">0</span> hợp đồng
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prev-page-btn" onclick="goToPage(currentPage - 1)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-surface-container-lowest hover:bg-surface-container disabled:opacity-40 transition-colors" disabled>
+            Trang trước
+          </button>
+          <span id="current-page-display" class="font-semibold px-2">Trang 1 / 1</span>
+          <button id="next-page-btn" onclick="goToPage(currentPage + 1)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-surface-container-lowest hover:bg-surface-container disabled:opacity-40 transition-colors" disabled>
+            Trang sau
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Contract Details Modal (BR15.5) -->
+  <div id="contract-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-gradient-to-r from-primary to-primary-container text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-secondary-fixed">
+            <span class="material-symbols-outlined">receipt_long</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="modal-contract-number" class="font-mono text-base font-bold">#SB-CT-...</span>
+              <span id="modal-contract-badge" class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Đang thuê</span>
+            </div>
+            <p id="modal-facility-title" class="text-xs text-white/70">SafeBox Cơ sở · Kho TD-101</p>
+          </div>
+        </div>
+        <button onclick="closeContractDetailModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Sub-Tabs -->
+      <div class="flex border-b border-slate-200 px-6 bg-surface-container-low text-xs font-medium">
+        <button id="modal-tab-btn-info" onclick="switchModalTab('info')" class="py-3 px-4 border-b-2 border-secondary text-secondary font-bold flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">info</span>
+          <span>Hợp đồng &amp; Thông số kho</span>
+        </button>
+        <button id="modal-tab-btn-billing" onclick="switchModalTab('billing')" class="py-3 px-4 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">payments</span>
+          <span>Hóa đơn &amp; Thanh toán</span>
+        </button>
+        <button id="modal-tab-btn-handover" onclick="switchModalTab('handover')" class="py-3 px-4 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">verified</span>
+          <span>Biên bản bàn giao &amp; Kiểm tra</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+
+        <!-- TAB 1: CONTRACT & UNIT INFO -->
+        <div id="modal-tab-content-info" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Unit Specs Box -->
+            <div class="p-4 rounded-xl bg-surface-container-low space-y-3 border border-slate-100">
+              <h4 class="font-bold text-sm text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-secondary text-base">domain</span>
+                Thông tin kho vật lý
+              </h4>
+              <div class="space-y-2 text-on-surface-variant">
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Mã kho định danh:</span>
+                  <span id="modal-unit-number" class="font-mono font-bold text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Cơ sở lưu trữ:</span>
+                  <span id="modal-facility-name" class="font-semibold text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Địa chỉ cơ sở:</span>
+                  <span id="modal-facility-address" class="text-right max-w-xs text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Loại kho:</span>
+                  <span id="modal-unit-type" class="font-semibold text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Kích thước:</span>
+                  <span id="modal-dimensions" class="font-mono text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1">
+                  <span>Diện tích &amp; Thể tích:</span>
+                  <span id="modal-area-vol" class="font-semibold text-primary">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contract Terms Box -->
+            <div class="p-4 rounded-xl bg-surface-container-low space-y-3 border border-slate-100">
+              <h4 class="font-bold text-sm text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-secondary text-base">contract</span>
+                Điều khoản &amp; Thời hạn thuê
+              </h4>
+              <div class="space-y-2 text-on-surface-variant">
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Ngày bắt đầu:</span>
+                  <span id="modal-start-date" class="font-semibold text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Ngày kết thúc:</span>
+                  <span id="modal-end-date" class="font-semibold text-primary">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Thời hạn còn lại:</span>
+                  <span id="modal-days-remaining" class="font-bold text-emerald-700">--</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Đơn giá thuê:</span>
+                  <span id="modal-monthly-fee" class="font-bold text-primary">-- đ/tháng</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-200">
+                  <span>Tiền cọc bảo đảm:</span>
+                  <span id="modal-deposit-amount" class="font-semibold text-primary">-- đ</span>
+                </div>
+                <div class="flex justify-between py-1">
+                  <span>Kỳ thanh toán / Phiên bản:</span>
+                  <span id="modal-billing-cycle" class="text-primary font-mono">--</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Customer & Contact Info -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined">person</span>
+              </div>
+              <div>
+                <p id="modal-customer-name" class="font-bold text-primary text-sm">--</p>
+                <p class="text-xs text-on-surface-variant">
+                  <span id="modal-customer-email">--</span> · <span id="modal-customer-phone">--</span>
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="material-symbols-outlined text-secondary text-sm">support_agent</span>
+              <span class="text-on-surface-variant">Hotline hỗ trợ: <strong class="text-primary">1900 8868</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: INVOICES & PAYMENTS (BR15.5, BR15.8) -->
+        <div id="modal-tab-content-billing" class="hidden space-y-6">
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200">
+              <span class="text-xs text-blue-700 block mb-1">Tổng tiền tính:</span>
+              <span id="modal-summary-total" class="text-base font-bold text-blue-900">0 đ</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+              <span class="text-xs text-emerald-700 block mb-1">Đã thanh toán (Thành công):</span>
+              <span id="modal-summary-paid" class="text-base font-bold text-emerald-900">0 đ</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+              <span class="text-xs text-amber-700 block mb-1">Khoản còn thiếu:</span>
+              <span id="modal-summary-remaining" class="text-base font-bold text-amber-900">0 đ</span>
+            </div>
+          </div>
+
+          <!-- Invoices Table -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-sm text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-secondary text-base">receipt</span>
+              Danh sách hóa đơn phát sinh
+            </h4>
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-surface-container-high text-xs font-semibold text-primary">
+                  <tr>
+                    <th class="p-3">Mã hóa đơn</th>
+                    <th class="p-3">Khoản thu</th>
+                    <th class="p-3 text-right">Tổng tiền</th>
+                    <th class="p-3 text-right">Đã đóng</th>
+                    <th class="p-3 text-center">Trạng thái</th>
+                    <th class="p-3">Hạn thanh toán</th>
+                  </tr>
+                </thead>
+                <tbody id="modal-invoices-tbody" class="divide-y divide-slate-200 text-xs text-on-surface">
+                  <!-- Dynamic invoice rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Transactions Table -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-sm text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-secondary text-base">history</span>
+              Lịch sử giao dịch thanh toán
+            </h4>
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-surface-container-high text-xs font-semibold text-primary">
+                  <tr>
+                    <th class="p-3">Mã giao dịch</th>
+                    <th class="p-3">Phương thức</th>
+                    <th class="p-3 text-right">Số tiền</th>
+                    <th class="p-3 text-center">Kết quả</th>
+                    <th class="p-3">Thời gian ghi nhận</th>
+                  </tr>
+                </thead>
+                <tbody id="modal-transactions-tbody" class="divide-y divide-slate-200 text-xs text-on-surface">
+                  <!-- Dynamic transaction rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: HANDOVER & INSPECTION RECORDS (BR15.5) -->
+        <div id="modal-tab-content-handover" class="hidden space-y-6">
+          <!-- Handover Records -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-sm text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-secondary text-base">key</span>
+              Lịch hẹn &amp; Biên bản bàn giao kho
+            </h4>
+            <div id="modal-handovers-list" class="space-y-3">
+              <!-- Dynamic Handover Cards -->
+            </div>
+          </div>
+
+          <!-- Inspection Reports -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-sm text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-secondary text-base">checklist</span>
+              Biên bản kiểm tra tình trạng kho
+            </h4>
+            <div id="modal-inspections-list" class="space-y-3">
+              <!-- Dynamic Inspection Reports -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="text-on-surface-variant italic">
+          * Giao diện chỉ xem thông tin; thay đổi thông số kho cần liên hệ quản lý cơ sở.
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="closeContractDetailModal()" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold transition-colors">
+            Đóng
+          </button>
+          <button id="modal-return-schedule-btn" onclick="navigateToReturnSchedule()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary-container transition-all shadow-sm">
+            <span class="material-symbols-outlined text-sm">event_repeat</span>
+            <span>Đặt lịch trả kho (UC16)</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w-full bg-surface-container-low mt-16 pt-12 pb-8">
+    <div class="max-w-7xl mx-auto px-6 lg:px-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
+            <span class="font-headline-sm font-bold text-primary">SafeBox Storage</span>
+          </div>
+          <p class="text-xs text-on-surface-variant">Hệ thống kho tự quản thông minh, an toàn và chuyên nghiệp hàng đầu.</p>
+        </div>
+        <div class="space-y-3">
+          <span class="font-bold text-sm text-on-surface block">Văn phòng &amp; Cơ sở</span>
+          <div class="space-y-2 text-on-surface-variant text-xs">
+            <div class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">location_on</span>
+              <span>7 Đ. D1, Tăng Nhơn Phú, Thủ Đức, TP.HCM</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-base text-secondary">mail</span>
+              <span>contact@safebox.vn</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <span class="font-bold text-sm text-on-surface block">Dịch vụ</span>
+          <ul class="space-y-2 text-xs text-on-surface-variant">
+            <li>Kho mini gia đình (5m² - 10m²)</li>
+            <li>Kho lưu trữ doanh nghiệp</li>
+            <li>Hỗ trợ xe nâng &amp; phụ kiện lưu trữ</li>
+          </ul>
+        </div>
+        <div class="space-y-3">
+          <span class="font-bold text-sm text-on-surface block">Chính sách</span>
+          <ul class="space-y-2 text-xs text-on-surface-variant">
+            <li>Bảo hiểm hàng hóa lưu trữ</li>
+            <li>Quy trình bàn giao &amp; nghiệm thu</li>
+            <li>Hỗ trợ khách hàng 24/7</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant border-t border-slate-200">
+        <p>© 2026 SafeBox Storage Vietnam Corporation. Tất cả quyền được bảo lưu.</p>
+        <div class="flex items-center gap-6">
+          <span>Điều khoản dịch vụ</span>
+          <span>Chính sách bảo mật</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/auth.js"></script>
+  <script>SafeBoxAuth.requireRole('CUSTOMER');</script>
+  <script src="/js/stitch-public-nav.js"></script>
+  <script src="/js/office-contact.js"></script>
+
+  <script>
+    // State management
+    let activeFilter = 'ALL';
+    let searchQuery = '';
+    let currentPage = 0;
+    const pageSize = 10;
+    let totalPages = 1;
+    let selectedContractDetail = null;
+
+    // Currency Formatter
+    function formatMoney(amount) {
+      if (amount == null) return '0 đ';
+      return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+    }
+
+    // Date Formatter
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    function formatDateTime(dtStr) {
+      if (!dtStr) return 'N/A';
+      try {
+        const d = new Date(dtStr);
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        return dtStr;
+      }
+    }
+
+    // Switch Tabs
+    function switchFilterTab(tabName) {
+      activeFilter = tabName;
+      currentPage = 0;
+
+      // Update button styling
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high font-medium transition-all';
+      });
+
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-container-lowest text-secondary shadow-sm font-semibold transition-all';
+      }
+
+      loadRentals();
+    }
+
+    // Search input handler with debounce
+    let searchTimeout = null;
+    function handleSearchInput(val) {
+      searchQuery = val.trim();
+      const clearBtn = document.getElementById('clear-search-btn');
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', searchQuery.length === 0);
+      }
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        currentPage = 0;
+        loadRentals();
+      }, 350);
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('filter-search');
+      if (input) input.value = '';
+      handleSearchInput('');
+    }
+
+    // Pagination helper
+    function goToPage(page) {
+      if (page >= 0 && page < totalPages) {
+        currentPage = page;
+        loadRentals();
+      }
+    }
+
+    // Fetch rentals from API (BR15.1, BR15.4, BR15.9)
+    async function loadRentals() {
+      const token = SafeBoxAuth.getToken();
+      if (!token) return;
+
+      const spinner = document.getElementById('loading-spinner');
+      const emptyState = document.getElementById('empty-state-view');
+      const container = document.getElementById('rentals-list-container');
+      const pagination = document.getElementById('pagination-container');
+
+      spinner.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      container.innerHTML = '';
+      pagination.classList.add('hidden');
+
+      try {
+        const queryParams = new URLSearchParams({
+          page: currentPage,
+          size: pageSize
+        });
+        if (activeFilter && activeFilter !== 'ALL') {
+          queryParams.append('status', activeFilter);
+        }
+        if (searchQuery) {
+          queryParams.append('search', searchQuery);
+        }
+
+        const res = await fetch(`/api/customer/rentals?${queryParams.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`Lỗi tải dữ liệu (${res.status})`);
+        }
+
+        const data = await res.json();
+        const items = data.content || [];
+        totalPages = data.totalPages || 1;
+
+        spinner.classList.add('hidden');
+
+        // Update Nav Badge
+        if (activeFilter === 'ALL') {
+          document.getElementById('nav-active-count-badge').innerText = data.totalElements || 0;
+          document.getElementById('badge-tab-ALL').innerText = data.totalElements || 0;
+        }
+
+        if (items.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        // Render Cards (BR15.2, BR15.3, BR15.6, BR15.8, BR15.10)
+        renderRentalCards(items);
+
+        // Update Pagination controls
+        renderPagination(data);
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+        spinner.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        document.getElementById('empty-state-message').innerText = 'Không thể tải danh sách hợp đồng thuê. Vui lòng thử lại sau.';
+      }
+    }
+
+    // Render Cards
+    function renderRentalCards(items) {
+      const container = document.getElementById('rentals-list-container');
+      container.innerHTML = '';
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'rental-card bg-surface-container-lowest rounded-2xl p-6 shadow-sm hover:shadow-md transition-all border border-slate-100 flex flex-col xl:flex-row gap-6';
+
+        // Remaining Days UI logic (BR15.6)
+        let daysBadgeHtml = '';
+        if (item.isOverdue) {
+          daysBadgeHtml = `
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold border border-rose-300 animate-pulse">
+              <span class="material-symbols-outlined text-sm">warning</span>
+              <span>Quá hạn ${item.overdueDays} ngày</span>
+            </div>
+          `;
+        } else if (item.status === 'ACTIVE') {
+          daysBadgeHtml = `
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold border border-emerald-200">
+              <span class="material-symbols-outlined text-sm">schedule</span>
+              <span>Còn lại ${item.daysRemaining} ngày</span>
+            </div>
+          `;
+        }
+
+        // Action button for UC16 (BR15.10)
+        let returnBtnHtml = '';
+        if (item.canScheduleReturn) {
+          returnBtnHtml = `
+            <a href="/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html?contractId=${item.contractId}" 
+               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-container transition-all shadow-sm"
+               title="Đặt lịch trả kho và kiểm tra nghiệm thu (UC16)">
+              <span class="material-symbols-outlined text-sm">event_repeat</span>
+              <span>Đặt lịch trả kho (UC16)</span>
+            </a>
+          `;
+        }
+
+        card.innerHTML = `
+          <!-- Thumbnail & Unit Identifier -->
+          <div class="xl:w-72 w-full h-48 xl:h-auto rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-200">
+            <img class="w-full h-full object-cover" 
+                 src="${item.unitTypeImage || '/images/demo/standard-storage.png'}" 
+                 alt="${item.typeName}"/>
+            
+            <div class="absolute top-3 left-3 flex flex-col gap-1.5">
+              <span class="px-2.5 py-1 rounded-md bg-primary/90 text-white font-mono font-bold text-xs shadow flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">meeting_room</span>
+                <span>Mã kho: ${item.unitNumber}</span>
+              </span>
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold shadow ${item.statusBadgeClass}">
+                ${item.statusLabel}
+              </span>
+            </div>
+
+            <div class="absolute bottom-3 left-3 right-3 bg-primary/85 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-xs flex items-center justify-between">
+              <span>Diện tích: <strong>${item.area} m²</strong></span>
+              <span>${item.sizeName || item.typeName}</span>
+            </div>
+          </div>
+
+          <!-- Body details -->
+          <div class="flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-3 py-1 rounded-md bg-surface-container font-mono font-bold text-primary text-sm">
+                    ${item.contractNumber}
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${item.paymentBadgeClass}">
+                    ${item.paymentStatusLabel}
+                  </span>
+                </div>
+                ${daysBadgeHtml}
+              </div>
+
+              <!-- Facility & Specs -->
+              <h3 class="text-base font-bold text-primary mb-1 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-secondary text-lg">domain</span>
+                <span>${item.facilityName}</span>
+                <span class="text-xs font-normal text-on-surface-variant font-mono">(${item.floor || 'Tầng trệt'} · ${item.zone || 'Khu chuẩn'})</span>
+              </h3>
+              <p class="text-xs text-on-surface-variant flex items-center gap-1 mb-4">
+                <span class="material-symbols-outlined text-sm text-outline">location_on</span>
+                <span>${item.facilityAddress}</span>
+              </p>
+
+              <!-- Specs Grid (BR15.3) -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-surface-container-low border border-slate-100 text-xs">
+                <div>
+                  <span class="text-on-surface-variant block mb-0.5">Kích thước (D x R x C):</span>
+                  <strong class="text-primary font-mono">${item.dimensions}</strong>
+                </div>
+                <div>
+                  <span class="text-on-surface-variant block mb-0.5">Thời hạn thuê:</span>
+                  <strong class="text-primary font-mono">${item.rentalPeriod}</strong>
+                </div>
+                <div>
+                  <span class="text-on-surface-variant block mb-0.5">Giá thuê tháng:</span>
+                  <strong class="text-primary">${formatMoney(item.monthlyRentalFee)}/tháng</strong>
+                </div>
+                <div>
+                  <span class="text-on-surface-variant block mb-0.5">Đã thanh toán:</span>
+                  <strong class="text-emerald-700">${formatMoney(item.paidAmount)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Action Row -->
+            <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <div class="text-xs text-on-surface-variant">
+                <span>Khoản còn thiếu: </span>
+                <strong class="text-primary">${formatMoney(item.remainingAmount)}</strong>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <button onclick="openContractDetailModal('${item.contractId}')" 
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary text-xs font-semibold transition-all">
+                  <span class="material-symbols-outlined text-sm">visibility</span>
+                  <span>Xem chi tiết &amp; Hóa đơn</span>
+                </button>
+                ${returnBtnHtml}
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Render Pagination Controls
+    function renderPagination(data) {
+      const pagination = document.getElementById('pagination-container');
+      const startIdx = data.number * data.size + (data.numberOfElements > 0 ? 1 : 0);
+      const endIdx = data.number * data.size + data.numberOfElements;
+
+      document.getElementById('page-start-idx').innerText = startIdx;
+      document.getElementById('page-end-idx').innerText = endIdx;
+      document.getElementById('page-total-items').innerText = data.totalElements;
+      document.getElementById('current-page-display').innerText = `Trang ${data.number + 1} / ${Math.max(1, data.totalPages)}`;
+
+      const prevBtn = document.getElementById('prev-page-btn');
+      const nextBtn = document.getElementById('next-page-btn');
+
+      prevBtn.disabled = data.first;
+      nextBtn.disabled = data.last;
+
+      pagination.classList.remove('hidden');
+    }
+
+    // Modal Details (BR15.5)
+    async function openContractDetailModal(contractId) {
+      const token = SafeBoxAuth.getToken();
+      if (!token) return;
+
+      try {
+        const res = await fetch(`/api/customer/rentals/${contractId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error('Không thể tải chi tiết hợp đồng.');
+        }
+
+        const data = await res.json();
+        selectedContractDetail = data;
+        populateModalData(data);
+
+        // Show modal
+        switchModalTab('info');
+        document.getElementById('contract-detail-modal').classList.remove('hidden');
+      } catch (err) {
+        alert(err.message || 'Lỗi khi tải chi tiết hợp đồng');
+      }
+    }
+
+    function closeContractDetailModal() {
+      document.getElementById('contract-detail-modal').classList.add('hidden');
+      selectedContractDetail = null;
+    }
+
+    function populateModalData(data) {
+      const c = data.contract;
+      document.getElementById('modal-contract-number').innerText = c.contractNumber;
+      document.getElementById('modal-contract-badge').innerText = c.statusLabel;
+      document.getElementById('modal-contract-badge').className = `px-2 py-0.5 rounded-full text-xs font-semibold ${c.statusBadgeClass}`;
+      document.getElementById('modal-facility-title').innerText = `${c.facilityName} · Kho ${c.unitNumber}`;
+
+      // Tab 1 Info
+      document.getElementById('modal-unit-number').innerText = c.unitNumber;
+      document.getElementById('modal-facility-name').innerText = c.facilityName;
+      document.getElementById('modal-facility-address').innerText = c.facilityAddress;
+      document.getElementById('modal-unit-type').innerText = `${c.typeName} (${c.storageMode})`;
+      document.getElementById('modal-dimensions').innerText = c.dimensions;
+      document.getElementById('modal-area-vol').innerText = `${c.area} m² · ${c.volume} m³`;
+
+      document.getElementById('modal-start-date').innerText = formatDate(c.startDate);
+      document.getElementById('modal-end-date').innerText = formatDate(c.endDate);
+      document.getElementById('modal-days-remaining').innerText = c.isOverdue ? `Quá hạn ${c.overdueDays} ngày` : `${c.daysRemaining} ngày`;
+      document.getElementById('modal-days-remaining').className = c.isOverdue ? 'font-bold text-rose-700' : 'font-bold text-emerald-700';
+
+      document.getElementById('modal-monthly-fee').innerText = formatMoney(c.monthlyRentalFee);
+      document.getElementById('modal-deposit-amount').innerText = formatMoney(c.depositAmount);
+      document.getElementById('modal-billing-cycle').innerText = `${data.billingCycle || 'MONTHLY'} (Điều khoản ${data.termsVersion || 'v1'})`;
+
+      document.getElementById('modal-customer-name').innerText = data.customerName || 'Khách hàng';
+      document.getElementById('modal-customer-email').innerText = data.customerEmail || '--';
+      document.getElementById('modal-customer-phone').innerText = data.customerPhone || '--';
+
+      // Tab 2 Billing
+      document.getElementById('modal-summary-total').innerText = formatMoney(c.totalBilledAmount);
+      document.getElementById('modal-summary-paid').innerText = formatMoney(c.paidAmount);
+      document.getElementById('modal-summary-remaining').innerText = formatMoney(c.remainingAmount);
+
+      const invTbody = document.getElementById('modal-invoices-tbody');
+      invTbody.innerHTML = '';
+      if (data.invoices && data.invoices.length > 0) {
+        data.invoices.forEach(inv => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition-colors';
+          tr.innerHTML = `
+            <td class="p-3 font-mono font-semibold">${inv.invoiceNumber}</td>
+            <td class="p-3">${inv.invoiceTypeLabel || inv.invoiceType}</td>
+            <td class="p-3 text-right font-semibold">${formatMoney(inv.totalAmount)}</td>
+            <td class="p-3 text-right text-emerald-700">${formatMoney(inv.paidAmount)}</td>
+            <td class="p-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${inv.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${inv.statusLabel}
+              </span>
+            </td>
+            <td class="p-3">${formatDateTime(inv.dueDate)}</td>
+          `;
+          invTbody.appendChild(tr);
+        });
+      } else {
+        invTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-on-surface-variant">Chưa có hóa đơn nào phát sinh</td></tr>`;
+      }
+
+      const txTbody = document.getElementById('modal-transactions-tbody');
+      txTbody.innerHTML = '';
+      if (data.payments && data.payments.length > 0) {
+        data.payments.forEach(tx => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition-colors';
+          tr.innerHTML = `
+            <td class="p-3 font-mono">${tx.referenceCode || tx.transactionId.substring(0, 8)}</td>
+            <td class="p-3">${tx.paymentMethodLabel || tx.paymentMethod}</td>
+            <td class="p-3 text-right font-bold">${formatMoney(tx.amount)}</td>
+            <td class="p-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${tx.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${tx.statusLabel}
+              </span>
+            </td>
+            <td class="p-3">${formatDateTime(tx.transactionDate)}</td>
+          `;
+          txTbody.appendChild(tr);
+        });
+      } else {
+        txTbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-on-surface-variant">Chưa có giao dịch thanh toán nào</td></tr>`;
+      }
+
+      // Tab 3 Handover & Inspections
+      const handoverContainer = document.getElementById('modal-handovers-list');
+      handoverContainer.innerHTML = '';
+      if (data.handoverRecords && data.handoverRecords.length > 0) {
+        data.handoverRecords.forEach(ho => {
+          const div = document.createElement('div');
+          div.className = 'p-3.5 rounded-xl bg-surface-container-low border border-slate-200 space-y-1.5';
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-primary">${ho.handoverTypeLabel}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">${ho.statusLabel}</span>
+            </div>
+            <div class="text-xs text-on-surface-variant space-y-1">
+              <div>Lịch hẹn: <strong>${formatDateTime(ho.scheduledAt)}</strong> · Thực tế: <strong>${formatDateTime(ho.actualAt)}</strong></div>
+              <div>Phương thức truy cập: <span class="font-mono font-bold">${ho.accessMethod || 'Mã PIN / Thẻ'}</span> ${ho.accessIdentifier ? `(Mã: ${ho.accessIdentifier})` : ''}</div>
+              ${ho.note ? `<div class="italic text-slate-500">Ghi chú: ${ho.note}</div>` : ''}
+            </div>
+          `;
+          handoverContainer.appendChild(div);
+        });
+      } else {
+        handoverContainer.innerHTML = `<p class="p-4 rounded-xl bg-slate-50 text-center text-on-surface-variant">Chưa phát sinh biên bản bàn giao</p>`;
+      }
+
+      const inspContainer = document.getElementById('modal-inspections-list');
+      inspContainer.innerHTML = '';
+      if (data.inspectionReports && data.inspectionReports.length > 0) {
+        data.inspectionReports.forEach(ir => {
+          const div = document.createElement('div');
+          div.className = 'p-3.5 rounded-xl bg-surface-container-low border border-slate-200 space-y-1.5';
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-primary">Biên bản: ${ir.inspectionType}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">${ir.conditionStatus}</span>
+            </div>
+            <div class="text-xs text-on-surface-variant">
+              <div>Thời gian: ${formatDateTime(ir.inspectionDate)} · Khách xác nhận: ${ir.customerConfirmed ? 'Đã ký xác nhận' : 'Chưa'}</div>
+              ${ir.damageDescription ? `<div class="text-rose-600">Mô tả hư hỏng: ${ir.damageDescription} (Ước tính sửa chữa: ${formatMoney(ir.estimatedRepairCost)})</div>` : '<div class="text-emerald-700">Tình trạng kho nguyên vẹn, đạt tiêu chuẩn.</div>'}
+            </div>
+          `;
+          inspContainer.appendChild(div);
+        });
+      } else {
+        inspContainer.innerHTML = `<p class="p-4 rounded-xl bg-slate-50 text-center text-on-surface-variant">Chưa có biên bản kiểm tra tình trạng kho</p>`;
+      }
+
+      // Return Schedule Button logic (BR15.10)
+      const returnBtn = document.getElementById('modal-return-schedule-btn');
+      returnBtn.classList.toggle('hidden', !c.canScheduleReturn);
+    }
+
+    // Switch Modal Tabs
+    function switchModalTab(tab) {
+      ['info', 'billing', 'handover'].forEach(t => {
+        const btn = document.getElementById(`modal-tab-btn-${t}`);
+        const content = document.getElementById(`modal-tab-content-${t}`);
+        if (t === tab) {
+          btn.className = 'py-3 px-4 border-b-2 border-secondary text-secondary font-bold flex items-center gap-1.5';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'py-3 px-4 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface flex items-center gap-1.5';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    // Navigate to return scheduling (UC16)
+    function navigateToReturnSchedule() {
+      if (selectedContractDetail && selectedContractDetail.contract) {
+        window.location.href = `/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html?contractId=${selectedContractDetail.contract.contractId}`;
+      }
+    }
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get current user profile
+      const token = SafeBoxAuth.getToken();
+      if (token) {
+        fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } })
+          .then(res => res.ok ? res.json() : null)
+          .then(user => {
+            if (user) {
+              document.getElementById('current-user-name').innerText = user.fullName;
+              document.getElementById('current-user-role').innerText = user.role === 'CUSTOMER' ? 'Khách hàng cá nhân' : user.role;
+            }
+          })
+          .catch(() => {});
+      }
+
+      // Fetch KPI counts
+      fetchKpiCounts();
+
+      // Load rentals
+      loadRentals();
+    });
+
+    // Fetch tab KPI counts
+    async function fetchKpiCounts() {
+      const token = SafeBoxAuth.getToken();
+      if (!token) return;
+      try {
+        // Fetch ALL
+        const resAll = await fetch('/api/customer/rentals?page=0&size=1', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (resAll.ok) {
+          const d = await resAll.json();
+          document.getElementById('badge-tab-ALL').innerText = d.totalElements || 0;
+          document.getElementById('nav-active-count-badge').innerText = d.totalElements || 0;
+        }
+
+        // Fetch ACTIVE
+        const resActive = await fetch('/api/customer/rentals?status=ACTIVE&page=0&size=1', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (resActive.ok) {
+          const d = await resActive.json();
+          document.getElementById('badge-tab-ACTIVE').innerText = d.totalElements || 0;
+          document.getElementById('kpi-active-count').innerText = `${d.totalElements || 0} kho`;
+        }
+
+        // Fetch PENDING_HANDOVER
+        const resPending = await fetch('/api/customer/rentals?status=PENDING_HANDOVER&page=0&size=1', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (resPending.ok) {
+          const d = await resPending.json();
+          document.getElementById('badge-tab-PENDING_HANDOVER').innerText = d.totalElements || 0;
+          document.getElementById('kpi-pending-count').innerText = `${d.totalElements || 0} kho`;
+        }
+
+        // Fetch ENDED
+        const resEnded = await fetch('/api/customer/rentals?status=ENDED&page=0&size=1', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (resEnded.ok) {
+          const d = await resEnded.json();
+          document.getElementById('badge-tab-ENDED').innerText = d.totalElements || 0;
+        }
+      } catch (e) {}
+    }
+  </script>
+</body>
+</html>
