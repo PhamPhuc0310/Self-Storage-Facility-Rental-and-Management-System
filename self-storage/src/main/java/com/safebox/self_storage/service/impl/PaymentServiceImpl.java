@@ -278,7 +278,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String formatCurrency(BigDecimal amount) {
         if (amount == null) return "0 đ";
-        Locale vn = new Locale("vi", "VN");
+        Locale vn = Locale.of("vi", "VN");
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(vn);
         return currencyFormat.format(amount);
     }
