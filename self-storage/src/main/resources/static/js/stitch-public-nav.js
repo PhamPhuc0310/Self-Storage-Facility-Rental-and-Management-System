@@ -34,7 +34,7 @@
             const rentalLink = document.createElement('a');
             rentalLink.className = 'font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-2 py-1';
             rentalLink.href = '/stitch/kho_dang_thue_safebox_storage.html';
-            rentalLink.textContent = 'Kho đang thuê (UC15)';
+            rentalLink.textContent = 'Kho đang thuê';
             nav.appendChild(rentalLink);
           }
         }
