@@ -29,10 +29,12 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/auth/**", "/error", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/api/availability", "/uc04-facility-detail.html", "/safebox_storage_home/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/error", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/api/availability", "/uc04-facility-detail.html", "/uc10-customer-contract.html", "/safebox_storage_home/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/manager/**").hasRole("FACILITY_MANAGER")
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/reservations").hasRole("CUSTOMER")
                         .requestMatchers("/api/reservations/my", "/api/reservations/my/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/contracts/my", "/api/contracts/my/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/invoices/my", "/api/invoices/my/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/customer").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/staff").hasRole("FACILITY_STAFF")
                         .requestMatchers("/api/role/manager").hasRole("FACILITY_MANAGER")
