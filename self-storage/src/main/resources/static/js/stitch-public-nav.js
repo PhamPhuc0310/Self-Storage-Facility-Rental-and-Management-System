@@ -20,6 +20,19 @@
       const badge = document.createElement('span');
       badge.className = 'hidden sm:inline text-xs text-on-surface-variant max-w-52 truncate';
       badge.textContent = `${user.fullName} · ${role} · Đang hoạt động`;
+      if (user.role === 'FACILITY_MANAGER' || user.role === 'SYSTEM_ADMIN') {
+        const portalBtn = document.createElement('a');
+        portalBtn.className = 'px-3 py-1.5 rounded-lg bg-primary text-white font-label-button text-xs hover:bg-primary-container transition-colors';
+        portalBtn.href = '/stitch/t_ng_quan_qu_n_l_safebox_manager.html';
+        portalBtn.textContent = 'Cổng quản lý cơ sở';
+        login.parentElement.insertBefore(portalBtn, login);
+      } else if (user.role === 'CUSTOMER') {
+        const reqBtn = document.createElement('a');
+        reqBtn.className = 'px-3 py-1.5 rounded-lg bg-surface-container text-primary font-label-button text-xs hover:bg-surface-container-high transition-colors';
+        reqBtn.href = '/stitch/y_u_c_u_c_a_t_i_safebox_storage.html';
+        reqBtn.textContent = 'Yêu cầu của tôi';
+        login.parentElement.insertBefore(reqBtn, login);
+      }
       login.parentElement.insertBefore(badge, login);
       login.href = '#';
       login.textContent = 'Đăng xuất';
