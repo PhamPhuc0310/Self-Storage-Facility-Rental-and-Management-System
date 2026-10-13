@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/reservations/my", "/api/reservations/my/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/customer/rentals", "/api/customer/rentals/**", "/api/rentals/my", "/api/rentals/my/**").hasAnyRole("CUSTOMER", "SYSTEM_ADMIN", "FACILITY_MANAGER")
                         .requestMatchers("/api/facility/rentals", "/api/facility/rentals/**").hasAnyRole("FACILITY_MANAGER", "SYSTEM_ADMIN")
+                        .requestMatchers("/api/facility/returns", "/api/facility/returns/**").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
                         .requestMatchers("/api/role/customer").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/staff").hasRole("FACILITY_STAFF")
                         .requestMatchers("/api/role/manager").hasRole("FACILITY_MANAGER")
