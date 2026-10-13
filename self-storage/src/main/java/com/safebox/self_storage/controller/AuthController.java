@@ -78,10 +78,28 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public UserView me() {
-        UUID id = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public ResponseEntity<UserView> me() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        Object principal = authentication.getPrincipal();
+        UUID id = null;
+        if (principal instanceof UUID uuid) {
+            id = uuid;
+        } else if (principal instanceof String str) {
+            try {
+                id = UUID.fromString(str);
+            } catch (IllegalArgumentException ignored) {}
+        }
+        if (id == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
         User user = auth.activeUser(id);
-        return UserView.from(user);
+        if (user == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(UserView.from(user));
     }
 
     @PostMapping("/logout")

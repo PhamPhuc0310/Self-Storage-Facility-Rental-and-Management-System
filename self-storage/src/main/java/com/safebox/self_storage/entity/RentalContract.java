@@ -8,9 +8,10 @@ import java.util.UUID;
 
 /**
  * Thực thể ánh xạ bảng RENTAL_CONTRACTS trong cơ sở dữ liệu.
- * Quản lý hợp đồng thuê kho giữa khách hàng và SafeBox:
+ * Quản lý thông tin hợp đồng thuê kho tự quản giữa khách hàng và SafeBox:
  * - UC09: Gán kho vật lý và lập hợp đồng thuê (FACILITY_MANAGER)
  * - UC10: Xem và xác nhận hợp đồng thuê (CUSTOMER)
+ * - UC15: Xem và quản lý các kho đang thuê
  */
 @Entity
 @Table(name = "RENTAL_CONTRACTS")

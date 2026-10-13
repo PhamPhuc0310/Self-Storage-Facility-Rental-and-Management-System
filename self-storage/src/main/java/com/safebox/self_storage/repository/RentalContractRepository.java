@@ -1,42 +1,71 @@
 package com.safebox.self_storage.repository;
 
 import com.safebox.self_storage.entity.RentalContract;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Repository truy xuất dữ liệu từ bảng RENTAL_CONTRACTS.
  */
+@Repository
 public interface RentalContractRepository extends JpaRepository<RentalContract, UUID> {
 
-    /**
-     * Tìm hợp đồng theo mã đặt kho liên kết.
-     */
-    Optional<RentalContract> findByReservationId(UUID reservationId);
+    Optional<RentalContract> findByContractId(UUID contractId);
 
-    /**
-     * Tìm hợp đồng theo mã hợp đồng công khai (contract_number).
-     */
-    Optional<RentalContract> findByContractNumber(String contractNumber);
-
-    /**
-     * Tìm hợp đồng theo ID và mã khách hàng (đảm bảo quyền sở hữu của khách hàng - BR10.1, BR10.9).
-     */
     Optional<RentalContract> findByContractIdAndCustomerId(UUID contractId, UUID customerId);
 
-    /**
-     * Lấy toàn bộ danh sách hợp đồng của khách hàng, sắp xếp theo thời gian tạo mới nhất.
-     */
+    Optional<RentalContract> findByContractNumber(String contractNumber);
+
+    Optional<RentalContract> findByReservationId(UUID reservationId);
+
     List<RentalContract> findByCustomerIdOrderByCreatedAtDesc(UUID customerId);
 
-    /**
-     * Lấy danh sách hợp đồng của khách hàng theo trạng thái, sắp xếp mới nhất.
-     */
     List<RentalContract> findByCustomerIdAndStatusOrderByCreatedAtDesc(UUID customerId, String status);
+
+    Page<RentalContract> findByCustomerId(UUID customerId, Pageable pageable);
+
+    Page<RentalContract> findByCustomerIdAndStatus(UUID customerId, String status, Pageable pageable);
+
+    Page<RentalContract> findByCustomerIdAndStatusIn(UUID customerId, Collection<String> statuses, Pageable pageable);
+
+    @Query("SELECT c FROM RentalContract c WHERE c.customerId = :customerId "
+            + "AND (:statuses IS NULL OR c.status IN :statuses) "
+            + "AND (:search IS NULL OR LOWER(c.contractNumber) LIKE LOWER(CONCAT('%', :search, '%'))) "
+            + "ORDER BY c.createdAt DESC")
+    Page<RentalContract> findCustomerContractsWithFilter(
+            @Param("customerId") UUID customerId,
+            @Param("statuses") Collection<String> statuses,
+            @Param("search") String search,
+            Pageable pageable);
+
+    @Query("SELECT c FROM RentalContract c JOIN StorageUnit u ON c.unitId = u.unitId "
+            + "WHERE u.facilityId = :facilityId "
+            + "AND (:statuses IS NULL OR c.status IN :statuses) "
+            + "AND (:search IS NULL OR LOWER(c.contractNumber) LIKE LOWER(CONCAT('%', :search, '%')) "
+            + "     OR LOWER(u.unitNumber) LIKE LOWER(CONCAT('%', :search, '%'))) "
+            + "ORDER BY c.createdAt DESC")
+    Page<RentalContract> findFacilityContractsWithFilter(
+            @Param("facilityId") UUID facilityId,
+            @Param("statuses") Collection<String> statuses,
+            @Param("search") String search,
+            Pageable pageable);
+
+    @Query("SELECT c FROM RentalContract c JOIN StorageUnit u ON c.unitId = u.unitId "
+            + "WHERE c.contractId = :contractId AND u.facilityId = :facilityId")
+    Optional<RentalContract> findByContractIdAndFacilityId(
+            @Param("contractId") UUID contractId,
+            @Param("facilityId") UUID facilityId);
 
     /**
      * Kiểm tra xem đã có hợp đồng chưa hủy cho yêu cầu đặt kho này chưa (BR09.3).

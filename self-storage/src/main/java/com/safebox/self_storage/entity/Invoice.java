@@ -7,7 +7,7 @@ import java.util.UUID;
 
 /**
  * Thực thể ánh xạ bảng INVOICES trong cơ sở dữ liệu.
- * Quản lý hóa đơn tiền thuê kho, tiền đặt cọc và các chi phí liên quan.
+ * Quản lý các hóa đơn phát sinh từ hợp đồng thuê (tiền cọc, tiền thuê ban đầu, tiền thuê định kỳ, v.v.).
  */
 @Entity
 @Table(name = "INVOICES")
