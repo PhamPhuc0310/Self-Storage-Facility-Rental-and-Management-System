@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface StorageUnitRepository extends JpaRepository<StorageUnit, UUID> {
+    @Query(value = "SELECT TOP (1) u.* FROM dbo.STORAGE_UNITS u WITH (UPDLOCK, HOLDLOCK) WHERE u.facility_id = :facilityId AND u.type_id = :typeId AND u.status = 'AVAILABLE' ORDER BY u.unit_number", nativeQuery = true)
+    Optional<StorageUnit> lockFirstAvailable(@Param("facilityId") UUID facilityId, @Param("typeId") Integer typeId);
 
     @Query("SELECT DISTINCT u.typeId FROM StorageUnit u WHERE u.facilityId = :facilityId AND u.status = 'AVAILABLE' ORDER BY u.typeId")
     List<Integer> findAvailableTypeIdsByFacility(@Param("facilityId") UUID facilityId);

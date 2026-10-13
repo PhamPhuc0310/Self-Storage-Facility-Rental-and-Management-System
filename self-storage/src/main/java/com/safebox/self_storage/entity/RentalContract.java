@@ -17,64 +17,64 @@ public class RentalContract {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "contract_id", updatable = false, nullable = false)
-    private UUID contractId;
+    public UUID contractId;
 
     @Column(name = "contract_number", nullable = false, unique = true, length = 50)
-    private String contractNumber;
+    public String contractNumber;
 
     @Column(name = "reservation_id", nullable = false, unique = true)
-    private UUID reservationId;
+    public UUID reservationId;
 
     @Column(name = "customer_id", nullable = false)
-    private UUID customerId;
+    public UUID customerId;
 
     @Column(name = "unit_id", nullable = false)
-    private UUID unitId;
+    public UUID unitId;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+    public LocalDate startDate;
 
     @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
+    public LocalDate endDate;
 
     @Column(name = "actual_start_date")
-    private LocalDate actualStartDate;
+    public LocalDate actualStartDate;
 
     @Column(name = "actual_end_date")
-    private LocalDate actualEndDate;
+    public LocalDate actualEndDate;
 
     @Column(name = "monthly_rental_fee", nullable = false, precision = 18, scale = 2)
-    private BigDecimal monthlyRentalFee;
+    public BigDecimal monthlyRentalFee;
 
     @Column(name = "deposit_amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal depositAmount;
+    public BigDecimal depositAmount;
 
     @Column(name = "billing_cycle", nullable = false, length = 20)
-    private String billingCycle;
+    public String billingCycle;
 
     @Column(name = "terms_version", nullable = false, length = 30)
-    private String termsVersion;
+    public String termsVersion;
 
     @Column(name = "customer_signed_at")
-    private LocalDateTime customerSignedAt;
+    public LocalDateTime customerSignedAt;
 
     @Column(name = "customer_signature", columnDefinition = "NVARCHAR(MAX)")
-    private String customerSignature;
+    public String customerSignature;
 
     @Column(name = "approved_by")
-    private UUID approvedBy;
+    public UUID approvedBy;
 
     @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
+    public LocalDateTime approvedAt;
 
     @Column(name = "company_signature", columnDefinition = "NVARCHAR(MAX)")
-    private String companySignature;
+    public String companySignature;
 
     @Column(name = "status", nullable = false, length = 30)
-    private String status;
+    public String status;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    public LocalDateTime createdAt;
 
     public RentalContract() {
     }

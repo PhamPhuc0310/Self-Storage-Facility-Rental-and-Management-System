@@ -5,6 +5,7 @@ import com.safebox.self_storage.entity.*;
 import com.safebox.self_storage.exception.BusinessException;
 import com.safebox.self_storage.repository.*;
 import com.safebox.self_storage.service.ManagerCatalogService;
+import com.safebox.self_storage.service.Sprint2Access;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
@@ -26,7 +27,7 @@ public class ManagerCatalogServiceImpl implements ManagerCatalogService {
         this.facilities = facilities; this.types = types; this.units = units; this.pricing = pricing; this.assignments = assignments;
     }
     public List<Facility> myFacilities(UUID managerId) {
-        return assignments.findActiveFacilityIds(managerId, LocalDate.now()).stream()
+        return assignments.findActiveFacilityIds(managerId, LocalDate.now(Sprint2Access.ZONE)).stream()
                 .map(id -> facilities.findById(id)).flatMap(Optional::stream).toList();
     }
     public Facility updateFacility(UUID managerId, UUID facilityId, FacilityUpdateRequest request) {
@@ -86,7 +87,7 @@ public class ManagerCatalogServiceImpl implements ManagerCatalogService {
         apply(unit, request); return unitResponse(units.save(unit));
     }
     private Facility requireManaged(UUID managerId, UUID facilityId) {
-        if (!assignments.findActiveFacilityIds(managerId, LocalDate.now()).contains(facilityId))
+        if (!assignments.findActiveFacilityIds(managerId, LocalDate.now(Sprint2Access.ZONE)).contains(facilityId))
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không được quản lý cơ sở này.");
         return facilities.findById(facilityId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy cơ sở."));
     }

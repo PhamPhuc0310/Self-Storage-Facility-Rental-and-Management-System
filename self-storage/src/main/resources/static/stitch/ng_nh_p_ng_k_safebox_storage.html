@@ -153,7 +153,7 @@
 <button class="w-full py-3 bg-primary-container text-white rounded-lg" type="submit">Đặt lại mật khẩu</button>
 <a href="#" class="text-secondary text-center" data-auth-mode="login">Quay về đăng nhập</a>
 </form>
-<p id="demo-inbox" class="hidden text-center text-xs mt-4"><a class="text-secondary hover:underline" href="http://localhost:8025" target="_blank" rel="noopener">Mở hộp thư demo</a></p>
+<p id="demo-inbox" class="hidden text-center text-xs mt-4"><a class="text-secondary hover:underline" href="http://localhost:8025" target="_blank" rel="noopener">Xem email xác thực trên máy này</a></p>
 </div>
 <!-- Security & Support Footer Strip -->
 
@@ -292,7 +292,7 @@
         }
         SafeBoxAuth.saveAuth(data.token, data.user, document.getElementById('remember-me').checked);
         const returnTo = SafeBoxAuth.safeReturnTo(new URLSearchParams(location.search).get('returnTo'));
-        if (returnTo) location.replace(returnTo);
+        if (returnTo && data.user.role === 'CUSTOMER') location.replace(returnTo);
         else SafeBoxAuth.redirectForRole(data.user.role);
       } catch (error) {
         if (error.status === 403 && error.message.includes('chưa xác thực')) {

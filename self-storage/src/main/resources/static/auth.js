@@ -2,7 +2,7 @@
   const loginPath = '/stitch/ng_nh_p_ng_k_safebox_storage.html';
   const destinations = {
     CUSTOMER: '/stitch/kho_dang_thue_safebox_storage.html',
-    FACILITY_STAFF: '/stitch/t_ng_quan_qu_n_l_safebox_manager.html',
+    FACILITY_STAFF: '/staff-tasks.html',
     FACILITY_MANAGER: '/stitch/t_ng_quan_qu_n_l_safebox_manager.html',
     BUSINESS_OPERATIONS_MANAGER: '/role-home.html',
     SYSTEM_ADMIN: '/role-home.html'
@@ -55,19 +55,21 @@
     return response;
   }
   async function requireRole(...roles) {
-    if (!getToken()) { clearAuth(); location.replace(loginPath); return; }
+    if (!getToken()) { clearAuth(); location.replace(loginPath); return false; }
     try {
       const response = await authFetch('/api/auth/me');
       if (!response.ok) throw new Error('Không thể xác minh phiên đăng nhập.');
       const user = await response.json();
       storage().setItem('safebox.user', JSON.stringify(user));
-      if (roles.length && !roles.includes(user.role)) { deny(); return; }
+      if (roles.length && !roles.includes(user.role)) { deny(); return false; }
       document.body.style.visibility = 'visible';
+      return true;
     } catch (error) {
       if (error.message !== 'Forbidden' && error.message !== 'Unauthorized') {
         clearAuth();
         location.replace(loginPath);
       }
+      return false;
     }
   }
   async function logout() {

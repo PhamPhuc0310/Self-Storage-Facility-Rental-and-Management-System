@@ -31,6 +31,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final StorageUnitRepository storageUnitRepository;
     private final PricingPolicyRepository pricingPolicyRepository;
     private final RentalPolicyRepository rentalPolicyRepository;
+    private final RentalContractRepository rentalContractRepository;
 
     public ReservationServiceImpl(
             ReservationRepository reservationRepository,
@@ -39,7 +40,8 @@ public class ReservationServiceImpl implements ReservationService {
             StorageUnitTypeRepository storageUnitTypeRepository,
             StorageUnitRepository storageUnitRepository,
             PricingPolicyRepository pricingPolicyRepository,
-            RentalPolicyRepository rentalPolicyRepository) {
+            RentalPolicyRepository rentalPolicyRepository,
+            RentalContractRepository rentalContractRepository) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.facilityRepository = facilityRepository;
@@ -47,6 +49,7 @@ public class ReservationServiceImpl implements ReservationService {
         this.storageUnitRepository = storageUnitRepository;
         this.pricingPolicyRepository = pricingPolicyRepository;
         this.rentalPolicyRepository = rentalPolicyRepository;
+        this.rentalContractRepository = rentalContractRepository;
     }
 
     // =========================================================================
@@ -122,8 +125,10 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new NoSuchElementException("Cơ sở chưa có bảng giá đang hiệu lực cho loại kho này"));
 
         BigDecimal monthlyPrice = policy.getMonthlyPrice();
-        BigDecimal estimatedRentalAmount = monthlyPrice.multiply(BigDecimal.valueOf(months));
-        BigDecimal estimatedDepositAmount = policy.getDepositAmount() != null ? policy.getDepositAmount() : BigDecimal.ZERO;
+        com.safebox.self_storage.service.ContractPricing price =
+                com.safebox.self_storage.service.ContractPricing.of(monthlyPrice, startDate, endDate);
+        BigDecimal estimatedRentalAmount = price.total();
+        BigDecimal estimatedDepositAmount = price.deposit();
 
         // Bước 7: Xác định thời hạn giữ chỗ (hold_expires_at)
         int holdMinutes = rentalPolicyRepository
@@ -143,6 +148,8 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setHoldExpiresAt(holdExpiresAt);
         reservation.setEstimatedRentalAmount(estimatedRentalAmount);
         reservation.setEstimatedDepositAmount(estimatedDepositAmount);
+        reservation.setQuotedMonthlyPrice(monthlyPrice);
+        reservation.setPricingVersion("v2");
         reservation.setStatus("PENDING");
         reservation.setCreatedAt(LocalDateTime.now());
 
@@ -212,7 +219,8 @@ public class ReservationServiceImpl implements ReservationService {
         if (customerId == null || reservationId == null) {
             throw new IllegalArgumentException("Thông tin yêu cầu không hợp lệ");
         }
-        Reservation reservation = reservationRepository.findByReservationIdAndCustomerId(reservationId, customerId)
+        Reservation reservation = reservationRepository.lockById(reservationId)
+                .filter(r -> customerId.equals(r.getCustomerId()))
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy yêu cầu đặt kho của bạn"));
 
         String currentStatus = reservation.getStatus();
@@ -224,6 +232,9 @@ public class ReservationServiceImpl implements ReservationService {
         }
         if (!"PENDING".equalsIgnoreCase(currentStatus) && !"CONFIRMED".equalsIgnoreCase(currentStatus)) {
             throw new IllegalStateException("Không thể hủy yêu cầu ở trạng thái: " + currentStatus);
+        }
+        if (rentalContractRepository.findByReservationId(reservationId).isPresent()) {
+            throw new IllegalStateException("Yêu cầu đã có hợp đồng; vui lòng dùng quy trình chấm dứt hợp đồng.");
         }
 
         reservation.setStatus("CANCELLED");
@@ -275,7 +286,8 @@ public class ReservationServiceImpl implements ReservationService {
         String requestCode = ReservationResponse.formatRequestCode(res.getReservationId(), res.getCreatedAt());
         String statusLabel = ReservationResponse.getStatusLabel(res.getStatus());
 
-        int months = (int) ChronoUnit.MONTHS.between(res.getStartDate(), res.getEndDate());
+        int months = (res.getEndDate().getYear() - res.getStartDate().getYear()) * 12
+                + res.getEndDate().getMonthValue() - res.getStartDate().getMonthValue();
         if (months <= 0) months = 1;
 
         BigDecimal area = null;
@@ -283,7 +295,8 @@ public class ReservationServiceImpl implements ReservationService {
             area = unitType.getWidth().multiply(unitType.getLength());
         }
 
-        BigDecimal monthlyPrice = (policy != null) ? policy.getMonthlyPrice() : null;
+        BigDecimal monthlyPrice = res.getQuotedMonthlyPrice() != null ? res.getQuotedMonthlyPrice()
+                : (policy != null ? policy.getMonthlyPrice() : null);
         if (monthlyPrice == null && months > 0 && res.getEstimatedRentalAmount() != null) {
             monthlyPrice = res.getEstimatedRentalAmount().divide(BigDecimal.valueOf(months), 2, java.math.RoundingMode.HALF_UP);
         }

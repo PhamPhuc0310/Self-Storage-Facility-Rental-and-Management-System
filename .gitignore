@@ -38,6 +38,7 @@ nbdist/
 .env.*
 application-local.properties
 application-secret.properties
+database/SafeBox_SeedData.sql
 
 # ==============================
 # Logs
