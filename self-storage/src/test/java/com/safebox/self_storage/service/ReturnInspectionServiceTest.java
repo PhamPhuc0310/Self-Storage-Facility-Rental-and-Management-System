@@ -268,7 +268,7 @@ class ReturnInspectionServiceTest {
                 returnInspectionService.scheduleReturnAppointment(customerId, contractId, request));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.status());
-        assertTrue(ex.getMessage().contains("đúng hạn vào ngày kết thúc hợp đồng"));
+        assertTrue(ex.getMessage().contains("ngày kết thúc hợp đồng"));
     }
 
     @Test

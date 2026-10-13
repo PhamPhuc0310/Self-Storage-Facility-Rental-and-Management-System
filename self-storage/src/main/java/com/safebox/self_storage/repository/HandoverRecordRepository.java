@@ -30,6 +30,16 @@ public interface HandoverRecordRepository extends JpaRepository<HandoverRecord, 
 
     @org.springframework.data.jpa.repository.Query("SELECT h FROM HandoverRecord h, StorageUnit u " +
             "WHERE h.unitId = u.unitId " +
+            "AND (u.facilityId IN :facilityIds) " +
+            "AND h.handoverType = 'RETURN' " +
+            "AND (:status IS NULL OR h.status = :status) " +
+            "ORDER BY h.scheduledAt DESC")
+    List<HandoverRecord> findReturnHandoverRecordsByFacilityIds(
+            @org.springframework.data.repository.query.Param("facilityIds") java.util.Collection<UUID> facilityIds,
+            @org.springframework.data.repository.query.Param("status") String status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT h FROM HandoverRecord h, StorageUnit u " +
+            "WHERE h.unitId = u.unitId " +
             "AND (:facilityId IS NULL OR u.facilityId = :facilityId) " +
             "AND h.handoverType = 'RETURN' " +
             "AND (:status IS NULL OR h.status = :status) " +

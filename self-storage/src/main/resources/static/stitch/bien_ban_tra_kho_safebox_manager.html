@@ -65,7 +65,7 @@
           <a href="/stitch/t_ng_quan_qu_n_l_safebox_manager.html" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors">Tổng quan</a>
           <a href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors">Quản lý kho</a>
           <a href="/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors">Yêu cầu đặt kho</a>
-          <a href="/stitch/bien_ban_tra_kho_safebox_manager.html" class="px-3 py-1.5 rounded-lg bg-primary text-white shadow-sm">Tiếp nhận trả kho (UC16)</a>
+          <a href="/stitch/bien_ban_tra_kho_safebox_manager.html" class="px-3 py-1.5 rounded-lg bg-primary text-white shadow-sm">Tiếp nhận trả kho</a>
         </nav>
       </div>
 
@@ -86,7 +86,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
         <span class="material-symbols-outlined text-primary text-base">assignment_return</span>
-        <span class="text-slate-800">Tiếp nhận trả kho & Nghiệm thu tình trạng sau trả (UC16)</span>
+        <span class="text-slate-800">Tiếp nhận trả kho & Nghiệm thu tình trạng sau trả</span>
         <span class="text-slate-300">/</span>
         <span id="sub-active-station" class="text-primary font-bold">Tất cả cơ sở</span>
       </div>
@@ -258,7 +258,7 @@
                 <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 flex items-start gap-3 cursor-pointer hover:bg-surface-container transition-colors">
                   <input type="checkbox" id="chk-unit-cleared" checked required class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
                   <div class="text-xs">
-                    <strong class="font-bold text-slate-800 text-sm block">1. Kho đã dọn sạch hoàn toàn không còn hàng hóa dư thừa (BR16.6)</strong>
+                    <strong class="font-bold text-slate-800 text-sm block">1. Kho đã dọn sạch hoàn toàn không còn hàng hóa dư thừa</strong>
                     <span class="text-slate-500">Đã kiểm tra ô kho không còn đồ cá nhân, pallet hay rác thải bỏ lại.</span>
                   </div>
                 </label>
@@ -283,12 +283,12 @@
               </div>
             </div>
 
-            <!-- STEP 3: CONDITION EVALUATION & DAMAGE DECISION (BR16.5, BR16.7) -->
+            <!-- STEP 3: CONDITION EVALUATION & DAMAGE DECISION -->
             <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
               <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
                 <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</span>
                 <div>
-                  <h3 class="font-bold text-slate-800 text-sm">Đánh giá chất lượng & Trạng thái ô kho sau trả (BR16.7)</h3>
+                  <h3 class="font-bold text-slate-800 text-sm">Đánh giá chất lượng & Trạng thái ô kho sau trả</h3>
                   <p class="text-xs text-slate-500">Lựa chọn đánh giá để tự động chuyển trạng thái ô kho sang AVAILABLE hoặc MAINTENANCE.</p>
                 </div>
               </div>
@@ -332,7 +332,7 @@
               <div id="damage-input-section" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-4">
                 <div class="flex items-center gap-2 text-rose-800 font-bold text-xs uppercase tracking-wider">
                   <span class="material-symbols-outlined text-sm">build_circle</span>
-                  <span>Chi tiết ghi nhận hư hỏng & Chi phí khắc phục (BR16.5)</span>
+                  <span>Chi tiết ghi nhận hư hỏng & Chi phí khắc phục</span>
                 </div>
 
                 <div class="space-y-3">
@@ -346,19 +346,19 @@
                     <label for="damage-cost" class="font-bold text-slate-800 text-xs block mb-1">Chi phí sửa chữa ước tính (VNĐ)</label>
                     <input type="number" id="damage-cost" min="0" step="10000" value="0" placeholder="0"
                            class="w-full max-w-xs h-10 px-3 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-primary bg-white"/>
-                    <span class="text-[11px] text-slate-500 block mt-1">Sprint 2 chỉ lưu ghi nhận chi phí để theo dõi; việc bồi hoàn trừ cọc sẽ được xử lý ở Sprint 3.</span>
+                    <span class="text-[11px] text-slate-500 block mt-1">Ghi nhận chi phí sửa chữa để theo dõi và thực hiện tất toán cọc theo quy định.</span>
                   </div>
                 </div>
               </div>
 
             </div>
 
-            <!-- STEP 4: SIGNOFF & HANDOVER COMPLETION (BR16.3, BR16.6, BR16.8) -->
+            <!-- STEP 4: SIGNOFF & HANDOVER COMPLETION -->
             <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
               <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
                 <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</span>
                 <div>
-                  <h3 class="font-bold text-slate-800 text-sm">Xác nhận của khách hàng & Ký biên bản (BR16.3, BR16.6)</h3>
+                  <h3 class="font-bold text-slate-800 text-sm">Xác nhận của khách hàng & Ký biên bản</h3>
                   <p class="text-xs text-slate-500">Khách hàng phải có mặt trực tiếp tại cơ sở để cùng kiểm tra và đồng ý với biên bản.</p>
                 </div>
               </div>
@@ -433,8 +433,8 @@
             </div>
 
             <div class="p-3 rounded-xl bg-white/80 border border-emerald-200 text-xs text-slate-700">
-              <strong class="text-slate-900 block mb-1">Theo dõi tài chính (BR16.9, BR16.10):</strong>
-              <span id="res-financial-note">Khoản tiền cọc đang được bảo lưu để tất toán ở Sprint 3.</span>
+              <strong class="text-slate-900 block mb-1">Theo dõi tài chính:</strong>
+              <span id="res-financial-note">Khoản tiền cọc đang được bảo lưu để tất toán theo quy định hợp đồng.</span>
             </div>
           </div>
 
@@ -687,19 +687,19 @@
       const card = document.getElementById('chk-asset-card').checked;
 
       if (!lock || !keys || !card) {
-        alert("Theo quy tắc BR16.6, phải thu hồi đầy đủ cả 3 tài sản an ninh (Ổ khóa, 2 chìa, thẻ từ NFC) trước khi hoàn tất.");
+        alert("Vui lòng xác nhận đã thu hồi đầy đủ cả 3 tài sản an ninh (ổ khóa, 2 chìa khóa, thẻ từ NFC) trước khi hoàn tất.");
         return;
       }
 
       const cleared = document.getElementById('chk-unit-cleared').checked;
       if (!cleared) {
-        alert("Theo quy tắc BR16.6, ô kho phải được dọn sạch hoàn toàn mới được hoàn tất.");
+        alert("Ô kho phải được dọn sạch hoàn toàn trước khi hoàn tất nhận lại.");
         return;
       }
 
       const customerPresent = document.getElementById('chk-customer-present').checked;
       if (!customerPresent) {
-        alert("Theo quy tắc BR16.3 và BR16.6, khách hàng phải có mặt xác nhận biên bản trước khi hoàn tất nhận lại kho.");
+        alert("Khách hàng cần có mặt trực tiếp và đồng ý với biên bản trước khi hoàn tất nhận lại kho.");
         return;
       }
 

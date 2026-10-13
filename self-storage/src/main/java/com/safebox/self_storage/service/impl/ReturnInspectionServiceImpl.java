@@ -109,9 +109,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         LocalDate scheduledDate = scheduledAt.toLocalDate();
         if (!scheduledDate.equals(contract.getEndDate())) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
-                    "Sprint 2 chỉ hỗ trợ đặt lịch trả kho đúng hạn vào ngày kết thúc hợp đồng ("
+                    "Vui lòng chọn ngày hẹn trả kho vào ngày kết thúc hợp đồng ("
                             + contract.getEndDate().format(DATE_FORMATTER)
-                            + "). Trả sớm hoặc trễ hạn sẽ được triển khai ở Sprint 3.");
+                            + ").");
         }
 
         // Tìm thông tin ô kho và cơ sở
@@ -224,29 +224,29 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
 
         List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
 
-        // BR12.7: STAFF chỉ thấy việc của mình hoặc tại cơ sở; MANAGER thấy toàn bộ việc tại cơ sở phụ trách
-        UUID targetFacilityId = facilityId;
-        if (!"SYSTEM_ADMIN".equalsIgnoreCase(role)) {
-            if (targetFacilityId != null && !assignedFacilityIds.contains(targetFacilityId)) {
-                throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền quản lý tại cơ sở này");
-            }
-            if (targetFacilityId == null && !assignedFacilityIds.isEmpty()) {
-                targetFacilityId = assignedFacilityIds.get(0);
-            }
-        }
-
         String filterStatus = (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status))
                 ? status.trim().toUpperCase() : null;
 
         List<HandoverRecord> records;
-        if ("FACILITY_STAFF".equalsIgnoreCase(role)) {
-            records = handoverRecordRepository.findReturnHandoverRecordsForStaff(targetFacilityId, filterStatus, currentUserId);
-            if (records.isEmpty() && targetFacilityId != null) {
-                // Nếu chưa có việc gán cụ thể cho staff, hiển thị các việc tại cơ sở để staff tiếp nhận
-                records = handoverRecordRepository.findReturnHandoverRecords(targetFacilityId, filterStatus);
+        if ("SYSTEM_ADMIN".equalsIgnoreCase(role)) {
+            if (facilityId != null) {
+                records = handoverRecordRepository.findReturnHandoverRecords(facilityId, filterStatus);
+            } else {
+                records = handoverRecordRepository.findReturnHandoverRecords(null, filterStatus);
             }
         } else {
-            records = handoverRecordRepository.findReturnHandoverRecords(targetFacilityId, filterStatus);
+            if (facilityId != null) {
+                if (!assignedFacilityIds.isEmpty() && !assignedFacilityIds.contains(facilityId)) {
+                    throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền quản lý tại cơ sở này");
+                }
+                records = handoverRecordRepository.findReturnHandoverRecords(facilityId, filterStatus);
+            } else if (!assignedFacilityIds.isEmpty()) {
+                // Hiển thị toàn bộ lịch hẹn thuộc tất cả cơ sở mà nhân viên/quản lý được phân công
+                records = handoverRecordRepository.findReturnHandoverRecordsByFacilityIds(assignedFacilityIds, filterStatus);
+            } else {
+                // Nếu chưa được gán cơ sở, xem các việc được chỉ định trực tiếp cho mình
+                records = handoverRecordRepository.findReturnHandoverRecordsForStaff(null, filterStatus, currentUserId);
+            }
         }
 
         return records.stream()
