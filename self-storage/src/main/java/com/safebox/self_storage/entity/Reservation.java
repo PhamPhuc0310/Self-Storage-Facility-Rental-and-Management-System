@@ -60,6 +60,12 @@ public class Reservation {
     @Column(name = "estimated_deposit_amount", nullable = false, precision = 18, scale = 2)
     private BigDecimal estimatedDepositAmount;
 
+    @Column(name = "quoted_monthly_price", precision = 18, scale = 2)
+    private BigDecimal quotedMonthlyPrice;
+
+    @Column(name = "pricing_version", nullable = false, length = 10)
+    private String pricingVersion;
+
     /** Trạng thái yêu cầu: PENDING, CONFIRMED, REJECTED, CANCELLED */
     @Column(name = "status", nullable = false, length = 30)
     private String status;
@@ -158,6 +164,11 @@ public class Reservation {
     public void setEstimatedDepositAmount(BigDecimal estimatedDepositAmount) {
         this.estimatedDepositAmount = estimatedDepositAmount;
     }
+
+    public BigDecimal getQuotedMonthlyPrice() { return quotedMonthlyPrice; }
+    public void setQuotedMonthlyPrice(BigDecimal quotedMonthlyPrice) { this.quotedMonthlyPrice = quotedMonthlyPrice; }
+    public String getPricingVersion() { return pricingVersion; }
+    public void setPricingVersion(String pricingVersion) { this.pricingVersion = pricingVersion; }
 
     public String getStatus() {
         return status;

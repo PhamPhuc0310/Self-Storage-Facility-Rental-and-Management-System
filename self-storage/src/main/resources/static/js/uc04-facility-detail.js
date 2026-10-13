@@ -5,8 +5,10 @@
   const duration = document.getElementById('duration-select');
   const typeChoice = document.getElementById('detail-type-choice');
   const status = document.getElementById('detail-status');
-  const paymentButton = document.getElementById('payment-button');
-  const modal = document.getElementById('payment-modal');
+  const reservationButton = document.getElementById('reservation-button');
+  const dialog = document.getElementById('reservation-dialog');
+  const reservationError = document.getElementById('reservation-error');
+  const {formatDateVN, toISODate, todayISODateVN} = SafeBoxUc12Time;
   const validId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const modeLabel = mode => ({STANDARD:'Kho thường', COOL:'Kho mát', COLD:'Kho đông lạnh'}[mode] || 'Loại kho');
   const money = value => {
@@ -16,8 +18,14 @@
   };
   const monthly = value => `${money(value)}/tháng`;
   const put = (id, value) => { document.getElementById(id).textContent = value || '—'; };
+  const putManagedText = (id, value) => {
+    document.getElementById(id).textContent = SafeBoxCatalogCopy.managedDescription(value);
+  };
   let facility;
   let selectedType;
+  let quote;
+  let checkingAuth = false;
+  let submitting = false;
   let estimateRequest = 0;
 
   function showError(message, retry) {
@@ -32,7 +40,8 @@
       status.append(button);
     }
     put('total-price-display', '—');
-    paymentButton.disabled = true;
+    quote = null;
+    reservationButton.disabled = true;
   }
 
   function renderType(type) {
@@ -47,9 +56,9 @@
     put('detail-monthly-price', type.monthlyPrice > 0 ? monthly(type.monthlyPrice) : 'Giá đang cập nhật');
     put('detail-available-count', String(type.availableUnits || 0));
     put('detail-availability', `Kho sẵn sàng hiện tại: ${type.availableUnits || 0}`);
-    put('detail-intro', type.demoIntro);
-    put('detail-goods', type.demoGoods);
-    put('detail-conditions', type.demoConditions);
+    putManagedText('detail-intro', type.demoIntro);
+    putManagedText('detail-goods', type.demoGoods);
+    putManagedText('detail-conditions', type.demoConditions);
     put('detail-features', type.features?.replaceAll('CCTV', 'camera'));
     put('detail-temperature', type.minTemperature != null && type.maxTemperature != null
       ? `Khoảng nhiệt độ: ${type.minTemperature} đến ${type.maxTemperature}°C.` : 'Không kiểm soát nhiệt độ riêng.');
@@ -60,6 +69,7 @@
     url.searchParams.set('typeId', String(type.typeId));
     url.searchParams.set('months', duration.value);
     url.searchParams.delete('payment');
+    url.searchParams.delete('reservation');
     history.replaceState(null, '', url.pathname + url.search);
     estimate();
   }
@@ -69,7 +79,8 @@
     const months = Number(duration.value);
     put('display-duration', `${months} tháng`);
     put('total-price-display', 'Đang tính...');
-    paymentButton.disabled = true;
+    quote = null;
+    reservationButton.disabled = true;
     if (!selectedType || !Number.isInteger(months) || months < 1) {
       showError('Vui lòng chọn loại kho và thời gian thuê.'); return;
     }
@@ -77,44 +88,98 @@
       const query = new URLSearchParams({facilityId, typeId:String(selectedType.typeId), months:String(months)});
       const response = await fetch(`/api/pricing/estimate?${query}`);
       if (!response.ok) throw new Error('Không lấy được giá');
-      const quote = await response.json();
+      const estimateQuote = await response.json();
       if (request !== estimateRequest) return;
-      put('detail-price-per-month', monthly(quote.monthlyPrice));
-      put('total-price-display', money(quote.estimatedTotal));
-      paymentButton.disabled = false;
+      put('detail-price-per-month', monthly(estimateQuote.monthlyPrice));
+      put('total-price-display', money(estimateQuote.estimatedTotal));
+      if (!selectedType.availableUnits) throw new Error('Không còn kho trống');
+      quote = estimateQuote;
+      reservationButton.disabled = false;
       status.hidden = true;
-    } catch (_) {
+    } catch (error) {
       if (request !== estimateRequest) return;
-      showError('Không lấy được giá dự kiến. Vui lòng thử lại.', estimate);
+      showError(error.message === 'Không còn kho trống' ? 'Loại kho này đã hết chỗ.' : 'Không lấy được giá dự kiến. Vui lòng thử lại.', estimate);
     }
   }
 
-  function paymentReturn() {
+  function reservationReturn() {
     const url = new URL('/stitch/chi_ti_t_kho_10m_safebox_th_c.html', location.origin);
     url.searchParams.set('facilityId', facilityId);
     url.searchParams.set('typeId', String(selectedType.typeId));
     url.searchParams.set('months', duration.value);
-    url.searchParams.set('payment', '1');
+    url.searchParams.set('reservation', '1');
     return url.pathname + url.search;
   }
 
   function goLogin() {
     const url = new URL('/stitch/ng_nh_p_ng_k_safebox_storage.html', location.origin);
-    url.searchParams.set('returnTo', paymentReturn());
+    url.searchParams.set('returnTo', reservationReturn());
     location.href = url.pathname + url.search;
   }
 
-  async function handlePayment() {
-    if (!selectedType || paymentButton.disabled) return;
+  function actionError(message) {
+    status.hidden = false;
+    status.textContent = message;
+    status.classList.add('text-error');
+  }
+
+  async function openReservation() {
+    if (!selectedType || !quote || reservationButton.disabled || checkingAuth) return;
     const token = window.SafeBoxAuth?.getToken();
     if (!token) { goLogin(); return; }
+    checkingAuth = true;
+    reservationButton.disabled = true;
     try {
       const response = await fetch('/api/auth/me', {headers:{Authorization:`Bearer ${token}`}});
       if (response.status === 401) { SafeBoxAuth.clearAuth(); goLogin(); return; }
       if (!response.ok) throw new Error('Không xác minh được phiên');
-      modal.classList.remove('hidden');
-      document.getElementById('payment-modal-close').focus();
-    } catch (_) { showError('Không xác minh được phiên đăng nhập. Vui lòng thử lại.', handlePayment); }
+      const user = await response.json();
+      if (user.role !== 'CUSTOMER') { actionError('Chỉ khách hàng mới có thể gửi yêu cầu đặt kho.'); return; }
+      const today = todayISODateVN();
+      const start = document.getElementById('reservation-start-date');
+      start.dataset.min = today;
+      try { if (toISODate(start.value) < today) start.value = formatDateVN(today); }
+      catch (_) { start.value = formatDateVN(today); }
+      document.getElementById('reservation-summary').textContent = `${facility.name} · ${modeLabel(selectedType.storageMode)} · ${selectedType.area} m² · ${duration.value} tháng · Tổng dự kiến ${money(quote.estimatedTotal)}`;
+      reservationError.hidden = true;
+      dialog.showModal();
+      start.focus();
+    } catch (_) { actionError('Không xác minh được phiên đăng nhập. Vui lòng thử lại.'); }
+    finally { checkingAuth = false; reservationButton.disabled = !quote; }
+  }
+
+  async function submitReservation(event) {
+    event.preventDefault();
+    if (submitting) return;
+    let startDate;
+    try { startDate = toISODate(document.getElementById('reservation-start-date').value); }
+    catch (_) { startDate = null; }
+    if (!startDate || startDate < document.getElementById('reservation-start-date').dataset.min) {
+      reservationError.textContent = 'Vui lòng chọn ngày bắt đầu hợp lệ.';
+      reservationError.hidden = false;
+      return;
+    }
+    submitting = true;
+    let sent = false;
+    const submit = document.getElementById('reservation-submit');
+    submit.disabled = true;
+    reservationError.hidden = true;
+    try {
+      const response = await SafeBoxAuth.authFetch('/api/reservations', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({facilityId, typeId:selectedType.typeId, startDate, months:Number(duration.value)})
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.message || 'Không gửi được yêu cầu đặt kho.');
+      if (!result?.reservationId) throw new Error('Máy chủ không trả về mã yêu cầu. Vui lòng kiểm tra Yêu cầu của tôi trước khi gửi lại.');
+      sent = true;
+      location.assign(`/stitch/y_u_c_u_c_a_t_i_safebox_storage.html?created=${encodeURIComponent(result.reservationId)}`);
+    } catch (error) {
+      reservationError.textContent = error instanceof TypeError
+        ? 'Mất kết nối khi gửi yêu cầu. Vui lòng kiểm tra Yêu cầu của tôi trước khi gửi lại.'
+        : error.message || 'Không gửi được yêu cầu đặt kho. Vui lòng thử lại.';
+      reservationError.hidden = false;
+    } finally { if (!sent) { submitting = false; submit.disabled = false; } }
   }
 
   async function load() {
@@ -129,11 +194,11 @@
       if (!types.length) throw new Error('Không có loại kho');
       put('detail-address', `${facility.name} · ${facility.address}`);
       put('detail-facility-name', facility.name);
-      put('detail-facility-intro', facility.demoIntro);
+      putManagedText('detail-facility-intro', facility.demoIntro);
       put('detail-facility-address', facility.address);
-      put('detail-safety', facility.demoSafety);
-      put('detail-access', facility.demoAccess);
-      put('detail-terms', facility.demoTerms);
+      putManagedText('detail-safety', facility.demoSafety);
+      putManagedText('detail-access', facility.demoAccess);
+      putManagedText('detail-terms', facility.demoTerms);
       put('detail-phone', facility.phone ? `Điện thoại: ${facility.phone}` : '');
       put('detail-hours', facility.openingTime && facility.closingTime
         ? `Giờ ra vào: ${facility.openingTime}–${facility.closingTime}` : '');
@@ -147,19 +212,18 @@
       renderType(initial);
       typeChoice.addEventListener('change', () => renderType(types.find(type => String(type.typeId) === typeChoice.value)));
       duration.addEventListener('change', () => { const url = new URL(location.href); url.searchParams.set('months', duration.value); history.replaceState(null,'',url.pathname+url.search); estimate(); });
-      if (params.get('payment') === '1') {
+      if (params.get('reservation') === '1') {
         await new Promise(resolve => {
-          const timer = setInterval(() => { if (!paymentButton.disabled || status.classList.contains('text-error')) { clearInterval(timer); resolve(); } }, 50);
+          const timer = setInterval(() => { if (!reservationButton.disabled || status.classList.contains('text-error')) { clearInterval(timer); resolve(); } }, 50);
           setTimeout(() => { clearInterval(timer); resolve(); }, 8000);
         });
-        if (!paymentButton.disabled) handlePayment();
+        if (!reservationButton.disabled) openReservation();
       }
     } catch (_) { showError('Không tải được chi tiết kho. Vui lòng thử lại.', load); }
   }
 
-  paymentButton.addEventListener('click', handlePayment);
-  document.getElementById('payment-modal-close').addEventListener('click', () => modal.classList.add('hidden'));
-  modal.addEventListener('click', event => { if (event.target === modal) modal.classList.add('hidden'); });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') modal.classList.add('hidden'); });
+  reservationButton.addEventListener('click', openReservation);
+  document.getElementById('reservation-form').addEventListener('submit', submitReservation);
+  document.getElementById('reservation-close').addEventListener('click', () => dialog.close());
   load();
 })();

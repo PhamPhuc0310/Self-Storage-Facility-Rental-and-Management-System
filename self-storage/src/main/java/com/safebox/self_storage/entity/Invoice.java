@@ -16,46 +16,46 @@ public class Invoice {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "invoice_id", updatable = false, nullable = false)
-    private UUID invoiceId;
+    public UUID invoiceId;
 
     @Column(name = "invoice_number", nullable = false, unique = true, length = 50)
-    private String invoiceNumber;
+    public String invoiceNumber;
 
     @Column(name = "contract_id", nullable = false)
-    private UUID contractId;
+    public UUID contractId;
 
     @Column(name = "renewal_id")
-    private UUID renewalId;
+    public UUID renewalId;
 
     @Column(name = "invoice_type", nullable = false, length = 30)
-    private String invoiceType;
+    public String invoiceType;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
-    private String description;
+    public String description;
 
     @Column(name = "subtotal", nullable = false, precision = 18, scale = 2)
-    private BigDecimal subtotal;
+    public BigDecimal subtotal;
 
     @Column(name = "penalty_amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal penaltyAmount;
+    public BigDecimal penaltyAmount;
 
     @Column(name = "discount_amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal discountAmount;
+    public BigDecimal discountAmount;
 
     @Column(name = "total_amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal totalAmount;
+    public BigDecimal totalAmount;
 
     @Column(name = "paid_amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal paidAmount;
+    public BigDecimal paidAmount;
 
     @Column(name = "issued_at", nullable = false)
-    private LocalDateTime issuedAt;
+    public LocalDateTime issuedAt;
 
     @Column(name = "due_date", nullable = false)
-    private LocalDateTime dueDate;
+    public LocalDateTime dueDate;
 
     @Column(name = "status", nullable = false, length = 30)
-    private String status;
+    public String status;
 
     public Invoice() {
     }

@@ -3,16 +3,22 @@ package com.safebox.self_storage.repository;
 import com.safebox.self_storage.entity.Reservation;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.repository.query.Param;
 
 /**
  * Repository truy xuất dữ liệu từ bảng RESERVATIONS.
  */
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from Reservation r where r.reservationId = :id")
+    Optional<Reservation> lockById(@Param("id") UUID id);
 
     /**
      * Lấy danh sách tất cả yêu cầu đặt kho của một khách hàng, sắp xếp theo thời gian tạo mới nhất.
@@ -48,6 +54,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
      * @return Danh sách yêu cầu đặt kho
      */
     List<Reservation> findByStatusOrderByCreatedAtDesc(String status);
+
+    List<Reservation> findByStatusAndFacilityIdInOrderByCreatedAtDesc(String status, Collection<UUID> facilityIds);
 
     /**
      * Lấy toàn bộ danh sách yêu cầu đặt kho, sắp xếp từ mới nhất đến cũ nhất.

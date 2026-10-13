@@ -50,6 +50,13 @@
             rentalLink.textContent = 'Kho đang thuê';
             nav.appendChild(rentalLink);
           }
+          if (user.role === 'CUSTOMER' && !nav.querySelector('a[href="/stitch/uc11-customer-payments-appointments.html"]')) {
+            const sprintLink = document.createElement('a');
+            sprintLink.className = 'font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-2 py-1';
+            sprintLink.href = '/stitch/uc11-customer-payments-appointments.html';
+            sprintLink.textContent = 'Thanh toán và lịch nhận kho';
+            nav.appendChild(sprintLink);
+          }
         }
         if (user.role === 'FACILITY_MANAGER' || user.role === 'SYSTEM_ADMIN' || user.role === 'FACILITY_STAFF') {
           if (!nav.querySelector('a[href="/stitch/t_ng_quan_qu_n_l_safebox_manager.html"]')) {
@@ -58,6 +65,12 @@
             managerLink.href = '/stitch/t_ng_quan_qu_n_l_safebox_manager.html';
             managerLink.textContent = 'Cổng quản lý cơ sở';
             nav.appendChild(managerLink);
+          }
+          if (user.role === 'FACILITY_MANAGER' && !nav.querySelector('a[href="/stitch/uc11-manager-approvals.html"]')) {
+            const approveLink = document.createElement('a');
+            approveLink.href = '/stitch/uc11-manager-approvals.html';
+            approveLink.textContent = 'Duyệt yêu cầu UC11';
+            nav.appendChild(approveLink);
           }
         }
         if (user.role === 'SYSTEM_ADMIN') {

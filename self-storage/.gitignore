@@ -1,5 +1,7 @@
 HELP.md
 target/
+src/main/resources/application-local.properties
+src/main/resources/application-secret.properties
 mailpit.db*
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

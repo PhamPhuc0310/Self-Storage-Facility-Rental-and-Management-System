@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
+    Optional<Invoice> findFirstByContractIdAndInvoiceType(UUID contractId, String invoiceType);
+
     List<Invoice> findByContractId(UUID contractId);
 
     List<Invoice> findByContractIdIn(Collection<UUID> contractIds);
