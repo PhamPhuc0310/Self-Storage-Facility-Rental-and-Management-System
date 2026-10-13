@@ -38,6 +38,38 @@
       login.textContent = 'Đăng xuất';
       login.addEventListener('click', event => { event.preventDefault(); SafeBoxAuth.logout(); });
       if (register) register.hidden = true;
+
+      // Add navigation links based on user role
+      const nav = header.querySelector('nav');
+      if (nav) {
+        if (user.role === 'CUSTOMER' || user.role === 'SYSTEM_ADMIN') {
+          if (!nav.querySelector('a[href="/stitch/kho_dang_thue_safebox_storage.html"]')) {
+            const rentalLink = document.createElement('a');
+            rentalLink.className = 'font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-2 py-1';
+            rentalLink.href = '/stitch/kho_dang_thue_safebox_storage.html';
+            rentalLink.textContent = 'Kho đang thuê';
+            nav.appendChild(rentalLink);
+          }
+        }
+        if (user.role === 'FACILITY_MANAGER' || user.role === 'SYSTEM_ADMIN' || user.role === 'FACILITY_STAFF') {
+          if (!nav.querySelector('a[href="/stitch/t_ng_quan_qu_n_l_safebox_manager.html"]')) {
+            const managerLink = document.createElement('a');
+            managerLink.className = 'font-body-md text-body-md text-secondary font-bold hover:underline transition-colors px-2 py-1';
+            managerLink.href = '/stitch/t_ng_quan_qu_n_l_safebox_manager.html';
+            managerLink.textContent = 'Cổng quản lý cơ sở';
+            nav.appendChild(managerLink);
+          }
+        }
+        if (user.role === 'SYSTEM_ADMIN') {
+          if (!nav.querySelector('a[href="/role-home.html"]')) {
+            const hubLink = document.createElement('a');
+            hubLink.className = 'font-body-md text-body-md text-indigo-600 font-bold hover:underline transition-colors px-2 py-1';
+            hubLink.href = '/role-home.html';
+            hubLink.textContent = 'Cổng điều hướng';
+            nav.appendChild(hubLink);
+          }
+        }
+      }
     })
     .catch(() => SafeBoxAuth.clearAuth());
 })();
