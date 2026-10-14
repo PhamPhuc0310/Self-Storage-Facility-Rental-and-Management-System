@@ -11,4 +11,5 @@ public interface HandoverRecordRepository extends JpaRepository<HandoverRecord, 
     List<HandoverRecord> findByContractIdOrderByScheduledAtDesc(UUID contractId);
 
     List<HandoverRecord> findByContractId(UUID contractId);
+    java.util.Optional<HandoverRecord> findFirstByContractIdAndHandoverTypeAndStatus(UUID contractId, String handoverType, String status);
 }
