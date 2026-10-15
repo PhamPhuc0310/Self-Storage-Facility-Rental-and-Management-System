@@ -1,4 +1,16 @@
-name: CI
+# =====================================================================
+#  Self-Storage-Facility-Rental-and-Management-System
+#  © 2026 by PhamPhuc0310
+# ---------------------------------------------------------------------
+#  Mục đích: Tự động build + test project Java/Maven mỗi khi có code
+#            được push lên nhánh main hoặc có Pull Request vào main.
+#
+#  Nội dung chính:
+#   1. Cấu trúc file YAML (indent bằng SPACE, KHÔNG dùng TAB)
+#   2. Các khái niệm: workflow, job, step, action, runner
+#   3. Cách dùng biến môi trường ${{ ... }} của GitHub
+# =====================================================================
+name: Self-Storage-Facility-Rental-and-Management-System (CI included) |  © 2026 by PhamPhuc0310
 
 on:
   pull_request:
