@@ -11,4 +11,10 @@ public interface InspectionReportRepository extends JpaRepository<InspectionRepo
     List<InspectionReport> findByContractIdOrderByInspectionDateDesc(UUID contractId);
 
     List<InspectionReport> findByUnitIdOrderByInspectionDateDesc(UUID unitId);
+
+    java.util.Optional<InspectionReport> findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(
+            UUID contractId, String inspectionType);
+
+    java.util.Optional<InspectionReport> findFirstByUnitIdAndInspectionTypeOrderByInspectionDateDesc(
+            UUID unitId, String inspectionType);
 }
