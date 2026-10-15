@@ -21,75 +21,75 @@ public class RentalContract {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "contract_id", updatable = false, nullable = false)
-    private UUID contractId;
+    public UUID contractId;
 
     /** Mã số hợp đồng duy nhất hiển thị cho người dùng (ví dụ: HD-20261010-ABCD) */
     @Column(name = "contract_number", nullable = false, unique = true, length = 50)
-    private String contractNumber;
+    public String contractNumber;
 
     /** Mã yêu cầu đặt kho liên kết (Mỗi yêu cầu chỉ có 1 hợp đồng) */
     @Column(name = "reservation_id", nullable = false, unique = true)
-    private UUID reservationId;
+    public UUID reservationId;
 
     /** Mã khách hàng thuê kho (Khóa ngoại tham chiếu USERS) */
     @Column(name = "customer_id", nullable = false)
-    private UUID customerId;
+    public UUID customerId;
 
     /** Mã kho vật lý được gán cụ thể (Khóa ngoại tham chiếu STORAGE_UNITS) */
     @Column(name = "unit_id", nullable = false)
-    private UUID unitId;
+    public UUID unitId;
 
     /** Ngày bắt đầu thuê hợp đồng */
     @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+    public LocalDate startDate;
 
     /** Ngày kết thúc thuê hợp đồng */
     @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
+    public LocalDate endDate;
 
     /** Ngày bắt đầu thực tế khi bàn giao (UC14) */
     @Column(name = "actual_start_date")
-    private LocalDate actualStartDate;
+    public LocalDate actualStartDate;
 
     /** Ngày kết thúc thực tế khi trả kho */
     @Column(name = "actual_end_date")
-    private LocalDate actualEndDate;
+    public LocalDate actualEndDate;
 
     /** Giá thuê hàng tháng đã chốt tại thời điểm lập hợp đồng */
     @Column(name = "monthly_rental_fee", nullable = false, precision = 18, scale = 2)
-    private BigDecimal monthlyRentalFee;
+    public BigDecimal monthlyRentalFee;
 
     /** Số tiền đặt cọc cần đóng */
     @Column(name = "deposit_amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal depositAmount;
+    public BigDecimal depositAmount;
 
     /** Kỳ thanh toán (mặc định MONTHLY) */
     @Column(name = "billing_cycle", nullable = false, length = 20)
-    private String billingCycle;
+    public String billingCycle;
 
     /** Phiên bản điều khoản hợp đồng áp dụng */
     @Column(name = "terms_version", nullable = false, length = 30)
-    private String termsVersion;
+    public String termsVersion;
 
     /** Thời điểm khách hàng ký xác nhận điện tử */
     @Column(name = "customer_signed_at")
-    private LocalDateTime customerSignedAt;
+    public LocalDateTime customerSignedAt;
 
     /** Chữ ký hoặc bằng chứng xác nhận điện tử của khách hàng */
     @Column(name = "customer_signature", columnDefinition = "NVARCHAR(MAX)")
-    private String customerSignature;
+    public String customerSignature;
 
     /** Quản lý cơ sở lập và phê duyệt hợp đồng */
     @Column(name = "approved_by")
-    private UUID approvedBy;
+    public UUID approvedBy;
 
     /** Thời điểm quản lý lập và phê duyệt hợp đồng */
     @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
+    public LocalDateTime approvedAt;
 
     /** Chữ ký đại diện công ty / quản lý cơ sở */
     @Column(name = "company_signature", columnDefinition = "NVARCHAR(MAX)")
-    private String companySignature;
+    public String companySignature;
 
     /**
      * Trạng thái hợp đồng:
@@ -100,11 +100,11 @@ public class RentalContract {
      * - TERMINATED: Đã thanh lý / kết thúc
      */
     @Column(name = "status", nullable = false, length = 30)
-    private String status;
+    public String status;
 
     /** Thời điểm tạo bản ghi hợp đồng */
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    public LocalDateTime createdAt;
 
     public RentalContract() {
     }

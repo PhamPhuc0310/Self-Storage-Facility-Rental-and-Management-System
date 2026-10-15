@@ -9,7 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface UserFacilityAssignmentRepository extends JpaRepository<UserFacilityAssignment, UUID> {
-    @Query("SELECT a.facilityId FROM UserFacilityAssignment a WHERE a.userId = :userId AND a.status = 'ACTIVE' "
+    @Query("SELECT DISTINCT a.userId FROM UserFacilityAssignment a WHERE a.facilityId IN :facilities AND a.status = 'ACTIVE' AND a.startDate <= :today AND (a.endDate IS NULL OR a.endDate >= :today)")
+    List<UUID> findActiveUserIds(@Param("facilities") List<UUID> facilities, @Param("today") LocalDate today);
+    @Query("SELECT DISTINCT a.facilityId FROM UserFacilityAssignment a WHERE a.userId = :userId AND a.status = 'ACTIVE' "
             + "AND a.startDate <= :today AND (a.endDate IS NULL OR a.endDate >= :today)")
     List<UUID> findActiveFacilityIds(@Param("userId") UUID userId, @Param("today") LocalDate today);
 }

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +21,12 @@ import java.util.UUID;
  */
 @Repository
 public interface RentalContractRepository extends JpaRepository<RentalContract, UUID> {
+
+    List<RentalContract> findByCustomerIdOrderByStartDateDesc(UUID customerId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from RentalContract c where c.contractId = :id")
+    Optional<RentalContract> lockById(@Param("id") UUID id);
 
     Optional<RentalContract> findByContractId(UUID contractId);
 

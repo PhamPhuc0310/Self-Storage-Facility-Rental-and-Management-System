@@ -36,6 +36,7 @@ class ReservationServiceTest {
     @Mock private StorageUnitRepository storageUnitRepository;
     @Mock private PricingPolicyRepository pricingPolicyRepository;
     @Mock private RentalPolicyRepository rentalPolicyRepository;
+    @Mock private RentalContractRepository rentalContractRepository;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;
@@ -118,8 +119,8 @@ class ReservationServiceTest {
         assertNotNull(response.reservationId());
         assertEquals("PENDING", response.status());
         assertEquals("Chờ xác nhận", response.statusLabel());
-        assertEquals(BigDecimal.valueOf(6000000), response.estimatedRentalAmount());
-        assertEquals(BigDecimal.valueOf(2000000), response.estimatedDepositAmount());
+        assertEquals(BigDecimal.valueOf(6600000), response.estimatedRentalAmount());
+        assertEquals(BigDecimal.valueOf(2200000), response.estimatedDepositAmount());
         assertEquals(3, response.rentalMonths());
         verify(reservationRepository, times(1)).save(any(Reservation.class));
     }
@@ -227,7 +228,7 @@ class ReservationServiceTest {
         r.setStatus("PENDING");
         r.setCreatedAt(LocalDateTime.now());
 
-        when(reservationRepository.findByReservationIdAndCustomerId(reservationId, customerId))
+        when(reservationRepository.lockById(reservationId))
                 .thenReturn(Optional.of(r));
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -248,7 +249,7 @@ class ReservationServiceTest {
         r.setCustomerId(customerId);
         r.setStatus("CANCELLED");
 
-        when(reservationRepository.findByReservationIdAndCustomerId(reservationId, customerId))
+        when(reservationRepository.lockById(reservationId))
                 .thenReturn(Optional.of(r));
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->

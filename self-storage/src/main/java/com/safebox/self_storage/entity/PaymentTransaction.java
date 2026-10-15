@@ -16,13 +16,13 @@ public class PaymentTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "transaction_id", updatable = false, nullable = false)
-    private UUID transactionId;
+    public UUID transactionId;
 
     @Column(name = "invoice_id", nullable = false)
-    private UUID invoiceId;
+    public UUID invoiceId;
 
     @Column(name = "contract_id")
-    private UUID contractId;
+    public UUID contractId;
 
     /**
      * Loại giao dịch:
@@ -30,10 +30,10 @@ public class PaymentTransaction {
      * - REFUND: Hoàn tiền
      */
     @Column(name = "transaction_type", nullable = false, length = 20)
-    private String transactionType;
+    public String transactionType;
 
     @Column(name = "payment_type", length = 30)
-    private String paymentType;
+    public String paymentType;
 
     /**
      * Phương thức thanh toán:
@@ -44,16 +44,16 @@ public class PaymentTransaction {
      * - CREDIT_CARD: Thẻ quốc tế Visa/MasterCard
      */
     @Column(name = "payment_method", nullable = false, length = 30)
-    private String paymentMethod;
+    public String paymentMethod;
 
     @Column(name = "amount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal amount;
+    public BigDecimal amount;
 
     @Column(name = "transaction_date", nullable = false)
-    private LocalDateTime transactionDate;
+    public LocalDateTime transactionDate;
 
     @Column(name = "reference_code", length = 100)
-    private String referenceCode;
+    public String referenceCode;
 
     /**
      * Trạng thái giao dịch:
@@ -62,22 +62,22 @@ public class PaymentTransaction {
      * - PENDING: Đang xử lý
      */
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    public String status;
 
     @Column(name = "failure_reason", columnDefinition = "NVARCHAR(MAX)")
-    private String failureReason;
+    public String failureReason;
 
     @Column(name = "created_by")
-    private UUID createdBy;
+    public UUID createdBy;
 
     @Column(name = "idempotency_key", length = 100)
-    private String idempotencyKey;
+    public String idempotencyKey;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    public LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    public LocalDateTime updatedAt;
 
     public PaymentTransaction() {
     }
