@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Biên bản kiểm tra và tiếp nhận trả kho - SafeBox Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#00288e",
+            "primary-container": "#1e40af",
+            secondary: "#0051d5",
+            "secondary-container": "#316bf3",
+            "secondary-fixed": "#dbe1ff",
+            "on-secondary-fixed": "#00174b",
+            background: "#faf8ff",
+            "on-background": "#131b2e",
+            surface: "#faf8ff",
+            "on-surface": "#131b2e",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f2f3ff",
+            "surface-container": "#eaedff",
+            "surface-container-high": "#e2e7ff",
+            "surface-container-highest": "#dae2fd",
+            "on-surface-variant": "#444653"
+          },
+          fontFamily: {
+            headline: ["Plus Jakarta Sans", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, h4, h5 { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header -->
+  <header class="sticky top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <a href="/role-home.html" class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm">
+            <span class="material-symbols-outlined text-xl">warehouse</span>
+          </div>
+          <span class="font-headline font-bold text-xl text-primary tracking-tight">SafeBox Manager</span>
+          <span id="role-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary-fixed text-on-secondary-fixed uppercase tracking-wider">
+            Vận hành cơ sở
+          </span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1 text-sm font-semibold">
+          <a href="/stitch/t_ng_quan_qu_n_l_safebox_manager.html" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors">Tổng quan</a>
+          <a href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors">Quản lý kho</a>
+          <a href="/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-50 transition-colors">Yêu cầu đặt kho</a>
+          <a href="/stitch/bien_ban_tra_kho_safebox_manager.html" class="px-3 py-1.5 rounded-lg bg-primary text-white shadow-sm">Tiếp nhận trả kho</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div id="user-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container-low border border-slate-200 text-sm">
+          <span class="material-symbols-outlined text-primary text-lg">badge</span>
+          <span id="user-name" class="font-semibold text-slate-800">Đang tải...</span>
+        </div>
+        <a href="/role-home.html" class="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors" title="Trang điều hướng vai trò">
+          <span class="material-symbols-outlined text-xl">grid_view</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub-bar & Filter Bar -->
+  <div class="w-full bg-white border-b border-slate-200 py-3 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <span class="material-symbols-outlined text-primary text-base">assignment_return</span>
+        <span class="text-slate-800">Tiếp nhận trả kho & Nghiệm thu tình trạng sau trả</span>
+        <span class="text-slate-300">/</span>
+        <span id="sub-active-station" class="text-primary font-bold">Tất cả cơ sở</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Status Filter -->
+        <select id="filter-status" onchange="loadAppointments()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:border-primary">
+          <option value="ALL">Tất cả trạng thái</option>
+          <option value="SCHEDULED" selected>Chờ tiếp nhận (SCHEDULED)</option>
+          <option value="COMPLETED">Đã hoàn tất (COMPLETED)</option>
+        </select>
+        <button onclick="loadAppointments()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition-colors">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+          <span>Làm mới</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Appointments Queue List (4 cols) -->
+      <div class="lg:col-span-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-headline font-bold text-base text-slate-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">event_upcoming</span>
+            <span>Danh sách lịch trả kho</span>
+          </h2>
+          <span id="queue-count" class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">0 cuộc hẹn</span>
+        </div>
+
+        <!-- Appointments List Container -->
+        <div id="appointments-list" class="space-y-3 max-h-[750px] overflow-y-auto pr-1">
+          <!-- Items inserted dynamically -->
+          <div class="p-8 text-center text-slate-400 text-sm bg-white rounded-2xl border border-slate-200">
+            Đang tải danh sách lịch trả kho...
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Return & Inspection Workspace (8 cols) -->
+      <div class="lg:col-span-8">
+        
+        <!-- Empty / No Selection State -->
+        <div id="no-selection-state" class="p-12 text-center bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div class="w-16 h-16 rounded-full bg-surface-container-high text-primary mx-auto flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl">fact_check</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800">Chọn một lịch hẹn từ danh sách bên trái</h3>
+          <p class="text-xs text-slate-500 max-w-md mx-auto">
+            Chọn cuộc hẹn của khách hàng để tiến hành thu hồi chìa khóa/thẻ, kiểm tra thực tế tình trạng kho và lập biên bản nhận lại kho.
+          </p>
+        </div>
+
+        <!-- Inspection Workspace Panel -->
+        <div id="inspection-workspace" class="hidden space-y-6">
+
+          <!-- Appointment & Tenant Header Card -->
+          <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="work-contract-no" class="font-mono text-xs font-bold text-primary bg-surface-container-high px-2.5 py-0.5 rounded-full">SB-CT-...</span>
+                  <span id="work-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+                    SCHEDULED
+                  </span>
+                  <span class="text-xs text-slate-500">Giờ hẹn: <strong id="work-scheduled-time" class="text-slate-800">10:00</strong></span>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Biên bản nghiệm thu & Nhận lại kho</h2>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="window.print()" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors">
+                  <span class="material-symbols-outlined text-sm">print</span>
+                  <span>In biên bản</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Metadata Bento Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Customer Profile -->
+              <div class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-100 space-y-1">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Khách hàng thuê</span>
+                <p id="work-customer-name" class="font-bold text-slate-800 text-sm">Nguyễn Văn An</p>
+                <p id="work-customer-phone" class="text-xs text-slate-500 font-mono">0901234567</p>
+                <p id="work-customer-email" class="text-[11px] text-slate-400 truncate">an@test.com</p>
+              </div>
+
+              <!-- Unit Details -->
+              <div class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-100 space-y-1">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Ô kho vật lý</span>
+                <p id="work-unit-number" class="text-lg font-extrabold text-primary font-mono">Q7-M101</p>
+                <p id="work-unit-location" class="text-xs text-slate-500">Tầng 1 · Khu A</p>
+                <span id="work-unit-current-status" class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">OCCUPIED</span>
+              </div>
+
+              <!-- Facility -->
+              <div class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-100 space-y-1">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cơ sở tiếp nhận</span>
+                <p id="work-facility-name" class="font-bold text-slate-800 text-sm">SafeBox Quận 7</p>
+                <p id="work-facility-address" class="text-xs text-slate-500 truncate">123 Nguyễn Thị Thập, Q7</p>
+                <p class="text-[11px] text-slate-400">Trạm tiếp nhận: Sảnh tiếp tân</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inspection Submission Form -->
+          <form id="inspection-form" onsubmit="handleInspectionSubmit(event)" class="space-y-6">
+            
+            <!-- STEP 1: PHYSICAL ASSET INTAKE & SECURITY SURRENDER (BR16.5, BR16.6) -->
+            <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</span>
+                  <div>
+                    <h3 class="font-bold text-slate-800 text-sm">Thu hồi tài sản an ninh & Quyền truy cập</h3>
+                    <p class="text-xs text-slate-500">Thu hồi, kiểm tra tình trạng ổ khóa, chìa và hủy quyền ra vào cơ sở.</p>
+                  </div>
+                </div>
+                <span id="asset-verified-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Chờ xác nhận</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <!-- Asset 1: Lock -->
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 cursor-pointer hover:bg-surface-container transition-colors flex items-start gap-3">
+                  <input type="checkbox" id="chk-asset-lock" checked onchange="updateAssetCheck()" class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <span class="font-bold text-slate-800 block text-sm">Ổ khóa đồng SafeBox</span>
+                    <span class="text-slate-500 text-[11px]">Khóa đĩa chuyên dụng #LCK-99214 không cạy phá.</span>
+                  </div>
+                </label>
+
+                <!-- Asset 2: Keys -->
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 cursor-pointer hover:bg-surface-container transition-colors flex items-start gap-3">
+                  <input type="checkbox" id="chk-asset-keys" checked onchange="updateAssetCheck()" class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <span class="font-bold text-slate-800 block text-sm">2 Chìa khóa cơ</span>
+                    <span class="text-slate-500 text-[11px]">Đầy đủ 2 chìa cơ tra thử vừa vặn ổ khóa.</span>
+                  </div>
+                </label>
+
+                <!-- Asset 3: Card -->
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 cursor-pointer hover:bg-surface-container transition-colors flex items-start gap-3">
+                  <input type="checkbox" id="chk-asset-card" checked onchange="updateAssetCheck()" class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <span class="font-bold text-slate-800 block text-sm">Thẻ từ NFC ra vào</span>
+                    <span class="text-slate-500 text-[11px]">Thẻ NFC #CRD-8842 thu hồi và thu hồi quyền cửa cổng.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- STEP 2: PHYSICAL INSPECTION WALKTHROUGH (BR16.5, BR16.6) -->
+            <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</span>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-sm">Kiểm tra thực tế hiện trạng ô kho</h3>
+                  <p class="text-xs text-slate-500">Cùng khách hàng kiểm tra kho thực tế và ghi nhận theo quy tắc nghiệm thu.</p>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <!-- Check 1: Unit Cleared -->
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 flex items-start gap-3 cursor-pointer hover:bg-surface-container transition-colors">
+                  <input type="checkbox" id="chk-unit-cleared" checked required class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <strong class="font-bold text-slate-800 text-sm block">1. Kho đã dọn sạch hoàn toàn không còn hàng hóa dư thừa</strong>
+                    <span class="text-slate-500">Đã kiểm tra ô kho không còn đồ cá nhân, pallet hay rác thải bỏ lại.</span>
+                  </div>
+                </label>
+
+                <!-- Check 2: Cleanliness -->
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 flex items-start gap-3 cursor-pointer hover:bg-surface-container transition-colors">
+                  <input type="checkbox" id="chk-cleanliness" checked required class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <strong class="font-bold text-slate-800 text-sm block">2. Đạt tiêu chuẩn vệ sinh sạch sẽ</strong>
+                    <span class="text-slate-500">Mặt sàn đã quét sạch, không có vết dầu mỡ hay chất lỏng gây ố bẩn.</span>
+                  </div>
+                </label>
+
+                <!-- Check 3: Door & Latch -->
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 flex items-start gap-3 cursor-pointer hover:bg-surface-container transition-colors">
+                  <input type="checkbox" id="chk-door" checked required class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <strong class="font-bold text-slate-800 text-sm block">3. Cửa cuốn & Khung then cài khóa hoạt động trơn tru</strong>
+                    <span class="text-slate-500">Ray dẫn hướng thẳng, lò xo cân bằng và then chốt khóa nguyên vẹn.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- STEP 3: CONDITION EVALUATION & DAMAGE DECISION -->
+            <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</span>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-sm">Đánh giá chất lượng & Trạng thái ô kho sau trả</h3>
+                  <p class="text-xs text-slate-500">Lựa chọn đánh giá để tự động chuyển trạng thái ô kho sang AVAILABLE hoặc MAINTENANCE.</p>
+                </div>
+              </div>
+
+              <!-- Dual Branching Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Option A: Standard Good -->
+                <label class="cursor-pointer select-none">
+                  <input type="radio" name="optCondition" value="GOOD" checked onchange="toggleDamageSection(false)" class="sr-only"/>
+                  <div id="card-opt-good" class="p-4 rounded-2xl border-2 border-primary bg-blue-50/50 hover:bg-blue-50 transition-all space-y-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-xl">thumb_up</span>
+                        <span class="font-bold text-slate-800 text-sm">LỰA CHỌN A: ĐẠT TIÊU CHUẨN</span>
+                      </div>
+                      <span class="w-4 h-4 rounded-full bg-primary flex items-center justify-center text-white text-[10px]">✓</span>
+                    </div>
+                    <p class="text-xs text-slate-600">Kho nguyên vẹn, không hư hại. Ô kho được chuyển ngay sang trạng thái <strong class="text-primary font-bold">AVAILABLE</strong> để cho khách tiếp theo thuê.</p>
+                  </div>
+                </label>
+
+                <!-- Option B: Damaged / Action Required -->
+                <label class="cursor-pointer select-none">
+                  <input type="radio" name="optCondition" value="DAMAGED" onchange="toggleDamageSection(true)" class="sr-only"/>
+                  <div id="card-opt-damaged" class="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 transition-all space-y-2">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-rose-600 text-xl">warning</span>
+                        <span class="font-bold text-slate-800 text-sm">LỰA CHỌN B: CÓ HƯ HẠI / CẦN SỬA</span>
+                      </div>
+                      <span class="w-4 h-4 rounded-full border border-slate-300"></span>
+                    </div>
+                    <p class="text-xs text-slate-600">Phát hiện trầy xước, móp méo hoặc bẩn nặng. Ô kho chuyển sang <strong class="text-rose-700 font-bold">MAINTENANCE</strong> (không được đưa lên danh sách trống).</p>
+                  </div>
+                </label>
+
+              </div>
+
+              <!-- Damage Detail Inputs (Shown only when Option B is selected) -->
+              <div id="damage-input-section" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-4">
+                <div class="flex items-center gap-2 text-rose-800 font-bold text-xs uppercase tracking-wider">
+                  <span class="material-symbols-outlined text-sm">build_circle</span>
+                  <span>Chi tiết ghi nhận hư hỏng & Chi phí khắc phục</span>
+                </div>
+
+                <div class="space-y-3">
+                  <div>
+                    <label for="damage-description" class="font-bold text-slate-800 text-xs block mb-1">Mô tả hư hỏng thực tế</label>
+                    <textarea id="damage-description" rows="2" placeholder="Ví dụ: Vết cào sâu 1.2m ở vách thạch cao bên trái, cần trám vá và sơn lại lót..."
+                              class="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-primary bg-white"></textarea>
+                  </div>
+
+                  <div>
+                    <label for="damage-cost" class="font-bold text-slate-800 text-xs block mb-1">Chi phí sửa chữa ước tính (VNĐ)</label>
+                    <input type="number" id="damage-cost" min="0" step="10000" value="0" placeholder="0"
+                           class="w-full max-w-xs h-10 px-3 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-primary bg-white"/>
+                    <span class="text-[11px] text-slate-500 block mt-1">Ghi nhận chi phí sửa chữa để theo dõi và thực hiện tất toán cọc theo quy định.</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- STEP 4: SIGNOFF & HANDOVER COMPLETION -->
+            <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                <span class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</span>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-sm">Xác nhận của khách hàng & Ký biên bản</h3>
+                  <p class="text-xs text-slate-500">Khách hàng phải có mặt trực tiếp tại cơ sở để cùng kiểm tra và đồng ý với biên bản.</p>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <label class="p-3.5 rounded-2xl bg-surface-container-low border border-slate-200 flex items-start gap-3 cursor-pointer hover:bg-surface-container transition-colors">
+                  <input type="checkbox" id="chk-customer-present" checked required class="mt-1 w-4 h-4 text-primary accent-primary cursor-pointer"/>
+                  <div class="text-xs">
+                    <strong class="font-bold text-slate-800 text-sm block">Khách hàng có mặt trực tiếp và đồng ý với kết quả kiểm tra</strong>
+                    <span class="text-slate-500">Nhân viên xác nhận khách hàng đang hiện diện tại cơ sở và đã xem xét toàn bộ hiện trạng kho.</span>
+                  </div>
+                </label>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label for="customer-sig" class="font-bold text-slate-700 text-xs block mb-1">Tên / Chữ ký xác nhận của khách hàng</label>
+                    <input type="text" id="customer-sig" required placeholder="Họ và tên khách hàng"
+                           class="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-primary"/>
+                  </div>
+                  <div>
+                    <label for="staff-sig" class="font-bold text-slate-700 text-xs block mb-1">Chữ ký nhân viên kiểm tra</label>
+                    <input type="text" id="staff-sig" required placeholder="Họ và tên nhân viên kiểm tra"
+                           class="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-primary bg-slate-50"/>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="inspection-notes" class="font-bold text-slate-700 text-xs block mb-1">Ghi chú bổ sung (Tùy chọn)</label>
+                  <textarea id="inspection-notes" rows="2" placeholder="Ghi chú thêm về buổi nghiệm thu nếu có..."
+                            class="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-primary"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+              <button type="button" onclick="closeWorkspace()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors">
+                Đóng chi tiết
+              </button>
+              
+              <button type="submit" id="btn-submit-complete" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-container shadow-md transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-base">check_circle</span>
+                <span>Hoàn tất nghiệm thu & Nhận lại kho</span>
+              </button>
+            </div>
+
+          </form>
+
+          <!-- Completed State Result Card (Shown when record is already COMPLETED) -->
+          <div id="completed-result-card" class="hidden p-6 rounded-3xl bg-emerald-50 border border-emerald-200 space-y-4">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-emerald-700 text-3xl">task_alt</span>
+              <div>
+                <h3 class="font-bold text-emerald-950 text-base">Biên bản nhận lại kho đã hoàn tất thành công!</h3>
+                <p id="res-timestamp" class="text-xs text-emerald-800">Thời điểm nhận lại: 10:15 - 30/01/2026</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2">
+              <div class="p-3 rounded-xl bg-white border border-emerald-200">
+                <span class="text-slate-400 block text-[11px] font-bold uppercase">Hợp đồng</span>
+                <strong class="text-slate-800 font-mono">RETURNED</strong>
+              </div>
+              <div class="p-3 rounded-xl bg-white border border-emerald-200">
+                <span class="text-slate-400 block text-[11px] font-bold uppercase">Ô kho vật lý</span>
+                <strong id="res-unit-status" class="text-emerald-700 font-bold font-mono">AVAILABLE</strong>
+              </div>
+              <div class="p-3 rounded-xl bg-white border border-emerald-200">
+                <span class="text-slate-400 block text-[11px] font-bold uppercase">Người kiểm tra</span>
+                <strong id="res-inspector" class="text-slate-800">Phạm Gia Huy</strong>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-white/80 border border-emerald-200 text-xs text-slate-700">
+              <strong class="text-slate-900 block mb-1">Theo dõi tài chính:</strong>
+              <span id="res-financial-note">Khoản tiền cọc đang được bảo lưu để tất toán theo quy định hợp đồng.</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>© 2026 SafeBox Management System · Dành cho Nhân viên và Quản lý cơ sở</p>
+    </div>
+  </footer>
+
+  <!-- Script Logic -->
+  <script src="/auth.js"></script>
+  <script>
+    let currentStaffUser = null;
+    let appointmentsQueue = [];
+    let selectedAppointment = null;
+
+    function formatDateTimeVi(str) {
+      if (!str) return 'N/A';
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? str : d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function formatTimeVi(str) {
+      if (!str) return 'N/A';
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? str : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function initManagerPage() {
+      const token = SafeBoxAuth.getToken();
+      if (!token) {
+        window.location.href = `/stitch/ng_nh_p_ng_k_safebox_storage.html?redirect=${encodeURIComponent(window.location.href)}`;
+        return;
+      }
+
+      try {
+        const meRes = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (meRes.ok) {
+          currentStaffUser = await meRes.json();
+          document.getElementById('user-name').textContent = currentStaffUser.fullName || currentStaffUser.email;
+          document.getElementById('staff-sig').value = currentStaffUser.fullName || 'Nhân viên kiểm tra';
+          if (currentStaffUser.role) {
+            document.getElementById('role-badge').textContent = currentStaffUser.role.roleName || currentStaffUser.role;
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching profile:', e);
+      }
+
+      await loadAppointments();
+    }
+
+    async function loadAppointments() {
+      const token = SafeBoxAuth.getToken();
+      if (!token) return;
+
+      const filterStatus = document.getElementById('filter-status').value;
+      const listEl = document.getElementById('appointments-list');
+      listEl.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">Đang tải danh sách...</div>`;
+
+      try {
+        let url = `/api/facility/returns?status=${encodeURIComponent(filterStatus)}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+
+        if (res.ok) {
+          appointmentsQueue = await res.json();
+          renderAppointmentsList(appointmentsQueue);
+        } else {
+          listEl.innerHTML = `<div class="p-6 text-center text-rose-600 text-xs font-semibold">Không thể tải danh sách cuộc hẹn</div>`;
+        }
+      } catch (err) {
+        console.error('Load appointments error:', err);
+        listEl.innerHTML = `<div class="p-6 text-center text-rose-600 text-xs">Lỗi kết nối máy chủ</div>`;
+      }
+    }
+
+    function renderAppointmentsList(list) {
+      const listEl = document.getElementById('appointments-list');
+      document.getElementById('queue-count').textContent = `${list.length} cuộc hẹn`;
+
+      if (list.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-8 text-center bg-white rounded-2xl border border-slate-200 space-y-2">
+            <span class="material-symbols-outlined text-slate-300 text-3xl">event_busy</span>
+            <p class="text-xs text-slate-500 font-semibold">Không có lịch trả kho nào phù hợp</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = '';
+      list.forEach(item => {
+        const isSelected = selectedAppointment && selectedAppointment.handoverId === item.handoverId;
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-2xl border cursor-pointer transition-all ${
+          isSelected 
+            ? 'border-primary bg-blue-50/60 shadow-xs' 
+            : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-2xs'
+        }`;
+        card.onclick = () => selectAppointment(item);
+
+        const statusBadge = item.status === 'COMPLETED'
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ĐÃ NHẬN</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">CHỜ TIẾP NHẬN</span>`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-mono text-xs font-bold text-slate-800">${item.contractNumber}</span>
+            ${statusBadge}
+          </div>
+          <div class="flex items-center justify-between text-xs mb-2">
+            <span class="font-bold text-primary font-mono text-sm">${item.unitNumber}</span>
+            <span class="text-slate-500">${item.floor || 'Tầng 1'} · ${item.zone || 'Khu A'}</span>
+          </div>
+          <div class="text-xs text-slate-600 space-y-0.5 border-t border-slate-100 pt-2">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800">${item.customerName}</span>
+              <span class="font-mono text-[11px] text-slate-500">${item.customerPhone}</span>
+            </div>
+            <div class="flex items-center gap-1 text-[11px] text-slate-500">
+              <span class="material-symbols-outlined text-xs text-primary">schedule</span>
+              <span>${formatDateTimeVi(item.scheduledAt)}</span>
+            </div>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    async function selectAppointment(item) {
+      selectedAppointment = item;
+      renderAppointmentsList(appointmentsQueue);
+
+      const token = SafeBoxAuth.getToken();
+      if (!token) return;
+
+      document.getElementById('no-selection-state').classList.add('hidden');
+      document.getElementById('inspection-workspace').classList.remove('hidden');
+
+      // Fetch full details
+      try {
+        const res = await fetch(`/api/facility/returns/${item.handoverId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const detail = await res.json();
+          renderInspectionDetail(detail);
+        } else {
+          alert("Không thể tải chi tiết biên bản bàn giao.");
+        }
+      } catch (err) {
+        console.error('Fetch return detail error:', err);
+      }
+    }
+
+    function renderInspectionDetail(detail) {
+      document.getElementById('work-contract-no').textContent = detail.contractNumber;
+      document.getElementById('work-status-badge').textContent = detail.handoverStatus;
+      document.getElementById('work-scheduled-time').textContent = formatDateTimeVi(detail.scheduledAt);
+
+      document.getElementById('work-customer-name').textContent = detail.customerName;
+      document.getElementById('work-customer-phone').textContent = detail.customerPhone;
+      document.getElementById('work-customer-email').textContent = detail.customerEmail;
+
+      document.getElementById('work-unit-number').textContent = detail.unitNumber;
+      document.getElementById('work-unit-location').textContent = `${detail.floor || 'Tầng 1'} · ${detail.zone || 'Khu A'}`;
+      document.getElementById('work-unit-current-status').textContent = detail.unitStatus || 'OCCUPIED';
+
+      document.getElementById('work-facility-name').textContent = detail.facilityName;
+      document.getElementById('work-facility-address').textContent = detail.facilityAddress || '';
+
+      document.getElementById('customer-sig').value = detail.customerSignature || detail.customerName;
+
+      const form = document.getElementById('inspection-form');
+      const resultCard = document.getElementById('completed-result-card');
+
+      if (detail.handoverStatus === 'COMPLETED') {
+        form.classList.add('hidden');
+        resultCard.classList.remove('hidden');
+
+        document.getElementById('res-timestamp').textContent = `Thời điểm nhận lại thực tế: ${formatDateTimeVi(detail.actualAt)}`;
+        document.getElementById('res-unit-status').textContent = detail.unitStatus;
+        document.getElementById('res-inspector').textContent = detail.inspectorName || 'Nhân viên cơ sở';
+        document.getElementById('res-financial-note').textContent = detail.financialStatusNotes || '';
+      } else {
+        form.classList.remove('hidden');
+        resultCard.classList.add('hidden');
+      }
+    }
+
+    function updateAssetCheck() {
+      const lock = document.getElementById('chk-asset-lock').checked;
+      const keys = document.getElementById('chk-asset-keys').checked;
+      const card = document.getElementById('chk-asset-card').checked;
+
+      const badge = document.getElementById('asset-verified-badge');
+      if (lock && keys && card) {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800';
+        badge.textContent = '3/3 Đã thu hồi';
+      } else {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800';
+        badge.textContent = 'Chưa đủ tài sản';
+      }
+    }
+
+    function toggleDamageSection(isDamaged) {
+      const damageSec = document.getElementById('damage-input-section');
+      const goodCard = document.getElementById('card-opt-good');
+      const damagedCard = document.getElementById('card-opt-damaged');
+
+      if (isDamaged) {
+        damageSec.classList.remove('hidden');
+        goodCard.className = 'p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 transition-all space-y-2';
+        damagedCard.className = 'p-4 rounded-2xl border-2 border-rose-500 bg-rose-50/60 transition-all space-y-2';
+      } else {
+        damageSec.classList.add('hidden');
+        goodCard.className = 'p-4 rounded-2xl border-2 border-primary bg-blue-50/50 hover:bg-blue-50 transition-all space-y-2';
+        damagedCard.className = 'p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 transition-all space-y-2';
+        document.getElementById('damage-cost').value = 0;
+        document.getElementById('damage-description').value = '';
+      }
+    }
+
+    function closeWorkspace() {
+      selectedAppointment = null;
+      document.getElementById('no-selection-state').classList.remove('hidden');
+      document.getElementById('inspection-workspace').classList.add('hidden');
+      renderAppointmentsList(appointmentsQueue);
+    }
+
+    async function handleInspectionSubmit(e) {
+      e.preventDefault();
+      if (!selectedAppointment) return;
+
+      const token = SafeBoxAuth.getToken();
+      if (!token) return;
+
+      const lock = document.getElementById('chk-asset-lock').checked;
+      const keys = document.getElementById('chk-asset-keys').checked;
+      const card = document.getElementById('chk-asset-card').checked;
+
+      if (!lock || !keys || !card) {
+        alert("Vui lòng xác nhận đã thu hồi đầy đủ cả 3 tài sản an ninh (ổ khóa, 2 chìa khóa, thẻ từ NFC) trước khi hoàn tất.");
+        return;
+      }
+
+      const cleared = document.getElementById('chk-unit-cleared').checked;
+      if (!cleared) {
+        alert("Ô kho phải được dọn sạch hoàn toàn trước khi hoàn tất nhận lại.");
+        return;
+      }
+
+      const customerPresent = document.getElementById('chk-customer-present').checked;
+      if (!customerPresent) {
+        alert("Khách hàng cần có mặt trực tiếp và đồng ý với biên bản trước khi hoàn tất nhận lại kho.");
+        return;
+      }
+
+      const optCondition = document.querySelector('input[name="optCondition"]:checked').value;
+      const isDamaged = optCondition === 'DAMAGED';
+      const damageDesc = document.getElementById('damage-description').value;
+      const damageCost = parseFloat(document.getElementById('damage-cost').value || '0');
+
+      if (isDamaged && !damageDesc.trim()) {
+        alert("Vui lòng nhập mô tả chi tiết hư hỏng khi chọn Lựa chọn B.");
+        return;
+      }
+
+      const custSig = document.getElementById('customer-sig').value;
+      const staffSig = document.getElementById('staff-sig').value;
+      const notes = document.getElementById('inspection-notes').value;
+
+      const payload = {
+        handoverId: selectedAppointment.handoverId,
+        leftoverItems: false,
+        cleanlinessStatus: "PASS",
+        accessReturned: true,
+        accessMethod: "CARD_AND_KEY",
+        accessIdentifier: "Ổ khóa đồng SafeBox, 2 chìa khóa cơ, thẻ NFC đã thu hồi",
+        conditionStatus: isDamaged ? "DAMAGED" : "GOOD",
+        damageDescription: isDamaged ? damageDesc : null,
+        estimatedRepairCost: isDamaged ? damageCost : 0,
+        customerConfirmed: true,
+        customerSignature: custSig,
+        staffSignature: staffSig,
+        note: notes,
+        unitNextStatus: isDamaged ? "MAINTENANCE" : "AVAILABLE"
+      };
+
+      const btn = document.getElementById('btn-submit-complete');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span> Đang xử lý...`;
+
+      try {
+        const res = await fetch(`/api/facility/returns/${selectedAppointment.handoverId}/complete`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const updatedDetail = await res.json();
+          alert("Nghiệm thu thành công! Ô kho đã được cập nhật trạng thái " + updatedDetail.unitStatus + " và hợp đồng chuyển sang RETURNED.");
+          renderInspectionDetail(updatedDetail);
+          await loadAppointments();
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert(errData.message || "Hoàn tất nghiệm thu thất bại.");
+        }
+      } catch (err) {
+        console.error('Submit complete error:', err);
+        alert("Lỗi kết nối khi gửi kết quả kiểm tra.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined text-base">check_circle</span><span>Hoàn tất nghiệm thu & Nhận lại kho</span>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initManagerPage);
+  </script>
+</body>
+</html>

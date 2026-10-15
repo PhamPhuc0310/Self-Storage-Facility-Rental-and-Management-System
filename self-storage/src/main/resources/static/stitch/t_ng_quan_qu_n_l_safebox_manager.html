@@ -500,4 +500,4 @@
       }, 3500);
     }
   </script>
-</div></main></div><script src="/auth.js"></script><script>SafeBoxAuth.requireRole('FACILITY_MANAGER'); document.querySelectorAll('[data-path="dang-nhap"]').forEach(link => link.addEventListener('click', event => { event.preventDefault(); SafeBoxAuth.logout(); }));</script></body></html>
+</div></main></div><script src="/auth.js"></script><script>SafeBoxAuth.requireRole('FACILITY_MANAGER', 'FACILITY_STAFF', 'SYSTEM_ADMIN'); document.querySelectorAll('[data-path="dang-nhap"]').forEach(link => link.addEventListener('click', event => { event.preventDefault(); SafeBoxAuth.logout(); }));</script></body></html>
