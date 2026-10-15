@@ -29,8 +29,9 @@ public class Sprint2Controller {
         return facilities.findAllById(access.facilities()).stream()
                 .map(f -> new AssignedFacility(f.getFacilityId(), f.getName(), f.getAddress())).toList();
     }
-    @GetMapping("/api/contracts/my")
-    public List<ContractQueryService.ContractView> mine() { return contracts.mine(); }
+    // Delegated to CustomerContractController (UC10) to avoid ambiguous mapping
+    // @GetMapping("/api/contracts/my")
+    // public List<ContractQueryService.ContractView> mine() { return contracts.mine(); }
     @GetMapping("/api/contracts/{id}")
     public ContractQueryService.ContractView contract(@PathVariable UUID id) { return contracts.get(id); }
     @GetMapping("/api/contracts/{id}/payments/summary")

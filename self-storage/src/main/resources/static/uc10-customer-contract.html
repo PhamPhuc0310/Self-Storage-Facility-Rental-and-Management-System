@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Hợp đồng thuê kho & Thanh toán - SafeBox Storage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#001229",
+                        "on-surface": "#131b2e",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#dae2fd",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#d2d9f4",
+                        "surface-bright": "#faf8ff",
+                        "surface-container": "#eaedff",
+                        "surface": "#faf8ff",
+                        "surface-container-low": "#f2f3ff",
+                        "surface-container-high": "#e2e7ff",
+                        "surface-container-highest": "#dae2fd",
+                        "secondary-container": "#316bf3",
+                        "outline": "#74777e",
+                        "secondary": "#0051d5",
+                        "on-surface-variant": "#44474d",
+                        "primary-container": "#0f2744"
+                    },
+                    fontFamily: {
+                        "sans": ["Be Vietnam Pro", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @layer base {
+            html, body { margin: 0; padding: 0; font-family: 'Be Vietnam Pro', sans-serif; }
+        }
+        .animate-spin-fast {
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body style="visibility:hidden" class="bg-surface text-on-surface min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-surface-container shadow-sm">
+        <div class="h-20 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="/stitch/trang_ch_safebox_storage.html" class="flex items-center gap-3">
+                    <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold text-primary tracking-tight">SafeBox Storage</span>
+                        <span class="text-xs text-on-surface-variant">Hệ thống lưu trữ thông minh</span>
+                    </div>
+                </a>
+                <nav class="hidden md:flex items-center gap-6 ml-6">
+                    <a class="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/trang_ch_safebox_storage.html">Trang chủ</a>
+                    <a class="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/t_m_kho_l_u_tr_safebox_storage.html">Tìm kho</a>
+                    <a class="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/y_u_c_u_c_a_t_i_safebox_storage.html">Yêu cầu của tôi</a>
+                    <a class="text-sm font-bold text-secondary bg-surface-container px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5" href="/uc10-customer-contract.html">
+                        <span class="material-symbols-outlined text-base">description</span>
+                        <span>Hợp đồng của tôi</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold">
+                        <span class="material-symbols-outlined text-lg">person</span>
+                    </div>
+                    <div class="hidden sm:flex flex-col text-left">
+                        <span id="nav-user-name" class="text-sm font-semibold text-on-surface leading-tight">Khách hàng</span>
+                        <span class="text-xs text-on-surface-variant">Tài khoản khách</span>
+                    </div>
+                </div>
+                <button id="btn-logout" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-error transition-colors" title="Đăng xuất">
+                    <span class="material-symbols-outlined text-xl">logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="w-full pt-28 pb-16 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+        <!-- Top Banner -->
+        <div class="bg-gradient-to-r from-primary via-primary-container to-secondary text-white p-6 sm:p-8 rounded-2xl shadow-lg relative overflow-hidden mb-8">
+            <div class="relative z-10 space-y-2 max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-medium">
+                    <span class="material-symbols-outlined text-sm">verified</span>
+                    <span>Quy trình Ký điện tử & Thanh toán Trực tuyến</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Hợp đồng thuê kho & Thanh toán</h1>
+                <p class="text-sm sm:text-base text-surface-container-highest/90">
+                    Xem toàn văn điều khoản pháp lý, xác nhận chữ ký điện tử và thanh toán tiền cọc cùng tiền thuê ban đầu nhanh chóng, an toàn.
+                </p>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-3 relative z-10">
+                <button id="btn-tab-detail" onclick="switchContractTab('DETAIL')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white text-primary shadow-sm">
+                    Chi tiết hợp đồng hiện tại
+                </button>
+                <button id="btn-tab-list" onclick="switchContractTab('LIST')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-white/10 hover:bg-white/20 text-white">
+                    Tất cả hợp đồng của tôi (<span id="contract-count-badge">0</span>)
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert messages -->
+        <div id="status-alert" class="hidden mb-6 p-4 rounded-xl text-sm flex items-start gap-3"></div>
+
+        <!-- VIEW 1: CONTRACT DETAIL & CONFIRMATION & PAYMENT -->
+        <div id="view-contract-detail" class="space-y-8">
+            <!-- Loading state -->
+            <div id="loading-spinner" class="py-16 text-center">
+                <div class="inline-block w-10 h-10 border-4 border-secondary border-t-transparent rounded-full animate-spin-fast"></div>
+                <p class="mt-3 text-sm text-on-surface-variant font-medium">Đang tải thông tin hợp đồng...</p>
+            </div>
+
+            <!-- Empty / Not found state -->
+            <div id="empty-state" class="hidden py-16 text-center bg-white rounded-2xl border border-surface-container shadow-sm p-8">
+                <span class="material-symbols-outlined text-6xl text-outline mb-2">find_in_page</span>
+                <h3 class="text-lg font-bold text-on-surface">Không tìm thấy hợp đồng</h3>
+                <p class="text-sm text-on-surface-variant max-w-md mx-auto mt-1 mb-6">
+                    Hiện bạn chưa có hợp đồng nào ở yêu cầu này hoặc yêu cầu đặt kho đang chờ Quản lý cơ sở gán kho và lập hợp đồng.
+                </p>
+                <a href="/stitch/y_u_c_u_c_a_t_i_safebox_storage.html" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-secondary text-white font-medium hover:bg-secondary-container transition-all">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    <span>Về danh sách yêu cầu của tôi</span>
+                </a>
+            </div>
+
+            <!-- Contract Content Block -->
+            <div id="contract-card" class="hidden space-y-8">
+                <!-- Contract Header Summary Card -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-surface-container space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-surface-container">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm font-semibold text-secondary uppercase tracking-wider">HỢP ĐỒNG ĐIỆN TỬ</span>
+                                <span id="badge-contract-status" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                    Chờ xác nhận
+                                </span>
+                            </div>
+                            <h2 id="contract-number-display" class="text-2xl sm:text-3xl font-bold text-primary mt-1 font-mono">
+                                HD-20261010-XXXX
+                            </h2>
+                            <p class="text-xs text-on-surface-variant mt-1">
+                                Liên kết yêu cầu: <span id="reservation-code-display" class="font-mono font-semibold text-on-surface">#REQ-...</span> • Ngày lập: <span id="created-at-display">...</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-base">print</span>
+                                <span>In hợp đồng</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3 Columns: Customer, Facility, Physical Storage Unit -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Customer Column -->
+                        <div class="p-5 rounded-xl bg-surface-container-low/70 space-y-3">
+                            <div class="flex items-center gap-2 text-primary font-bold text-sm">
+                                <span class="material-symbols-outlined text-secondary text-lg">person</span>
+                                <span>BÊN THUÊ (KHÁCH HÀNG)</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-on-surface-variant">
+                                <div>Họ và tên: <strong id="customer-name-display" class="text-on-surface text-sm block">...</strong></div>
+                                <div>Số điện thoại: <span id="customer-phone-display" class="text-on-surface font-medium">...</span></div>
+                                <div>Email: <span id="customer-email-display" class="text-on-surface font-medium">...</span></div>
+                                <div>Số CCCD/CMND: <span id="customer-id-number-display" class="text-on-surface font-medium">...</span></div>
+                                <div>Địa chỉ: <span id="customer-address-display" class="text-on-surface font-medium">...</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Facility Column -->
+                        <div class="p-5 rounded-xl bg-surface-container-low/70 space-y-3">
+                            <div class="flex items-center gap-2 text-primary font-bold text-sm">
+                                <span class="material-symbols-outlined text-secondary text-lg">warehouse</span>
+                                <span>CƠ SỞ CHO THUÊ (SAFEBOX)</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-on-surface-variant">
+                                <div>Tên cơ sở: <strong id="facility-name-display" class="text-on-surface text-sm block">SafeBox Storage</strong></div>
+                                <div>Địa chỉ kho: <span id="facility-address-display" class="text-on-surface font-medium">...</span></div>
+                                <div>Hotline cơ sở: <span id="facility-phone-display" class="text-on-surface font-medium">1900 8868</span></div>
+                                <div>Quản lý lập HĐ: <span id="manager-name-display" class="text-on-surface font-medium">...</span></div>
+                                <div>Đại diện ký: <span id="company-signature-display" class="text-on-surface font-semibold text-secondary">SafeBox Storage</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Assigned Unit Column -->
+                        <div class="p-5 rounded-xl bg-surface-container-low/70 space-y-3">
+                            <div class="flex items-center gap-2 text-primary font-bold text-sm">
+                                <span class="material-symbols-outlined text-secondary text-lg">grid_view</span>
+                                <span>Ô KHO VẬT LÝ ĐƯỢC GÁN</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-on-surface-variant">
+                                <div class="flex items-baseline justify-between">
+                                    <span>Mã số kho:</span>
+                                    <span id="unit-number-display" class="text-lg font-bold text-secondary font-mono">...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Vị trí:</span>
+                                    <span id="unit-location-display" class="text-on-surface font-medium">Tầng 1, Khu A</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Loại kho:</span>
+                                    <span id="unit-type-display" class="text-on-surface font-medium">Kho Tiêu Chuẩn</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Kích thước & DT:</span>
+                                    <span id="unit-size-display" class="text-on-surface font-medium">5 m²</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Chế độ bảo quản:</span>
+                                    <span id="unit-mode-display" class="text-on-surface font-medium">STANDARD</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rental Duration & Financial Table -->
+                    <div class="space-y-4 pt-4">
+                        <h3 class="text-base font-bold text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined text-secondary">payments</span>
+                            <span>Thời hạn thuê & Bảng kê tài chính hợp đồng</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 rounded-xl border border-surface-container bg-white">
+                                <span class="text-xs text-on-surface-variant block">Thời gian thuê</span>
+                                <div class="text-base font-bold text-primary mt-1" id="duration-display">3 tháng</div>
+                                <span class="text-xs text-on-surface-variant block mt-0.5" id="date-range-display">01/10/2026 - 01/01/2027</span>
+                            </div>
+                            <div class="p-4 rounded-xl border border-surface-container bg-white">
+                                <span class="text-xs text-on-surface-variant block">Giá thuê hàng tháng</span>
+                                <div class="text-base font-bold text-primary mt-1" id="monthly-fee-display">1.500.000 đ</div>
+                                <span class="text-xs text-on-surface-variant block mt-0.5">Kỳ thanh toán: Hàng tháng</span>
+                            </div>
+                            <div class="p-4 rounded-xl border border-surface-container bg-white">
+                                <span class="text-xs text-on-surface-variant block">Tiền đặt cọc bảo đảm (Deposit)</span>
+                                <div class="text-base font-bold text-amber-700 mt-1" id="deposit-display">1.500.000 đ</div>
+                                <span class="text-xs text-green-700 font-medium block mt-0.5">✓ Hoàn lại 100% khi hết HĐ</span>
+                            </div>
+                            <div class="p-4 rounded-xl border-2 border-secondary bg-secondary/5">
+                                <span class="text-xs text-secondary font-bold uppercase tracking-wider block">Tổng thanh toán ban đầu</span>
+                                <div class="text-xl font-bold text-secondary mt-1 font-mono" id="total-payable-display">3.000.000 đ</div>
+                                <span class="text-xs text-on-surface-variant block mt-0.5">(Cọc 1 tháng + Tiền thuê tháng 1)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Terms Accordion / Box -->
+                    <div class="space-y-3 pt-4 border-t border-surface-container">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-primary flex items-center gap-2">
+                                <span class="material-symbols-outlined text-secondary">gavel</span>
+                                <span>Điều khoản & Cam kết hợp đồng thuê kho</span>
+                            </h3>
+                            <span class="text-xs text-on-surface-variant" id="terms-version-display">Phiên bản: TERMS-2026-V1</span>
+                        </div>
+                        <div class="p-4 rounded-xl bg-surface-container-low text-xs sm:text-sm text-on-surface-variant leading-relaxed space-y-2 border border-surface-container" id="terms-list-container">
+                            <p><strong>1. Mục đích sử dụng:</strong> Bên thuê cam kết sử dụng kho đúng mục đích lưu trữ hợp pháp, không lưu trữ hàng cấm, vũ khí, hóa chất nguy hiểm hoặc chất dễ cháy nổ.</p>
+                            <p><strong>2. An toàn & PCCC:</strong> Tuân thủ nghiêm ngặt quy định phòng cháy chữa cháy, nội quy an ninh và quy trình ra vào cơ sở SafeBox.</p>
+                            <p><strong>3. Thanh toán & Tiền cọc:</strong> Khách hàng thanh toán tiền đặt cọc và tiền thuê kỳ đầu trước khi bàn giao kho. Tiền cọc nhằm bảo đảm thực hiện nghĩa vụ hợp đồng.</p>
+                            <p><strong>4. Hoàn trả tiền cọc:</strong> Tiền cọc sẽ được hoàn trả đầy đủ trong vòng 03 ngày làm việc sau khi kết thúc hợp đồng và bàn giao lại kho nguyên trạng ban đầu.</p>
+                            <p><strong>5. Hiệu lực hợp đồng:</strong> Hợp đồng có hiệu lực kể từ thời điểm ký xác nhận điện tử và hoàn tất biên bản bàn giao thực tế tại cơ sở SafeBox.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: CONFIRM CONTRACT BOX (if PENDING_CONFIRMATION) -->
+                <div id="box-confirm-contract" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-secondary/30 space-y-6">
+                    <div class="flex items-center gap-3 text-primary">
+                        <div class="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center font-bold text-lg">1</div>
+                        <div>
+                            <h3 class="text-lg font-bold">Bước 1: Ký xác nhận hợp đồng điện tử</h3>
+                            <p class="text-xs sm:text-sm text-on-surface-variant">Khách hàng kiểm tra điều khoản và ký xác nhận trực tuyến để hoàn tất thủ tục pháp lý.</p>
+                        </div>
+                    </div>
+
+                    <div id="confirm-form" class="space-y-4 pt-2">
+                        <label class="flex items-start gap-3 p-4 rounded-xl border border-surface-container bg-surface-container-low/50 cursor-pointer hover:bg-surface-container-low transition-colors">
+                            <input type="checkbox" id="chk-agree-terms" class="mt-1 w-4 h-4 text-secondary rounded border-outline focus:ring-secondary"/>
+                            <span class="text-xs sm:text-sm text-on-surface font-medium leading-snug">
+                                Tôi đã đọc kỹ, hiểu rõ và hoàn toàn đồng ý với tất cả điều khoản, quyền và nghĩa vụ trong hợp đồng thuê kho SafeBox nêu trên.
+                            </span>
+                        </label>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="input-signature" class="block text-xs font-semibold text-on-surface mb-1">
+                                    Chữ ký điện tử / Họ tên khách hàng ký:
+                                </label>
+                                <input type="text" id="input-signature" placeholder="Nhập họ và tên đầy đủ của bạn..." class="w-full px-4 py-2.5 rounded-xl border border-surface-container bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary"/>
+                            </div>
+                            <div class="flex items-end">
+                                <button type="button" id="btn-submit-confirm" onclick="handleConfirmContract()" class="w-full py-2.5 px-6 rounded-xl bg-secondary text-white font-semibold text-sm hover:bg-secondary-container transition-all flex items-center justify-center gap-2 shadow-sm">
+                                    <span class="material-symbols-outlined text-base">draw</span>
+                                    <span>Ký & Xác nhận hợp đồng</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="confirmed-badge" class="hidden p-4 rounded-xl bg-green-50 border border-green-200 text-green-900 text-sm space-y-1">
+                        <div class="flex items-center gap-2 font-bold text-green-800">
+                            <span class="material-symbols-outlined text-green-600">check_circle</span>
+                            <span>Hợp đồng đã được ký xác nhận điện tử thành công</span>
+                        </div>
+                        <p class="text-xs text-green-700">
+                            Ký bởi: <strong id="signed-name-display">...</strong> • Thời điểm ký: <span id="signed-at-display">...</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- STEP 2: INITIAL PAYMENT BOX (Deposit + First Rent) -->
+                <div id="box-initial-payment" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-secondary/30 space-y-6">
+                    <div class="flex items-center gap-3 text-primary">
+                        <div class="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center font-bold text-lg">2</div>
+                        <div>
+                            <h3 class="text-lg font-bold">Bước 2: Thanh toán tiền cọc & Tiền thuê ban đầu</h3>
+                            <p class="text-xs sm:text-sm text-on-surface-variant">Thanh toán khoản cọc bảo đảm và tiền thuê kỳ đầu để sẵn sàng nhận bàn giao ô kho.</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Pending Section -->
+                    <div id="payment-pending-section" class="space-y-6">
+                        <!-- Invoice breakdown bar -->
+                        <div class="p-5 rounded-xl bg-surface-container-low border border-surface-container space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div class="text-xs text-on-surface-variant">
+                                    Mã hóa đơn: <strong id="inv-number-display" class="text-on-surface font-mono">INV-XXXXXX</strong>
+                                </div>
+                                <span id="inv-status-badge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                    Chờ thanh toán
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                                <div>Tiền đặt cọc: <strong id="inv-deposit-display" class="text-on-surface block text-sm">1.500.000 đ</strong></div>
+                                <div>Tiền thuê kỳ đầu: <strong id="inv-rental-display" class="text-on-surface block text-sm">1.500.000 đ</strong></div>
+                                <div>Tổng thanh toán: <strong id="inv-total-display" class="text-secondary block text-base font-bold font-mono">3.000.000 đ</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Selector -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-primary uppercase tracking-wider">
+                                Chọn phương thức thanh toán:
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="p-4 rounded-xl border-2 border-secondary bg-secondary/5 flex items-center gap-3 cursor-pointer transition-all payment-method-card" id="card-method-BANK_TRANSFER">
+                                    <input type="radio" name="paymentMethod" value="BANK_TRANSFER" checked onchange="onPaymentMethodChange('BANK_TRANSFER')" class="text-secondary focus:ring-secondary"/>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-bold text-primary">Chuyển khoản VietQR</span>
+                                        <span class="text-xs text-on-surface-variant">Quét mã QR ngân hàng 24/7</span>
+                                    </div>
+                                </label>
+                                <label class="p-4 rounded-xl border border-surface-container bg-white flex items-center gap-3 cursor-pointer transition-all payment-method-card" id="card-method-VNPAY">
+                                    <input type="radio" name="paymentMethod" value="VNPAY" onchange="onPaymentMethodChange('VNPAY')" class="text-secondary focus:ring-secondary"/>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-bold text-primary">Cổng VNPay</span>
+                                        <span class="text-xs text-on-surface-variant">Thẻ ATM / QR VNPay</span>
+                                    </div>
+                                </label>
+                                <label class="p-4 rounded-xl border border-surface-container bg-white flex items-center gap-3 cursor-pointer transition-all payment-method-card" id="card-method-MOMO">
+                                    <input type="radio" name="paymentMethod" value="MOMO" onchange="onPaymentMethodChange('MOMO')" class="text-secondary focus:ring-secondary"/>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-bold text-primary">Ví MoMo</span>
+                                        <span class="text-xs text-on-surface-variant">Thanh toán qua app MoMo</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- VietQR Payment Info Block -->
+                        <div id="method-bank-transfer-box" class="p-5 rounded-2xl bg-surface-container-low border border-surface-container space-y-4">
+                            <div class="flex flex-col sm:flex-row items-center gap-6">
+                                <!-- QR Mockup -->
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-surface-container flex flex-col items-center">
+                                    <img id="vietqr-image" alt="VietQR Payment Code" class="w-48 h-48 object-contain rounded-lg" src=""/>
+                                    <span class="text-xs text-on-surface-variant mt-2 font-medium">Quét bằng ứng dụng Ngân hàng</span>
+                                </div>
+                                <!-- Bank details -->
+                                <div class="space-y-2.5 text-xs sm:text-sm text-on-surface-variant flex-1 w-full">
+                                    <div class="flex justify-between py-1 border-b border-surface-container">
+                                        <span>Ngân hàng thụ hưởng:</span>
+                                        <strong class="text-on-surface">MBBank (Ngân hàng Quân Đội)</strong>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-surface-container">
+                                        <span>Số tài khoản:</span>
+                                        <div class="flex items-center gap-2">
+                                            <strong id="bank-acc-display" class="text-secondary font-mono font-bold text-base">090123456789</strong>
+                                            <button onclick="copyToClipboard('090123456789')" class="text-xs text-secondary hover:underline">Sao chép</button>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-surface-container">
+                                        <span>Chủ tài khoản:</span>
+                                        <strong class="text-on-surface uppercase">CONG TY TNHH SAFEBOX VIETNAM</strong>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-surface-container">
+                                        <span>Số tiền thanh toán:</span>
+                                        <strong id="bank-amount-display" class="text-secondary font-mono font-bold text-base">3.000.000 đ</strong>
+                                    </div>
+                                    <div class="flex justify-between py-1 border-b border-surface-container">
+                                        <span>Nội dung chuyển khoản:</span>
+                                        <div class="flex items-center gap-2">
+                                            <strong id="bank-memo-display" class="text-primary font-mono font-bold">SAFEBOX HD20261010</strong>
+                                            <button onclick="copyToClipboard(document.getElementById('bank-memo-display').innerText)" class="text-xs text-secondary hover:underline">Sao chép</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reference Code & Pay Button -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                            <div class="sm:col-span-2">
+                                <label for="input-payment-ref" class="block text-xs font-semibold text-on-surface mb-1">
+                                    Mã giao dịch / Mã tham chiếu ngân hàng (nếu có):
+                                </label>
+                                <input type="text" id="input-payment-ref" placeholder="Ví dụ: FT2410109988 hoặc mã giao dịch trên app ngân hàng..." class="w-full px-4 py-2.5 rounded-xl border border-surface-container bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary"/>
+                            </div>
+                            <div class="flex items-end">
+                                <button type="button" id="btn-submit-payment" onclick="handlePayInvoice()" class="w-full py-2.5 px-6 rounded-xl bg-secondary text-white font-semibold text-sm hover:bg-secondary-container transition-all flex items-center justify-center gap-2 shadow-sm">
+                                    <span class="material-symbols-outlined text-base">check_circle</span>
+                                    <span>Xác nhận đã thanh toán</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Success Receipt (if PAID) -->
+                    <div id="payment-success-section" class="hidden p-6 rounded-2xl bg-green-50 border border-green-200 space-y-4">
+                        <div class="flex items-center gap-3 text-green-900">
+                            <span class="material-symbols-outlined text-3xl text-green-600">verified</span>
+                            <div>
+                                <h4 class="text-lg font-bold">Thanh toán hoàn tất thành công!</h4>
+                                <p class="text-xs text-green-700">Tiền đặt cọc và tiền thuê kho ban đầu đã được hệ thống SafeBox xác nhận đầy đủ.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-white border border-green-100 text-xs">
+                            <div>Mã hóa đơn: <strong id="paid-inv-number" class="text-on-surface block font-mono">...</strong></div>
+                            <div>Số tiền đã trả: <strong id="paid-amount-display" class="text-green-700 block font-bold text-sm">...</strong></div>
+                            <div>Phương thức: <strong id="paid-method-display" class="text-on-surface block">...</strong></div>
+                            <div>Mã giao dịch: <strong id="paid-ref-display" class="text-on-surface block font-mono">...</strong></div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-green-800 pt-2">
+                            <span>Hợp đồng hiện ở trạng thái: <strong>CHỜ BÀN GIAO KHO (PENDING_HANDOVER)</strong>. Quý khách vui lòng đến cơ sở vào ngày bắt đầu thuê để nhận mã PIN/FaceID và chìa khóa kho.</span>
+                            <a href="/stitch/y_u_c_u_c_a_t_i_safebox_storage.html" class="px-4 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 text-center transition-colors">
+                                Về quản lý yêu cầu
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: CONTRACT LIST -->
+        <div id="view-contract-list" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-primary">Danh sách hợp đồng của bạn</h3>
+                <span id="list-count-text" class="text-xs text-on-surface-variant font-medium">0 hợp đồng</span>
+            </div>
+            <div id="contracts-table-container" class="space-y-4">
+                <!-- Dynamically generated contract cards -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-surface-container-low border-t border-surface-container py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant">
+            <p>© 2026 SafeBox Storage Vietnam Corporation. Tất cả quyền được bảo lưu.</p>
+            <div class="flex items-center gap-6">
+                <a href="#" class="hover:text-on-surface">Điều khoản dịch vụ</a>
+                <a href="#" class="hover:text-on-surface">Chính sách bảo hiểm</a>
+                <a href="tel:19008868" class="hover:text-on-surface font-semibold text-secondary">Hotline: 1900 8868</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/auth.js"></script>
+    <script>
+        SafeBoxAuth.requireRole('CUSTOMER');
+    </script>
+    <script src="/js/uc10-customer-contract.js"></script>
+</body>
+</html>
