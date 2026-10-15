@@ -3,7 +3,7 @@ package com.safebox.self_storage.controller;
 import com.safebox.self_storage.dto.payment.InvoiceResponse;
 import com.safebox.self_storage.dto.payment.PayInvoiceRequest;
 import com.safebox.self_storage.dto.payment.PayInvoiceResponse;
-import com.safebox.self_storage.service.PaymentService;
+import com.safebox.self_storage.service.InvoicePaymentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,9 +21,9 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class CustomerPaymentController {
 
-    private final PaymentService paymentService;
+    private final InvoicePaymentService paymentService;
 
-    public CustomerPaymentController(PaymentService paymentService) {
+    public CustomerPaymentController(InvoicePaymentService paymentService) {
         this.paymentService = paymentService;
     }
 

@@ -11,7 +11,7 @@ import com.safebox.self_storage.exception.BusinessException;
 import com.safebox.self_storage.repository.InvoiceRepository;
 import com.safebox.self_storage.repository.PaymentTransactionRepository;
 import com.safebox.self_storage.repository.RentalContractRepository;
-import com.safebox.self_storage.service.PaymentService;
+import com.safebox.self_storage.service.InvoicePaymentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
-public class PaymentServiceImpl implements PaymentService {
+public class PaymentServiceImpl implements InvoicePaymentService {
 
     private final InvoiceRepository invoices;
     private final PaymentTransactionRepository transactions;
