@@ -17,4 +17,9 @@ public interface PickupAppointmentRepository extends JpaRepository<PickupAppoint
     @Query("select a from PickupAppointment a where a.facilityId in :facilities and a.appointmentTime >= :from and a.appointmentTime < :to and (:staffId is null or a.assignedStaffId = :staffId) and (:status is null or a.status = :status) order by a.appointmentTime")
     List<PickupAppointment> daily(@Param("facilities") List<UUID> facilities, @Param("from") LocalDateTime from,
                                   @Param("to") LocalDateTime to, @Param("staffId") UUID staffId, @Param("status") String status);
+    @Query("select a from PickupAppointment a where a.assignedStaffId = :staffId and a.status = 'SCHEDULED' "
+            + "and a.appointmentTime < :windowEnd and a.appointmentTime >= :windowStart")
+    List<PickupAppointment> findStaffOverlapping(@Param("staffId") UUID staffId,
+                                                  @Param("windowStart") LocalDateTime windowStart,
+                                                  @Param("windowEnd") LocalDateTime windowEnd);
 }
