@@ -10,9 +10,12 @@ import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @Service
 public class AppointmentService {
+    private static final Duration TASK_DURATION = Duration.ofMinutes(60);
     public record StaffOption(UUID id, String name) {}
     public record DailyTask(String taskType, UUID contractId, UUID facilityId, String contractCode, String customerName,
                             String storageUnitCode, LocalDateTime appointmentTime, UUID assignedStaffId,
@@ -27,6 +30,8 @@ public class AppointmentService {
     private final UserFacilityAssignmentRepository assignments;
     private final InvoiceRepository invoices;
     private final PaymentService payments;
+    @PersistenceContext
+    private EntityManager entityManager;
     public AppointmentService(Sprint2Access access, PickupAppointmentRepository appointments, RentalContractRepository contracts, FacilityRepository facilities, StorageUnitRepository units,
                               UserRepository users, UserFacilityAssignmentRepository assignments, InvoiceRepository invoices, PaymentService payments) {
         this.access = access; this.appointments = appointments; this.contracts = contracts; this.facilities = facilities; this.units = units;
@@ -198,6 +203,10 @@ public class AppointmentService {
     }
     @Transactional
     public PickupAppointment assign(UUID id, UUID staffId) {
+        return assign(id, staffId, null);
+    }
+    @Transactional
+    public PickupAppointment assign(UUID id, UUID staffId, String reason) {
         if (!"FACILITY_MANAGER".equals(access.role())) throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ quản lý cơ sở được phân công nhân viên.");
         if (staffId == null) throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng chọn nhân viên.");
         RentalContract r = access.contract(id, true); access.confirmed(r);
@@ -211,7 +220,19 @@ public class AppointmentService {
         if (!"ACTIVE".equals(staff.getStatus()) || !"FACILITY_STAFF".equals(staff.getRole().getRoleName())
                 || !assignments.findActiveFacilityIds(staffId, access.today()).contains(facilityId))
             throw new BusinessException(HttpStatus.FORBIDDEN, "Nhân viên không thuộc cơ sở này.");
-        a.assignedStaffId = staffId; a.updatedAt = access.now(); return appointments.save(a);
+        LocalDateTime windowEnd = a.appointmentTime.plus(TASK_DURATION);
+        boolean conflict = appointments.findStaffOverlapping(staffId, a.appointmentTime, windowEnd).stream()
+                .anyMatch(other -> !Objects.equals(other.id, a.id));
+        if (conflict)
+            throw new BusinessException(HttpStatus.CONFLICT, "Nhân viên đã có công việc bị trùng thời gian xử lý.");
+        UUID previousStaffId = a.assignedStaffId;
+        a.assignedStaffId = staffId; a.updatedAt = access.now();
+        PickupAppointment saved = appointments.save(a);
+        if (entityManager != null && !Objects.equals(previousStaffId, staffId)) {
+            entityManager.persist(new ActivityLog(access.currentId(), "ASSIGN_PICKUP_TASK", "PICKUP_APPOINTMENT", a.id,
+                    "oldStaffId=" + previousStaffId + ";newStaffId=" + staffId + ";reason=" + (reason == null ? "" : reason.trim()), access.now()));
+        }
+        return saved;
     }
     @Transactional(readOnly = true)
     public List<StaffOption> staffOptions() {

@@ -68,9 +68,17 @@
           }
           if (user.role === 'FACILITY_MANAGER' && !nav.querySelector('a[href="/stitch/uc11-manager-approvals.html"]')) {
             const approveLink = document.createElement('a');
+            approveLink.className = 'font-body-md text-body-md text-secondary font-bold hover:underline transition-colors px-2 py-1';
             approveLink.href = '/stitch/uc11-manager-approvals.html';
-            approveLink.textContent = 'Duyệt yêu cầu UC11';
+            approveLink.textContent = 'Duyệt yêu cầu';
             nav.appendChild(approveLink);
+          }
+          if (!nav.querySelector('a[href="/stitch/bien_ban_tra_kho_safebox_manager.html"]')) {
+            const returnLink = document.createElement('a');
+            returnLink.className = 'font-body-md text-body-md text-primary font-bold hover:underline transition-colors px-2 py-1';
+            returnLink.href = '/stitch/bien_ban_tra_kho_safebox_manager.html';
+            returnLink.textContent = 'Tiếp nhận trả kho';
+            nav.appendChild(returnLink);
           }
         }
         if (user.role === 'SYSTEM_ADMIN') {

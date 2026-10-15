@@ -73,8 +73,8 @@ public class Sprint2Controller {
                 : appointments.daily(date, taskType, status, staffId, facilityId);
     }
     @PutMapping("/api/manager/contracts/{id}/pickup-appointment/assignment")
-    public AppointmentView assign(@PathVariable UUID id, @RequestBody Map<String, UUID> body) {
-        return appointments.view(appointments.assign(id, body.get("staffId")));
+    public AppointmentView assign(@PathVariable UUID id, @Valid @RequestBody AssignmentRequest request) {
+        return appointments.view(appointments.assign(id, request.staffId(), request.reason()));
     }
     @GetMapping("/api/manager/staff")
     public List<AppointmentService.StaffOption> staff(@RequestParam(required = false) UUID facilityId) {
