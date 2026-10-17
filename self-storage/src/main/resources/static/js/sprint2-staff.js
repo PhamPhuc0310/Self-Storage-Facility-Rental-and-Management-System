@@ -5,7 +5,14 @@
   const {formatDateVN, formatDateTimeVN, toISODate, todayISODateVN} = SafeBoxUc12Time;
   const uniqueStaff = rows => [...new Map(rows.map(row => [row.id, row])).values()];
   const labels = {CHECK_IN:'Nhận kho', RETURN:'Trả kho', SCHEDULED:'Chờ nhận', COMPLETED:'Hoàn thành', CANCELLED:'Đã hủy'};
-  let currentContract = null, summary = null, busy = false, staffOptions = [];
+  let currentContract = null, summary = null, busy = false, staffOptions = [], currentHandoverContract = null;
+  function taskActions(r) {
+    const role = SafeBoxAuth.getCurrentUser()?.role;
+    const handover = r.status === 'SCHEDULED' && r.assignedStaffId
+      ? `<button type="button" class="open-handover text-secondary underline" data-id="${escape(r.contractId)}" data-code="${escape(r.contractCode)}">Thực hiện bàn giao</button>` : '';
+    const assignment = role === 'FACILITY_STAFF' ? `<button class="open-payment text-secondary underline" data-id="${escape(r.contractId)}">Xem khoản thu</button>` : r.status !== 'SCHEDULED' ? '—' : r.assignedStaffId ? `<span>Đã phân công · ${escape(r.assignedStaffName || 'Nhân viên')}</span><br><button type="button" class="show-staff-options text-secondary underline" data-id="${escape(r.contractId)}" data-facility="${escape(r.facilityId)}">Đổi nhân viên</button><div class="staff-assignment-control" hidden></div>` : '<span>Chưa phân công</span> · <a class="text-secondary underline" href="#assignment-section">Phân công nhân viên</a>';
+    return `${handover}${handover && assignment ? '<br>' : ''}${assignment}`;
+  }
   function showSelectedDate() {
     const iso = toISODate($('task-date').value);
     $('selected-date-label').textContent = formatDateVN(iso);
@@ -35,7 +42,7 @@
     $('task-completed').textContent = rows.filter(r => r.status === 'COMPLETED').length;
     $('task-checkins').textContent = rows.filter(r => r.taskType === 'CHECK_IN').length;
     $('task-empty').hidden = rows.length > 0;
-    $('task-rows').innerHTML = rows.map(r => `<tr class="border-b border-outline-variant/30"><td class="p-4">${formatDateTimeVN(r.appointmentTime)}</td><td class="p-4">${labels[r.taskType]}</td><td class="p-4">${escape(r.contractCode)}</td><td class="p-4">${escape(r.customerName)}</td><td class="p-4">${escape(r.storageUnitCode || 'Chưa phân kho')}</td><td class="p-4">${escape(r.facilityName)}</td><td class="p-4">${escape(r.assignedStaffName || 'Chưa phân công')}</td><td class="p-4">${r.readyForHandover ? 'Đã thanh toán đủ' : 'Chưa đủ điều kiện bàn giao'}</td><td class="p-4">${labels[r.status]}</td><td class="p-4">${SafeBoxAuth.getCurrentUser()?.role === 'FACILITY_STAFF' ? `<button class="open-payment text-secondary underline" data-id="${escape(r.contractId)}">Xem khoản thu</button>` : r.status !== 'SCHEDULED' ? '—' : r.assignedStaffId ? `<span>Đã phân công · ${escape(r.assignedStaffName || 'Nhân viên')}</span><br><button type="button" class="show-staff-options text-secondary underline" data-id="${escape(r.contractId)}" data-facility="${escape(r.facilityId)}">Đổi nhân viên</button><div class="staff-assignment-control" hidden></div>` : '<span>Chưa phân công</span> · <a class="text-secondary underline" href="#awaiting-assignment-section">Phân công nhân viên</a>'}</td></tr>`).join('');
+    $('task-rows').innerHTML = rows.map(r => `<tr class="border-b border-outline-variant/30"><td class="p-4">${formatDateTimeVN(r.appointmentTime)}</td><td class="p-4">${labels[r.taskType]}</td><td class="p-4">${escape(r.contractCode)}</td><td class="p-4">${escape(r.customerName)}</td><td class="p-4">${escape(r.storageUnitCode || 'Chưa phân kho')}</td><td class="p-4">${escape(r.facilityName)}</td><td class="p-4">${escape(r.assignedStaffName || 'Chưa phân công')}</td><td class="p-4">${r.readyForHandover ? 'Đã thanh toán đủ' : 'Chưa đủ điều kiện bàn giao'}</td><td class="p-4">${labels[r.status]}</td><td class="p-4">${taskActions(r)}</td></tr>`).join('');
     if (SafeBoxAuth.getCurrentUser()?.role === 'FACILITY_MANAGER') await loadAwaiting();
     } catch (e) {
       $('task-rows').replaceChildren();
@@ -108,6 +115,13 @@
     catch (e) { message(e.message,true); }
   });
   document.addEventListener('click', async event => {
+    const openHandover = event.target.closest('.open-handover');
+    if (openHandover) {
+      currentHandoverContract = openHandover.dataset.id;
+      $('handover-contract-label').textContent = `Hợp đồng: ${openHandover.dataset.code}`;
+      $('handover-dialog').showModal();
+      return;
+    }
     const jump = event.target.closest('.jump-task-date');
     if (jump) { $('task-date').value = formatDateVN(jump.dataset.date); $('task-status').value = ''; $('task-type').value = ''; await load(); return; }
     const showStaff = event.target.closest('.show-staff-options');
@@ -153,6 +167,12 @@
     }
     try { const payment = await api(`/api/contracts/${currentContract}/payments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentType:type, amount, paymentMethod:$('task-payment-method').value,idempotencyKey:crypto.randomUUID()})}); message(payment.status === 'SUCCESS' ? 'Đã ghi nhận tiền mặt đã nhận.' : 'Chuyển khoản đang chờ xác minh.'); $('task-payment-dialog').close(); await load(); }
     catch (e) { message(e.message,true); } finally { busy = false; $('task-payment-submit').disabled = false; }
+  });
+  $('handover-form').addEventListener('submit', async event => {
+    event.preventDefault(); if (busy || !currentHandoverContract) return; busy = true; $('handover-submit').disabled = true;
+    const payload = {conditionStatus:$('handover-condition').value, accessMethod:$('handover-access-method').value.trim(), accessIdentifier:$('handover-access-identifier').value.trim(), customerSignature:$('handover-customer-signature').value.trim(), staffSignature:$('handover-staff-signature').value.trim() || null, note:$('handover-note').value.trim() || null, temperature:null, humidity:null, estimatedRepairCost:Number($('handover-repair-cost').value || 0)};
+    try { await api(`/api/staff/contracts/${currentHandoverContract}/handover`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); message('Đã lưu biên bản và hoàn tất bàn giao kho.'); $('handover-dialog').close(); $('handover-form').reset(); await load(); }
+    catch (e) { message(e.message, true); } finally { busy = false; $('handover-submit').disabled = false; }
   });
   $('logout').addEventListener('click', () => SafeBoxAuth.logout());
   $('task-date').value = formatDateVN(todayISODateVN());

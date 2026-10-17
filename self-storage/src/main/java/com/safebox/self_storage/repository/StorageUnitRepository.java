@@ -6,9 +6,14 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.repository.query.Param;
 
 public interface StorageUnitRepository extends JpaRepository<StorageUnit, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from StorageUnit u where u.unitId = :id")
+    Optional<StorageUnit> lockById(@Param("id") UUID id);
     @Query(value = "SELECT TOP (1) u.* FROM dbo.STORAGE_UNITS u WITH (UPDLOCK, HOLDLOCK) WHERE u.facility_id = :facilityId AND u.type_id = :typeId AND u.status = 'AVAILABLE' ORDER BY u.unit_number", nativeQuery = true)
     Optional<StorageUnit> lockFirstAvailable(@Param("facilityId") UUID facilityId, @Param("typeId") Integer typeId);
 
