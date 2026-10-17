@@ -31,4 +31,5 @@ public interface StorageUnitRepository extends JpaRepository<StorageUnit, UUID> 
     boolean existsByFacilityIdAndUnitNumberIgnoreCase(UUID facilityId, String unitNumber);
     Optional<StorageUnit> findByUnitIdAndFacilityId(UUID unitId, UUID facilityId);
     List<StorageUnit> findByFacilityIdOrderByUnitNumberAsc(UUID facilityId);
+    List<StorageUnit> findByFacilityIdAndTypeIdAndStatusOrderByUnitNumberAsc(UUID facilityId, Integer typeId, String status);
 }

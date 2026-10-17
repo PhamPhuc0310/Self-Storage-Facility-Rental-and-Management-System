@@ -24,12 +24,25 @@ public class PaymentTransaction {
     @Column(name = "contract_id")
     public UUID contractId;
 
+    /**
+     * Loại giao dịch:
+     * - PAYMENT: Thu tiền
+     * - REFUND: Hoàn tiền
+     */
     @Column(name = "transaction_type", nullable = false, length = 20)
     public String transactionType;
 
     @Column(name = "payment_type", length = 30)
     public String paymentType;
 
+    /**
+     * Phương thức thanh toán:
+     * - BANK_TRANSFER: Chuyển khoản ngân hàng / VietQR
+     * - VNPAY: Cổng VNPay
+     * - MOMO: Ví MoMo
+     * - CASH: Tiền mặt tại quầy
+     * - CREDIT_CARD: Thẻ quốc tế Visa/MasterCard
+     */
     @Column(name = "payment_method", nullable = false, length = 30)
     public String paymentMethod;
 
@@ -42,6 +55,12 @@ public class PaymentTransaction {
     @Column(name = "reference_code", length = 100)
     public String referenceCode;
 
+    /**
+     * Trạng thái giao dịch:
+     * - SUCCESS: Thành công
+     * - FAILED: Thất bại
+     * - PENDING: Đang xử lý
+     */
     @Column(name = "status", nullable = false, length = 20)
     public String status;
 

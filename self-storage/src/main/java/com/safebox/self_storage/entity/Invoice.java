@@ -27,6 +27,13 @@ public class Invoice {
     @Column(name = "renewal_id")
     public UUID renewalId;
 
+    /**
+     * Loại hóa đơn:
+     * - INITIAL_PAYMENT: Thanh toán cọc và tiền thuê đợt đầu
+     * - MONTHLY_RENT: Tiền thuê định kỳ hàng tháng
+     * - RENEWAL: Tiền gia hạn hợp đồng
+     * - PENALTY: Tiền phạt vi phạm
+     */
     @Column(name = "invoice_type", nullable = false, length = 30)
     public String invoiceType;
 
@@ -54,6 +61,13 @@ public class Invoice {
     @Column(name = "due_date", nullable = false)
     public LocalDateTime dueDate;
 
+    /**
+     * Trạng thái hóa đơn:
+     * - UNPAID: Chưa thanh toán
+     * - PARTIALLY_PAID: Thanh toán một phần
+     * - PAID: Đã thanh toán đủ
+     * - CANCELLED: Đã hủy
+     */
     @Column(name = "status", nullable = false, length = 30)
     public String status;
 
