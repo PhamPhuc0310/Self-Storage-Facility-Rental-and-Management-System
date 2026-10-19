@@ -49,6 +49,11 @@ class Sprint2ServiceTest {
         Invoice invoice = new Invoice(); invoice.invoiceId = UUID.randomUUID(); invoice.paidAmount = BigDecimal.ZERO; invoice.totalAmount = new BigDecimal("4500000");
         lenient().when(invoices.findFirstByContractIdAndInvoiceType(any(),any())).thenReturn(Optional.of(invoice));
         lenient().when(invoices.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(paymentRepository.saveAndFlush(any())).thenAnswer(invocation -> {
+            PaymentTransaction payment = invocation.getArgument(0);
+            payment.transactionId = UUID.randomUUID();
+            return payment;
+        });
         lenient().when(paymentRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
     @Test void successfulPaymentAndIdempotency() {
@@ -59,6 +64,68 @@ class Sprint2ServiceTest {
         when(paymentRepository.findByCreatedByAndIdempotencyKey(customerId,"same-key")).thenReturn(Optional.of(created));
         assertSame(created, payments.pay(contractId, request));
         verify(paymentRepository, times(1)).saveAndFlush(any());
+    }
+    @Test void legacyCombinedPaymentBlocksAnotherChargePendingReconciliation() {
+        when(access.contract(contractId, true)).thenReturn(contract);
+        Invoice legacy = new Invoice(); legacy.paidAmount = new BigDecimal("1000000");
+        Invoice newerUnpaid = new Invoice(); newerUnpaid.paidAmount = BigDecimal.ZERO;
+        when(invoices.findByContractIdAndInvoiceType(contractId, "INITIAL_PAYMENT"))
+                .thenReturn(List.of(newerUnpaid, legacy));
+        BusinessException error = assertThrows(BusinessException.class, () -> payments.pay(contractId,
+                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "new-key")));
+        assertEquals(409, error.status().value());
+        verify(paymentRepository, never()).saveAndFlush(any());
+    }
+    @Test void paidLegacyInvoiceWithStaleZeroAmountStillBlocks() {
+        when(access.contract(contractId, true)).thenReturn(contract);
+        Invoice legacy = new Invoice(); legacy.invoiceId = UUID.randomUUID();
+        legacy.status = "PAID"; legacy.paidAmount = BigDecimal.ZERO;
+        when(invoices.findByContractIdAndInvoiceType(contractId, "INITIAL_PAYMENT"))
+                .thenReturn(List.of(legacy));
+        assertEquals(409, assertThrows(BusinessException.class, () -> payments.pay(contractId,
+                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "paid-legacy"))).status().value());
+        verify(paymentRepository, never()).saveAndFlush(any());
+    }
+    @Test void unpaidLegacyInvoiceDoesNotBlockV2Deposit() {
+        contract.termsVersion = "v2";
+        paymentSetup();
+        Invoice legacy = new Invoice(); legacy.invoiceId = UUID.randomUUID();
+        legacy.status = "UNPAID"; legacy.paidAmount = BigDecimal.ZERO;
+        when(invoices.findByContractIdAndInvoiceType(contractId, "INITIAL_PAYMENT"))
+                .thenReturn(List.of(legacy));
+        PaymentTransaction paid = payments.pay(contractId,
+                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "v2-deposit"));
+        assertEquals("SUCCESS", paid.status);
+        assertEquals("DEPOSIT", paid.paymentType);
+        verify(paymentRepository).findByInvoiceIdIn(Set.of(legacy.invoiceId));
+    }
+    @Test void successfulLegacyTransactionBlocksChargeEvenWithStaleInvoiceAmount() {
+        contract.termsVersion = "v2";
+        when(access.contract(contractId, true)).thenReturn(contract);
+        Invoice legacy = new Invoice(); legacy.invoiceId = UUID.randomUUID();
+        legacy.status = "UNPAID"; legacy.paidAmount = BigDecimal.ZERO;
+        when(invoices.findByContractIdAndInvoiceType(contractId, "INITIAL_PAYMENT"))
+                .thenReturn(List.of(legacy));
+        PaymentTransaction old = new PaymentTransaction(); old.status = "SUCCESS";
+        old.amount = new BigDecimal("1000000");
+        when(paymentRepository.findByInvoiceIdIn(Set.of(legacy.invoiceId))).thenReturn(List.of(old));
+        assertEquals(409, assertThrows(BusinessException.class, () -> payments.pay(contractId,
+                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "new-key"))).status().value());
+        verify(paymentRepository, never()).saveAndFlush(any());
+    }
+    @Test void paidLegacyInvoiceOnAnotherContractDoesNotBlockNewContract() {
+        contract.termsVersion = "v2";
+        paymentSetup();
+        UUID otherContractId = UUID.randomUUID();
+        Invoice otherLegacy = new Invoice(); otherLegacy.invoiceId = UUID.randomUUID();
+        otherLegacy.contractId = otherContractId; otherLegacy.status = "PAID";
+        otherLegacy.paidAmount = new BigDecimal("2000000");
+        when(invoices.findByContractIdAndInvoiceType(any(UUID.class), eq("INITIAL_PAYMENT")))
+                .thenAnswer(call -> otherContractId.equals(call.getArgument(0)) ? List.of(otherLegacy) : List.of());
+        assertEquals("SUCCESS", payments.pay(contractId,
+                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "isolated-key")).status);
+        verify(invoices).findByContractIdAndInvoiceType(contractId, "INITIAL_PAYMENT");
+        verify(invoices, never()).findByContractIdAndInvoiceType(otherContractId, "INITIAL_PAYMENT");
     }
     @Test void rejectsOverpayment() {
         paymentSetup();
@@ -151,7 +218,11 @@ class Sprint2ServiceTest {
         when(appointmentRepository.findFirstByContractIdAndStatus(contractId,"SCHEDULED")).thenReturn(Optional.of(pickup));
         when(paymentRepository.successful(contractId,"DEPOSIT")).thenReturn(List.of(deposit));
         when(invoices.findFirstByContractIdAndInvoiceType(contractId,"REMAINING_RENT")).thenReturn(Optional.of(invoice));
-        when(paymentRepository.saveAndFlush(any())).thenAnswer(call -> call.getArgument(0));
+        when(paymentRepository.saveAndFlush(any())).thenAnswer(call -> {
+            PaymentTransaction payment = call.getArgument(0);
+            payment.transactionId = UUID.randomUUID();
+            return payment;
+        });
         when(paymentRepository.save(any())).thenAnswer(call -> call.getArgument(0));
         PaymentTransaction recorded = payments.pay(contractId,
                 new PaymentRequest("REMAINING_RENT", new BigDecimal("1980000"), "CASH", "pickup-cash"));

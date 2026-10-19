@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     Optional<Invoice> findFirstByContractIdAndInvoiceType(UUID contractId, String invoiceType);
+    List<Invoice> findByContractIdAndInvoiceType(UUID contractId, String invoiceType);
 
     List<Invoice> findByContractId(UUID contractId);
 

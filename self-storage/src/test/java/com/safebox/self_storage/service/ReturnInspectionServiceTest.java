@@ -101,6 +101,7 @@ class ReturnInspectionServiceTest {
         staff.setFullName("Phạm Gia Huy");
         staff.setEmail("huy.pham@safebox.vn");
         staff.setRole(staffRole);
+        staff.setStatus("ACTIVE");
 
         manager = new User();
         manager.setUserId(managerId);
@@ -150,6 +151,31 @@ class ReturnInspectionServiceTest {
     // =========================================================================
     // BR16.1 & BR16.2: Đặt lịch trả kho của khách hàng
     // =========================================================================
+
+    @Test
+    void staffWithoutFacilityAccessCannotEnumerateReturnTasksByFacilityId() {
+        when(userRepository.findById(staffId)).thenReturn(Optional.of(staff));
+        when(userFacilityAssignmentRepository.findActiveFacilityIds(eq(staffId), any(LocalDate.class)))
+                .thenReturn(List.of());
+        BusinessException error = assertThrows(BusinessException.class, () ->
+                returnInspectionService.getFacilityReturnAppointments(staffId, facilityId, null));
+        assertEquals(HttpStatus.FORBIDDEN, error.status());
+        verifyNoInteractions(handoverRecordRepository);
+    }
+
+    @Test
+    void staffCannotReadAnotherStaffsReturnRecord() {
+        scheduledHandover.setStaffId(UUID.randomUUID());
+        when(handoverRecordRepository.findById(handoverId)).thenReturn(Optional.of(scheduledHandover));
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(userRepository.findById(staffId)).thenReturn(Optional.of(staff));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(userFacilityAssignmentRepository.findActiveFacilityIds(eq(staffId), any(LocalDate.class)))
+                .thenReturn(List.of(facilityId));
+        BusinessException error = assertThrows(BusinessException.class, () ->
+                returnInspectionService.getReturnInspectionDetail(staffId, handoverId));
+        assertEquals(HttpStatus.FORBIDDEN, error.status());
+    }
 
     @Test
     @DisplayName("BR16.1, BR16.2: Đặt lịch trả kho thành công khi đúng hạn và trong giờ hoạt động")

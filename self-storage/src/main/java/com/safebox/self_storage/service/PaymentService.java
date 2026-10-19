@@ -98,6 +98,21 @@ public class PaymentService {
     public PaymentTransaction pay(UUID id, PaymentRequest request) {
         RentalContract r = access.contract(id, true);
         access.confirmed(r);
+        // A paid combined UC10 charge cannot be allocated to the v2 components
+        // from the invoice alone. An unpaid old invoice has no payment effect.
+        List<Invoice> legacyInvoices = Optional.ofNullable(invoices.findByContractIdAndInvoiceType(id, "INITIAL_PAYMENT"))
+                .orElseGet(List::of);
+        boolean recordedLegacyPayment = legacyInvoices.stream()
+                .anyMatch(i -> "PAID".equals(i.status) || (i.paidAmount != null && i.paidAmount.signum() > 0));
+        if (!recordedLegacyPayment && !legacyInvoices.isEmpty()) {
+            Set<UUID> legacyInvoiceIds = new HashSet<>();
+            legacyInvoices.forEach(i -> legacyInvoiceIds.add(i.invoiceId));
+            recordedLegacyPayment = payments.findByInvoiceIdIn(legacyInvoiceIds).stream()
+                    .anyMatch(p -> "SUCCESS".equals(p.status) && p.amount != null && p.amount.signum() > 0);
+        }
+        if (recordedLegacyPayment)
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Hợp đồng có khoản thanh toán cũ cần được đối soát trước khi thanh toán tiếp.");
         UUID actor = access.currentId();
         String role = access.role();
         String rentType = "v2".equals(r.termsVersion) ? "REMAINING_RENT" : "INITIAL_RENT";
@@ -127,18 +142,20 @@ public class PaymentService {
         Invoice invoice = invoices.findFirstByContractIdAndInvoiceType(id, request.paymentType())
                 .orElseGet(() -> createInvoice(r, request.paymentType(), "DEPOSIT".equals(request.paymentType()) ? summary.deposit.amountDue() : summary.initialRent.amountDue()));
         PaymentTransaction p = new PaymentTransaction();
-        p.transactionId = UUID.randomUUID(); p.referenceCode = "PAY-" + access.today().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + p.transactionId.toString().replace("-", "").toUpperCase();
+        // Let JPA generate the primary key. The reference must use the persisted ID.
         p.contractId = id; p.invoiceId = invoice.invoiceId; p.transactionType = "INITIAL_PAYMENT";
         p.paymentType = request.paymentType(); p.amount = request.amount();
         p.paymentMethod = request.paymentMethod(); p.status = "PENDING"; p.createdBy = actor;
         p.idempotencyKey = request.idempotencyKey(); p.createdAt = access.now(); p.updatedAt = p.createdAt; p.transactionDate = p.createdAt;
-        payments.saveAndFlush(p);
+        PaymentTransaction saved = payments.saveAndFlush(p);
+        saved.referenceCode = "PAY-" + access.today().format(DateTimeFormatter.BASIC_ISO_DATE) + "-"
+                + saved.transactionId.toString().replace("-", "").toUpperCase();
         // The coursework backend processes customer deposits locally; no bank transfer is initiated.
         // Staff cash is recorded only after the assigned staff member confirms receipt.
-        if (!staff || "CASH".equals(p.paymentMethod)) p.status = "SUCCESS";
-        p.updatedAt = access.now();
-        if ("SUCCESS".equals(p.status)) updateInvoice(invoice, p.amount);
-        return payments.save(p);
+        if (!staff || "CASH".equals(saved.paymentMethod)) saved.status = "SUCCESS";
+        saved.updatedAt = access.now();
+        if ("SUCCESS".equals(saved.status)) updateInvoice(invoice, saved.amount);
+        return payments.save(saved);
     }
     private Invoice createInvoice(RentalContract r, String type, BigDecimal amount) {
         Invoice i = new Invoice(); i.invoiceId = UUID.randomUUID(); i.contractId = r.contractId; i.invoiceType = type;

@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/auth/**", "/error", "/", "/index.html", "/role-home.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/api/availability", "/uc04-facility-detail.html", "/uc10-customer-contract.html", "/safebox_storage_home/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/error", "/", "/index.html", "/role-home.html", "/staff-tasks.html", "/stitch/**", "/auth.js", "/favicon.ico", "/api/facilities", "/api/facilities/**", "/api/pricing/**", "/api/availability", "/uc04-facility-detail.html", "/uc10-customer-contract.html", "/safebox_storage_home/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/manager/**").hasRole("FACILITY_MANAGER")
                         .requestMatchers("/api/staff/tasks").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER")
                         .requestMatchers("/api/staff/**").hasRole("FACILITY_STAFF")

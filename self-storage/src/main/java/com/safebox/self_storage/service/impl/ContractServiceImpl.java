@@ -354,12 +354,13 @@ public class ContractServiceImpl implements ContractService {
                     "Hợp đồng đã ở trạng thái " + currentStatus + ", không được phép xác nhận.");
         }
 
-        if ("PENDING_HANDOVER".equalsIgnoreCase(currentStatus) || "ACTIVE".equalsIgnoreCase(currentStatus)) {
+        if (contract.getCustomerSignedAt() != null || "PENDING_HANDOVER".equalsIgnoreCase(currentStatus) || "ACTIVE".equalsIgnoreCase(currentStatus)) {
             throw new BusinessException(HttpStatus.CONFLICT,
                     "Hợp đồng này đã được xác nhận trước đó (Trạng thái: " + ContractResponse.getStatusLabel(currentStatus) + ").");
         }
 
-        if (!"PENDING_CONFIRMATION".equalsIgnoreCase(currentStatus)) {
+        boolean approvedV2 = "v2".equals(contract.getTermsVersion()) && "CONFIRMED".equalsIgnoreCase(currentStatus);
+        if (!"PENDING_CONFIRMATION".equalsIgnoreCase(currentStatus) && !approvedV2) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
                     "Hợp đồng không ở trạng thái chờ xác nhận (Trạng thái hiện tại: " + currentStatus + ").");
         }
@@ -375,7 +376,9 @@ public class ContractServiceImpl implements ContractService {
         contract.setCustomerSignature(signature);
 
         // BR10.5: Sau khi xác nhận, hợp đồng chuyển sang chờ bàn giao. Hợp đồng chỉ chuyển sang ACTIVE khi UC14 hoàn thành.
-        contract.setStatus("PENDING_HANDOVER");
+        // Sprint 2 uses CONFIRMED until physical handover; keep that state so
+        // payment, appointment and handover eligibility remain consistent.
+        if (!approvedV2) contract.setStatus("PENDING_HANDOVER");
 
         RentalContract updated = contracts.save(contract);
         return toResponse(updated);
@@ -423,7 +426,9 @@ public class ContractServiceImpl implements ContractService {
         BigDecimal monthlyRentalFee = c.getMonthlyRentalFee();
         BigDecimal totalRentalAmount = monthlyRentalFee.multiply(BigDecimal.valueOf(months));
         BigDecimal depositAmount = c.getDepositAmount();
-        BigDecimal totalPayable = totalRentalAmount.add(depositAmount);
+        BigDecimal totalPayable = "v2".equals(c.getTermsVersion())
+                ? com.safebox.self_storage.service.ContractPricing.of(monthlyRentalFee, c.getStartDate(), c.getEndDate()).total()
+                : totalRentalAmount.add(depositAmount);
 
         BigDecimal area = null;
         if (unitType != null && unitType.getWidth() != null && unitType.getLength() != null) {

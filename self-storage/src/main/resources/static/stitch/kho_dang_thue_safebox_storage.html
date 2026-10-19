@@ -68,49 +68,7 @@
 <body class="bg-surface text-on-surface font-body-md text-sm">
 
   <!-- Fixed Top Header Navigation -->
-  <header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-    <div class="h-20 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between">
-      <div class="flex items-center gap-6">
-        <a href="/stitch/trang_ch_safebox_storage.html" class="flex items-center gap-3">
-          <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
-          <div class="flex flex-col">
-            <span class="font-headline-sm font-semibold text-primary tracking-tight">SafeBox Storage</span>
-            <span class="text-xs text-on-surface-variant">Hệ thống lưu trữ thông minh</span>
-          </div>
-        </a>
-        <nav class="hidden md:flex items-center gap-3 ml-6">
-          <a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/trang_ch_safebox_storage.html">Trang chủ</a>
-          <a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/t_m_kho_l_u_tr_safebox_storage.html">Tìm kho</a>
-          <a class="px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/y_u_c_u_c_a_t_i_safebox_storage.html">Yêu cầu của tôi</a>
-          <a aria-current="page" class="inline-flex items-center gap-2 bg-surface-container-high text-on-surface font-bold rounded-lg px-3 py-1.5 text-primary" href="/stitch/kho_dang_thue_safebox_storage.html">
-            <span class="material-symbols-outlined text-base">warehouse</span>
-            <span>Kho đang thuê</span>
-            <span id="nav-active-count-badge" class="px-2 py-0.5 rounded-full bg-secondary text-white text-xs font-semibold">0</span>
-          </a>
-        </nav>
-      </div>
-      <div class="flex items-center gap-4">
-        <a class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface" href="tel:19008868">
-          <span class="material-symbols-outlined text-secondary text-lg">call</span>
-          <span class="font-semibold text-xs">1900 8868</span>
-        </a>
-        <div class="flex items-center gap-3 pl-2">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold text-sm">
-              <span class="material-symbols-outlined text-base">person</span>
-            </div>
-            <div class="hidden sm:flex flex-col text-left">
-              <span id="current-user-name" class="font-semibold text-xs leading-tight text-on-surface">Đang tải...</span>
-              <span id="current-user-role" class="text-xs text-on-surface-variant">Khách hàng</span>
-            </div>
-          </div>
-          <button onclick="SafeBoxAuth.logout()" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-rose-600 transition-colors" title="Đăng xuất">
-            <span class="material-symbols-outlined text-xl">logout</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
+  <header class="fixed top-0 left-0"></header>
 
   <!-- Main Content Area -->
   <main class="w-full pt-24 pb-16 bg-surface min-h-[calc(100vh-80px)]">
@@ -682,7 +640,7 @@
 
         // Update Nav Badge
         if (activeFilter === 'ALL') {
-          document.getElementById('nav-active-count-badge').innerText = data.totalElements || 0;
+          const navCount = document.getElementById('nav-active-count-badge'); if (navCount) navCount.textContent = data.totalElements || 0;
           document.getElementById('badge-tab-ALL').innerText = data.totalElements || 0;
         }
 
@@ -1046,20 +1004,6 @@
 
     // Initial load
     document.addEventListener('DOMContentLoaded', () => {
-      // Get current user profile
-      const token = SafeBoxAuth.getToken();
-      if (token) {
-        fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } })
-          .then(res => res.ok ? res.json() : null)
-          .then(user => {
-            if (user) {
-              document.getElementById('current-user-name').innerText = user.fullName;
-              document.getElementById('current-user-role').innerText = user.role === 'CUSTOMER' ? 'Khách hàng cá nhân' : user.role;
-            }
-          })
-          .catch(() => {});
-      }
-
       // Fetch KPI counts
       fetchKpiCounts();
 
@@ -1077,7 +1021,7 @@
         if (resAll.ok) {
           const d = await resAll.json();
           document.getElementById('badge-tab-ALL').innerText = d.totalElements || 0;
-          document.getElementById('nav-active-count-badge').innerText = d.totalElements || 0;
+          const navCount = document.getElementById('nav-active-count-badge'); if (navCount) navCount.textContent = d.totalElements || 0;
         }
 
         // Fetch ACTIVE

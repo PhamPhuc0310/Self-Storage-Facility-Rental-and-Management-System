@@ -6,7 +6,7 @@
   const refundStatus = {REQUESTED:'Đã gửi yêu cầu', UNDER_REVIEW:'Đang xét duyệt', APPROVED:'Đã duyệt, chờ hoàn tiền', REJECTED:'Đã từ chối', COMPLETED:'Đã hoàn tiền', FAILED:'Hoàn tiền thất bại'};
   const routes = {
     'tong-quan':'/stitch/t_ng_quan_qu_n_l_safebox_manager.html',
-    'co-so-cua-toi':'#manager-facilities',
+    'co-so-cua-toi':'/stitch/t_ng_quan_qu_n_l_safebox_manager.html#manager-facilities',
     'loai-kho':'/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html',
     'kho-vat-ly':'/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html',
     'yeu-cau-dat-kho':'/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html'
