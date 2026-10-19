@@ -371,4 +371,26 @@ class ContractServiceTest {
         assertNotNull(res.customerSignedAt());
         assertEquals("Nguyễn Văn Khách - Đồng ý thuê kho", res.customerSignature());
     }
+
+    @Test
+    void approvedV2ContractCanBeSignedWithoutBreakingPaymentState() {
+        RentalContract approved = new RentalContract();
+        UUID id = UUID.randomUUID();
+        approved.contractId = id; approved.customerId = customerId;
+        approved.startDate = LocalDate.of(2026, 11, 1);
+        approved.endDate = LocalDate.of(2027, 2, 1);
+        approved.monthlyRentalFee = new BigDecimal("900000");
+        approved.depositAmount = new BigDecimal("990000");
+        approved.termsVersion = "v2"; approved.status = "CONFIRMED";
+        when(contracts.findById(id)).thenReturn(Optional.of(approved));
+        when(users.findById(customerId)).thenReturn(Optional.of(customer));
+        when(contracts.save(approved)).thenReturn(approved);
+
+        ContractResponse response = contractService.confirmContract(customerId, id,
+                new ConfirmContractRequest(true, "Customer signature"));
+
+        assertEquals("CONFIRMED", response.status());
+        assertEquals("Customer signature", response.customerSignature());
+        assertEquals(new BigDecimal("2970000"), response.totalPayable());
+    }
 }

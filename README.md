@@ -1,3 +1,4 @@
+[![Self-Storage-Facility-Rental-and-Management-System (CI included) |  © 2026 by PhamPhuc0310](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml)
 # SafeBox Storage
 
 > Self-Storage Facility Rental and Management System

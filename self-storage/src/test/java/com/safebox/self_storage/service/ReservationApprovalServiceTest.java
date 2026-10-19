@@ -46,6 +46,46 @@ class ReservationApprovalServiceTest {
         when(reservations.lockById(reservationId)).thenReturn(Optional.of(reservation));
         when(access.facilities()).thenReturn(List.of(facilityId));
     }
+    void validPending() {
+        managerAccess();
+        Role role = new Role(); role.setRoleName("CUSTOMER");
+        User customer = new User(); customer.setStatus("ACTIVE"); customer.setRole(role);
+        when(users.findById(customerId)).thenReturn(Optional.of(customer));
+        Facility facility = new Facility(); facility.setStatus("ACTIVE");
+        when(facilities.findById(facilityId)).thenReturn(Optional.of(facility));
+        StorageUnitType type = new StorageUnitType(); type.setStatus("ACTIVE");
+        when(types.findById(3)).thenReturn(Optional.of(type));
+        when(access.today()).thenReturn(LocalDate.of(2026,10,11));
+        when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.empty());
+    }
+    StorageUnit availableUnit() {
+        StorageUnit unit = new StorageUnit(); unit.setUnitId(UUID.randomUUID());
+        unit.setFacilityId(facilityId); unit.setTypeId(3); unit.setStatus("AVAILABLE");
+        when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.of(unit));
+        when(access.now()).thenReturn(LocalDateTime.of(2026,10,11,10,0));
+        when(access.currentId()).thenReturn(managerId);
+        return unit;
+    }
+    void generatedContractId() {
+        when(contracts.saveAndFlush(any())).thenAnswer(call -> {
+            RentalContract original = call.getArgument(0);
+            assertNull(original.contractId);
+            RentalContract saved = new RentalContract();
+            saved.contractId = UUID.randomUUID();
+            saved.contractNumber = original.contractNumber;
+            saved.reservationId = original.reservationId;
+            saved.customerId = original.customerId;
+            saved.unitId = original.unitId;
+            saved.startDate = original.startDate;
+            saved.endDate = original.endDate;
+            saved.monthlyRentalFee = original.monthlyRentalFee;
+            saved.depositAmount = original.depositAmount;
+            saved.billingCycle = original.billingCycle;
+            saved.termsVersion = original.termsVersion;
+            saved.status = original.status;
+            return saved;
+        });
+    }
     @Test void pendingUsesOnlyAssignedFacilities() {
         when(access.role()).thenReturn("FACILITY_MANAGER");
         when(access.facilities()).thenReturn(List.of(facilityId));
@@ -90,6 +130,7 @@ class ReservationApprovalServiceTest {
         when(access.currentId()).thenReturn(managerId);
         StorageUnit unit = new StorageUnit(); unit.setUnitId(UUID.randomUUID()); unit.setFacilityId(facilityId); unit.setTypeId(3); unit.setStatus("AVAILABLE");
         when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.of(unit));
+        generatedContractId();
         RentalContract contract = service.approve(reservationId);
         assertEquals(reservationId,contract.reservationId);
         assertEquals(customerId,contract.customerId);
@@ -132,6 +173,7 @@ class ReservationApprovalServiceTest {
         when(access.now()).thenReturn(LocalDateTime.of(2026,10,11,10,0));
         StorageUnit unit = new StorageUnit(); unit.setUnitId(UUID.randomUUID());
         when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.of(unit));
+        generatedContractId();
         RentalContract contract = service.approve(reservationId);
         assertEquals("v1", contract.termsVersion);
         assertEquals(new BigDecimal("4500000.00"), contract.monthlyRentalFee);
@@ -156,5 +198,36 @@ class ReservationApprovalServiceTest {
         when(access.role()).thenReturn("CUSTOMER");
         assertEquals(403,assertThrows(BusinessException.class,() -> service.approve(reservationId)).status().value());
         verifyNoInteractions(reservations);
+    }
+    @Test void missingReservationReturnsNotFound() {
+        when(access.role()).thenReturn("FACILITY_MANAGER");
+        assertEquals(404, assertThrows(BusinessException.class,
+                () -> service.approve(reservationId)).status().value());
+        verifyNoInteractions(units, contracts, invoices);
+    }
+    @Test void noAvailableUnitReturnsConflictWithoutWrites() {
+        validPending();
+        BusinessException error = assertThrows(BusinessException.class, () -> service.approve(reservationId));
+        assertEquals(409, error.status().value());
+        assertEquals("Không còn ô kho phù hợp.", error.getMessage());
+        assertEquals("PENDING", reservation.getStatus());
+        verify(units, never()).save(any());
+        verify(contracts, never()).saveAndFlush(any());
+        verifyNoInteractions(invoices);
+    }
+    @Test void contractPersistenceFailureStopsInvoicesAndStatusChange() {
+        validPending(); availableUnit();
+        when(contracts.saveAndFlush(any())).thenThrow(new IllegalStateException("contract persistence failed"));
+        assertThrows(IllegalStateException.class, () -> service.approve(reservationId));
+        assertEquals("PENDING", reservation.getStatus());
+        verifyNoInteractions(invoices);
+        verify(reservations, never()).saveAndFlush(any());
+    }
+    @Test void invoicePersistenceFailureStopsStatusChange() {
+        validPending(); availableUnit(); generatedContractId();
+        when(invoices.save(any())).thenThrow(new IllegalStateException("invoice persistence failed"));
+        assertThrows(IllegalStateException.class, () -> service.approve(reservationId));
+        assertEquals("PENDING", reservation.getStatus());
+        verify(reservations, never()).saveAndFlush(any());
     }
 }

@@ -8,7 +8,7 @@
   let currentContract = null, summary = null, busy = false, staffOptions = [], currentHandoverContract = null;
   function taskActions(r) {
     const role = SafeBoxAuth.getCurrentUser()?.role;
-    const handover = r.status === 'SCHEDULED' && r.assignedStaffId
+    const handover = role === 'FACILITY_STAFF' && r.status === 'SCHEDULED' && r.assignedStaffId
       ? `<button type="button" class="open-handover text-secondary underline" data-id="${escape(r.contractId)}" data-code="${escape(r.contractCode)}">Thực hiện bàn giao</button>` : '';
     const assignment = role === 'FACILITY_STAFF' ? `<button class="open-payment text-secondary underline" data-id="${escape(r.contractId)}">Xem khoản thu</button>` : r.status !== 'SCHEDULED' ? '—' : r.assignedStaffId ? `<span>Đã phân công · ${escape(r.assignedStaffName || 'Nhân viên')}</span><br><button type="button" class="show-staff-options text-secondary underline" data-id="${escape(r.contractId)}" data-facility="${escape(r.facilityId)}">Đổi nhân viên</button><div class="staff-assignment-control" hidden></div>` : '<span>Chưa phân công</span> · <a class="text-secondary underline" href="#assignment-section">Phân công nhân viên</a>';
     return `${handover}${handover && assignment ? '<br>' : ''}${assignment}`;
@@ -183,6 +183,10 @@
     if (!['FACILITY_STAFF', 'FACILITY_MANAGER'].includes(role)) return;
     const manager = role === 'FACILITY_MANAGER';
     $('manager-home').hidden = !manager; $('staff-filter-wrap').hidden = !manager; $('facility-filter-wrap').hidden = !manager;
+    $('assignment-section').hidden = !manager;
+    document.querySelector('a[href="/staff-tasks.html#assignment-section"]').hidden = !manager;
+    $('handover-section').hidden = manager;
+    document.querySelector('a[href="/staff-tasks.html#handover-section"]').hidden = manager;
     $('awaiting-assignment-section').hidden = !manager;
     $('staff-upcoming-section').hidden = manager;
     try {

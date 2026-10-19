@@ -17,10 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -40,7 +36,7 @@ public class PaymentServiceImpl implements InvoicePaymentService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public InvoiceResponse getOrCreateInitialInvoice(UUID customerId, UUID contractId) {
         if (customerId == null || contractId == null) {
             throw new IllegalArgumentException("Thông tin tra cứu hóa đơn không hợp lệ.");
@@ -53,50 +49,12 @@ public class PaymentServiceImpl implements InvoicePaymentService {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập hóa đơn của hợp đồng này.");
         }
 
-        // Tìm hóa đơn ban đầu đã tạo trước đó
-        Optional<Invoice> existingOpt = invoices.findFirstByContractIdAndInvoiceTypeOrderByIssuedAtDesc(
-                contractId, "INITIAL_PAYMENT");
-        if (existingOpt.isPresent()) {
-            return toInvoiceResponse(existingOpt.get(), contract);
-        }
-
-        // Tự động lập hóa đơn thanh toán ban đầu gồm Tiền cọc + Tiền thuê kỳ đầu
-        BigDecimal depositAmount = contract.getDepositAmount() != null ? contract.getDepositAmount() : BigDecimal.ZERO;
-        BigDecimal monthlyRentalFee = contract.getMonthlyRentalFee() != null ? contract.getMonthlyRentalFee() : BigDecimal.ZERO;
-        BigDecimal subtotal = depositAmount.add(monthlyRentalFee);
-
-        String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String invoiceNumber;
-        do {
-            String randomSuffix = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-            invoiceNumber = "INV-" + datePrefix + "-" + randomSuffix;
-        } while (invoices.existsByInvoiceNumber(invoiceNumber));
-
-        Invoice invoice = new Invoice();
-        invoice.setInvoiceNumber(invoiceNumber);
-        invoice.setContractId(contract.getContractId());
-        invoice.setInvoiceType("INITIAL_PAYMENT");
-        invoice.setDescription("Thanh toán tiền đặt cọc (" + formatCurrency(depositAmount) + ") và tiền thuê kỳ đầu ("
-                + formatCurrency(monthlyRentalFee) + ") cho hợp đồng " + contract.getContractNumber());
-        invoice.setSubtotal(subtotal);
-        invoice.setPenaltyAmount(BigDecimal.ZERO);
-        invoice.setDiscountAmount(BigDecimal.ZERO);
-        invoice.setTotalAmount(subtotal);
-        invoice.setPaidAmount(BigDecimal.ZERO);
-        invoice.setIssuedAt(LocalDateTime.now());
-
-        // Hạn thanh toán: ngày bắt đầu hợp đồng hoặc sau 3 ngày kể từ lúc lập
-        LocalDateTime due = contract.getStartDate() != null
-                ? contract.getStartDate().atStartOfDay()
-                : LocalDateTime.now().plusDays(3);
-        if (due.isBefore(LocalDateTime.now())) {
-            due = LocalDateTime.now().plusDays(1);
-        }
-        invoice.setDueDate(due);
-        invoice.setStatus("UNPAID");
-
-        Invoice saved = invoices.save(invoice);
-        return toInvoiceResponse(saved, contract);
+        // The approval flow owns invoice creation. A GET must never add a second
+        // combined obligation beside DEPOSIT and INITIAL_RENT/REMAINING_RENT.
+        Invoice invoice = invoices.findFirstByContractIdAndInvoiceType(contractId, "DEPOSIT")
+                .or(() -> invoices.findFirstByContractIdAndInvoiceTypeOrderByIssuedAtDesc(contractId, "INITIAL_PAYMENT"))
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Hợp đồng chưa có hóa đơn thanh toán."));
+        return toInvoiceResponse(invoice, contract);
     }
 
     @Override
@@ -144,16 +102,11 @@ public class PaymentServiceImpl implements InvoicePaymentService {
             throw new IllegalArgumentException("Dữ liệu thanh toán không hợp lệ.");
         }
 
-        // Lấy hoặc tự động tạo hóa đơn ban đầu
-        getOrCreateInitialInvoice(customerId, contractId);
-
-        Invoice invoice = invoices.findFirstByContractIdAndInvoiceTypeOrderByIssuedAtDesc(contractId, "INITIAL_PAYMENT")
-                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hóa đơn thanh toán ban đầu."));
-
         RentalContract contract = contracts.findById(contractId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng."));
-
-        return processPayment(customerId, invoice, contract, request);
+        if (!contract.customerId.equals(customerId))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thanh toán hợp đồng này.");
+        throw new BusinessException(HttpStatus.CONFLICT, "Vui lòng thanh toán tiền cọc tại trang Thanh toán và lịch nhận kho.");
     }
 
     @Override
@@ -173,58 +126,7 @@ public class PaymentServiceImpl implements InvoicePaymentService {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thanh toán hóa đơn này.");
         }
 
-        return processPayment(customerId, invoice, contract, request);
-    }
-
-    private PayInvoiceResponse processPayment(
-            UUID customerId,
-            Invoice invoice,
-            RentalContract contract,
-            PayInvoiceRequest request) {
-
-        if ("PAID".equalsIgnoreCase(invoice.getStatus())) {
-            throw new BusinessException(HttpStatus.CONFLICT,
-                    "Hóa đơn này đã được thanh toán đầy đủ (Mã HĐ: " + invoice.getInvoiceNumber() + ").");
-        }
-
-        if ("CANCELLED".equalsIgnoreCase(invoice.getStatus())) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Hóa đơn này đã bị hủy, không thể thanh toán.");
-        }
-
-        BigDecimal remainingAmount = invoice.getTotalAmount().subtract(invoice.getPaidAmount());
-        if (remainingAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Hóa đơn không còn khoản tiền nào cần thanh toán.");
-        }
-
-        // Sinh mã giao dịch nếu chưa có
-        String refCode = (request.referenceCode() != null && !request.referenceCode().isBlank())
-                ? request.referenceCode().trim()
-                : "TXN-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setInvoiceId(invoice.getInvoiceId());
-        transaction.setTransactionType("PAYMENT");
-        transaction.setPaymentMethod(request.paymentMethod().trim().toUpperCase());
-        transaction.setAmount(remainingAmount);
-        transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setReferenceCode(refCode);
-        transaction.setStatus("SUCCESS");
-        transaction.setFailureReason(null);
-
-        PaymentTransaction savedTx = transactions.save(transaction);
-
-        // Cập nhật trạng thái hóa đơn
-        invoice.setPaidAmount(invoice.getTotalAmount());
-        invoice.setStatus("PAID");
-        Invoice updatedInvoice = invoices.save(invoice);
-
-        InvoiceResponse invoiceResp = toInvoiceResponse(updatedInvoice, contract);
-        PaymentTransactionResponse txResp = toTransactionResponse(savedTx);
-
-        String methodLabel = PaymentTransactionResponse.getPaymentMethodLabel(request.paymentMethod());
-        String msg = "Thanh toán thành công " + formatCurrency(remainingAmount) + " qua " + methodLabel + "!";
-
-        return new PayInvoiceResponse(true, msg, invoiceResp, txResp);
+        throw new BusinessException(HttpStatus.CONFLICT, "Vui lòng thanh toán tại trang Thanh toán và lịch nhận kho.");
     }
 
     private InvoiceResponse toInvoiceResponse(Invoice inv, RentalContract contract) {
@@ -234,8 +136,11 @@ public class PaymentServiceImpl implements InvoicePaymentService {
         BigDecimal remaining = inv.getTotalAmount().subtract(inv.getPaidAmount());
         if (remaining.compareTo(BigDecimal.ZERO) < 0) remaining = BigDecimal.ZERO;
 
-        BigDecimal depositAmount = contract != null ? contract.getDepositAmount() : BigDecimal.ZERO;
-        BigDecimal rentalAmount = contract != null ? contract.getMonthlyRentalFee() : BigDecimal.ZERO;
+        BigDecimal depositAmount = "DEPOSIT".equals(inv.getInvoiceType()) ? inv.getTotalAmount()
+                : "INITIAL_PAYMENT".equals(inv.getInvoiceType()) && contract != null ? contract.getDepositAmount() : BigDecimal.ZERO;
+        BigDecimal rentalAmount = "INITIAL_PAYMENT".equals(inv.getInvoiceType()) && contract != null
+                ? contract.getMonthlyRentalFee() : Set.of("INITIAL_RENT", "REMAINING_RENT").contains(inv.getInvoiceType())
+                ? inv.getTotalAmount() : BigDecimal.ZERO;
 
         return new InvoiceResponse(
                 inv.getInvoiceId(),
@@ -276,10 +181,4 @@ public class PaymentServiceImpl implements InvoicePaymentService {
         );
     }
 
-    private String formatCurrency(BigDecimal amount) {
-        if (amount == null) return "0 đ";
-        Locale vn = Locale.of("vi", "VN");
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(vn);
-        return currencyFormat.format(amount);
-    }
 }

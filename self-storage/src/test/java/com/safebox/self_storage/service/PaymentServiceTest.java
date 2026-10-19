@@ -79,28 +79,23 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Tự động tạo hóa đơn tiền cọc và tiền thuê ban đầu nếu chưa có")
-    void getOrCreateInitialInvoice_shouldCreateNew_whenNotExists() {
+    @DisplayName("Legacy invoice lookup reads the approval-created deposit invoice without inserting a new obligation")
+    void getOrCreateInitialInvoice_readsDepositWithoutCreating() {
         when(contracts.findById(contractId)).thenReturn(Optional.of(contract));
-        when(invoices.findFirstByContractIdAndInvoiceTypeOrderByIssuedAtDesc(contractId, "INITIAL_PAYMENT"))
-                .thenReturn(Optional.empty());
-        when(invoices.existsByInvoiceNumber(any())).thenReturn(false);
-        when(invoices.save(any(Invoice.class))).thenAnswer(invocation -> {
-            Invoice inv = invocation.getArgument(0);
-            inv.setInvoiceId(invoiceId);
-            return inv;
-        });
+        invoice.setInvoiceType("DEPOSIT");
+        when(invoices.findFirstByContractIdAndInvoiceType(contractId, "DEPOSIT"))
+                .thenReturn(Optional.of(invoice));
         when(transactions.findByInvoiceIdOrderByTransactionDateDesc(any())).thenReturn(List.of());
 
         InvoiceResponse response = paymentService.getOrCreateInitialInvoice(customerId, contractId);
 
         assertNotNull(response);
-        assertEquals("INITIAL_PAYMENT", response.invoiceType());
+        assertEquals("DEPOSIT", response.invoiceType());
         assertEquals(BigDecimal.valueOf(3000000), response.totalAmount());
-        assertEquals(BigDecimal.valueOf(1500000), response.depositAmount());
-        assertEquals(BigDecimal.valueOf(1500000), response.rentalAmount());
+        assertEquals(BigDecimal.valueOf(3000000), response.depositAmount());
+        assertEquals(BigDecimal.ZERO, response.rentalAmount());
         assertEquals("UNPAID", response.status());
-        verify(invoices).save(any(Invoice.class));
+        verify(invoices, never()).save(any(Invoice.class));
     }
 
     @Test
@@ -116,48 +111,32 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Thanh toán tiền cọc và tiền thuê ban đầu thành công qua chuyển khoản")
-    void payInitialInvoice_shouldSucceed() {
+    @DisplayName("Legacy payment endpoint cannot record an unverified combined payment")
+    void payInitialInvoice_rejectsLegacyWrite() {
         when(contracts.findById(contractId)).thenReturn(Optional.of(contract));
-        when(invoices.findFirstByContractIdAndInvoiceTypeOrderByIssuedAtDesc(contractId, "INITIAL_PAYMENT"))
-                .thenReturn(Optional.of(invoice));
-        when(transactions.save(any(PaymentTransaction.class))).thenAnswer(invocation -> {
-            PaymentTransaction tx = invocation.getArgument(0);
-            tx.setTransactionId(UUID.randomUUID());
-            return tx;
-        });
-        when(invoices.save(any(Invoice.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         PayInvoiceRequest request = new PayInvoiceRequest("BANK_TRANSFER", "VQR-998877", "Đã quét VietQR chuyển khoản");
-        PayInvoiceResponse response = paymentService.payInitialInvoice(customerId, contractId, request);
-
-        assertTrue(response.success());
-        assertEquals("PAID", response.invoice().status());
-        assertEquals(BigDecimal.valueOf(3000000), response.invoice().paidAmount());
-        assertEquals(BigDecimal.ZERO, response.invoice().remainingAmount());
-        assertEquals("BANK_TRANSFER", response.transaction().paymentMethod());
-        assertEquals("SUCCESS", response.transaction().status());
-        assertEquals(BigDecimal.valueOf(3000000), response.transaction().amount());
-
-        verify(transactions).save(any(PaymentTransaction.class));
-        verify(invoices).save(any(Invoice.class));
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                paymentService.payInitialInvoice(customerId, contractId, request));
+        assertEquals(HttpStatus.CONFLICT, ex.status());
+        verifyNoInteractions(transactions);
+        verify(invoices, never()).save(any(Invoice.class));
     }
 
     @Test
-    @DisplayName("Từ chối thanh toán khi hóa đơn đã được thanh toán trước đó (PAID)")
-    void payInitialInvoice_shouldThrowConflict_whenAlreadyPaid() {
+    @DisplayName("Legacy invoice payment endpoint cannot settle a component outside canonical rules")
+    void payInvoice_rejectsLegacyWrite() {
         invoice.setStatus("PAID");
         invoice.setPaidAmount(invoice.getTotalAmount());
 
         when(contracts.findById(contractId)).thenReturn(Optional.of(contract));
-        when(invoices.findFirstByContractIdAndInvoiceTypeOrderByIssuedAtDesc(contractId, "INITIAL_PAYMENT"))
+        when(invoices.findById(invoiceId))
                 .thenReturn(Optional.of(invoice));
 
         PayInvoiceRequest request = new PayInvoiceRequest("VNPAY", null, null);
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                paymentService.payInitialInvoice(customerId, contractId, request));
+                paymentService.payInvoice(customerId, invoiceId, request));
 
         assertEquals(HttpStatus.CONFLICT, ex.status());
-        assertTrue(ex.getMessage().contains("đã được thanh toán"));
+        verifyNoInteractions(transactions);
     }
 }

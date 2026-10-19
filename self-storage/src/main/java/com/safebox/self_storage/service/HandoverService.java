@@ -53,8 +53,10 @@ public class HandoverService {
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy kho đã gán cho hợp đồng."));
         if (!facilityId.equals(unit.getFacilityId()))
             throw new BusinessException(HttpStatus.CONFLICT, "Kho không thuộc đúng cơ sở của hợp đồng.");
-        if (!"AVAILABLE".equals(unit.getStatus()))
-            throw new BusinessException(HttpStatus.CONFLICT, "Kho không sẵn sàng để bàn giao.");
+        // Approval reserved this exact unit for the contract. An AVAILABLE unit
+        // has not passed through the allocation step and must not be handed over.
+        if (!"RESERVED".equals(unit.getStatus()))
+            throw new BusinessException(HttpStatus.CONFLICT, "Kho chưa được giữ chỗ cho hợp đồng này.");
 
         HandoverRecord record = new HandoverRecord();
         record.setContractId(contractId); record.setUnitId(unit.getUnitId()); record.setStaffId(access.currentId());

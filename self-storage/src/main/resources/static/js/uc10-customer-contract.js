@@ -11,15 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. Kiểm tra xác thực & hiển thị thông tin người dùng
     const user = SafeBoxAuth.getCurrentUser();
     if (user && user.fullName) {
-        const nameEl = document.getElementById('nav-user-name');
-        if (nameEl) nameEl.textContent = user.fullName;
         const sigInput = document.getElementById('input-signature');
         if (sigInput && !sigInput.value) sigInput.value = user.fullName;
-    }
-
-    const logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => SafeBoxAuth.logout());
     }
 
     // 2. Đọc query params (?contractId=... hoặc ?reservationId=...)
@@ -151,38 +144,36 @@ function renderContractDetail(contract) {
 
     // Bên cho thuê (Cơ sở)
     setText('facility-name-display', contract.facilityName || 'SafeBox Storage');
-    setText('facility-address-display', contract.facilityAddress || 'TP. Hồ Chí Minh');
-    setText('facility-phone-display', contract.facilityPhone || '1900 8868');
+    setText('facility-address-display', contract.facilityAddress || 'Chưa cập nhật');
+    setText('facility-phone-display', contract.facilityPhone || 'Chưa cập nhật');
     setText('manager-name-display', contract.approvedByName || 'Quản lý cơ sở');
     setText('company-signature-display', contract.companySignature || 'SafeBox Storage Vietnam');
 
     // Ô kho vật lý
     setText('unit-number-display', contract.unitNumber || 'Kho');
-    setText('unit-location-display', (contract.floor || 'Tầng 1') + ', ' + (contract.zone || 'Khu A'));
+    setText('unit-location-display', [contract.floor, contract.zone].filter(Boolean).join(', ') || 'Chưa cập nhật');
     setText('unit-type-display', contract.typeName || 'Kho tự quản');
     setText('unit-size-display', (contract.sizeName || '') + (contract.area ? ' (' + contract.area + ' m²)' : ''));
     setText('unit-mode-display', contract.storageMode || 'STANDARD');
 
     // Thời gian thuê & Tài chính
-    setText('duration-display', (contract.months || 1) + ' tháng');
+    setText('duration-display', contract.months != null ? contract.months + ' tháng' : '—');
     setText('date-range-display', formatDate(contract.startDate) + ' đến ' + formatDate(contract.endDate));
     setText('monthly-fee-display', formatCurrency(contract.monthlyRentalFee));
     setText('deposit-display', formatCurrency(contract.depositAmount));
     setText('total-payable-display', formatCurrency(contract.totalPayable));
-    setText('terms-version-display', 'Phiên bản: ' + (contract.termsVersion || 'TERMS-2026-V1'));
+    setText('terms-version-display', 'Phiên bản: ' + (contract.termsVersion || '—'));
 
     // Điều khoản
-    if (contract.termsSummary && contract.termsSummary.length > 0) {
-        const termsContainer = document.getElementById('terms-list-container');
-        if (termsContainer) {
-            termsContainer.innerHTML = contract.termsSummary.map(t => `<p class="leading-relaxed">${escapeHtml(t)}</p>`).join('');
-        }
-    }
+    const termsContainer = document.getElementById('terms-list-container');
+    if (termsContainer) termsContainer.innerHTML = contract.termsSummary?.length
+        ? contract.termsSummary.map(t => `<p class="leading-relaxed">${escapeHtml(t)}</p>`).join('')
+        : '<p>Điều khoản chưa có thông tin.</p>';
 
     // Trạng thái Bước 1: Ký xác nhận hợp đồng
     const confirmForm = document.getElementById('confirm-form');
     const confirmedBadge = document.getElementById('confirmed-badge');
-    const isConfirmed = (contract.customerSignedAt != null || contract.status !== 'PENDING_CONFIRMATION');
+    const isConfirmed = contract.customerSignedAt != null;
 
     if (isConfirmed) {
         if (confirmForm) confirmForm.classList.add('hidden');
@@ -196,8 +187,24 @@ function renderContractDetail(contract) {
         if (confirmedBadge) confirmedBadge.classList.add('hidden');
     }
 
-    // Tải hóa đơn Bước 2: Thanh toán ban đầu
-    loadInitialInvoice(contract.contractId);
+    // The payment page owns settlement; read its balance for this same contract.
+    loadCanonicalPaymentSummary(contract.contractId);
+}
+
+async function loadCanonicalPaymentSummary(contractId) {
+    const box = document.getElementById('box-initial-payment');
+    if (!box) return;
+    box.innerHTML = '<p class="text-sm text-on-surface-variant">Đang tải tình trạng thanh toán...</p>';
+    try {
+        const res = await SafeBoxAuth.authFetch(`/api/contracts/${contractId}/payments/summary`);
+        if (!res.ok) throw new Error('Không thể tải tình trạng thanh toán.');
+        const summary = await res.json();
+        if (currentContract?.contractId !== contractId || summary.contractId !== contractId) return;
+        const line = (label, component) => `<div class="flex justify-between gap-4 border-b border-surface-container py-2"><span>${label}</span><strong>${formatCurrency(component.paidAmount)} / ${formatCurrency(component.amountDue)} · ${component.remainingAmount <= 0 ? 'Đã thanh toán' : 'Còn thiếu ' + formatCurrency(component.remainingAmount)}</strong></div>`;
+        box.innerHTML = `<h3 class="text-lg font-bold">Thanh toán hợp đồng</h3><p class="text-sm text-on-surface-variant">Tình trạng thanh toán của hợp đồng ${escapeHtml(currentContract.contractNumber)}.</p>${line('Tiền cọc', summary.deposit)}${line(summary.termsVersion === 'v2' ? 'Phần tiền thuê còn lại' : 'Tiền thuê ban đầu', summary.initialRent)}<a class="inline-flex px-5 py-3 rounded-xl bg-secondary text-white font-semibold" href="/stitch/uc11-customer-payments-appointments.html?contractId=${encodeURIComponent(contractId)}">Thanh toán và đặt lịch nhận kho</a>`;
+    } catch (error) {
+        box.textContent = error.message;
+    }
 }
 
 // =========================================================================
@@ -242,30 +249,24 @@ async function loadInitialInvoice(contractId) {
                 setText('paid-ref-display', firstTx ? firstTx.referenceCode : 'N/A');
             }
         } else {
-            // Chưa thanh toán -> Cập nhật thông tin VietQR
+            // Chưa thanh toán -> Hiển thị số tiền và mã tham chiếu từ hóa đơn
             if (pendingSection) pendingSection.classList.remove('hidden');
             if (successSection) successSection.classList.add('hidden');
 
-            updateVietQRInfo(invoice);
+            updatePaymentReference(invoice);
         }
     } catch (e) {
         console.error('Lỗi khi tải hóa đơn:', e);
     }
 }
 
-function updateVietQRInfo(invoice) {
-    const rawNumber = currentContract ? currentContract.contractNumber.replace(/[^a-zA-Z0-9]/g, '') : 'HD2026';
-    const memo = `SAFEBOX ${rawNumber}`;
-    const amount = invoice.totalAmount || 3000000;
+function updatePaymentReference(invoice) {
+    const rawNumber = currentContract?.contractNumber?.replace(/[^a-zA-Z0-9]/g, '');
+    const memo = rawNumber ? `SAFEBOX ${rawNumber}` : '—';
+    const amount = invoice.totalAmount;
 
-    setText('bank-amount-display', formatCurrency(amount));
+    setText('bank-amount-display', amount == null ? '—' : formatCurrency(amount));
     setText('bank-memo-display', memo);
-
-    const qrImg = document.getElementById('vietqr-image');
-    if (qrImg) {
-        // Sinh QR theo chuẩn VietQR API của ngân hàng MBBank
-        qrImg.src = `https://api.vietqr.io/image/970422-090123456789-print.jpg?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=CONG%20TY%20TNHH%20SAFEBOX%20VIETNAM`;
-    }
 }
 
 function onPaymentMethodChange(method) {
@@ -330,7 +331,7 @@ async function handleConfirmContract() {
         }
 
         const updated = await res.json();
-        showAlert('Chúc mừng! Bạn đã ký xác nhận hợp đồng điện tử thành công. Vui lòng thanh toán tiền cọc và tiền thuê ban đầu ở Bước 2 bên dưới.', 'success');
+        showAlert('Bạn đã ký xác nhận hợp đồng điện tử. Xem các khoản cần thanh toán bên dưới.', 'success');
         renderContractDetail(updated);
 
         // Cuộn xuống phần thanh toán Bước 2

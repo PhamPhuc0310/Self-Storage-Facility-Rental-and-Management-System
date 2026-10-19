@@ -220,6 +220,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Người dùng không tồn tại"));
 
         String role = (currentUser.getRole() != null) ? currentUser.getRole().getRoleName() : "";
+        if (!Set.of("SYSTEM_ADMIN", "FACILITY_MANAGER", "FACILITY_STAFF").contains(role))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem lịch trả kho tại cơ sở");
         LocalDate today = LocalDate.now(VIETNAM_ZONE);
 
         List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
@@ -234,9 +236,15 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             } else {
                 records = handoverRecordRepository.findReturnHandoverRecords(null, filterStatus);
             }
+        } else if ("FACILITY_STAFF".equals(role)) {
+            if (facilityId != null && !assignedFacilityIds.contains(facilityId))
+                throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền quản lý tại cơ sở này");
+            records = assignedFacilityIds.isEmpty() ? List.of()
+                    : facilityId != null ? handoverRecordRepository.findReturnHandoverRecordsForStaff(facilityId, filterStatus, currentUserId)
+                    : handoverRecordRepository.findReturnHandoverRecordsForStaffInFacilities(assignedFacilityIds, filterStatus, currentUserId);
         } else {
             if (facilityId != null) {
-                if (!assignedFacilityIds.isEmpty() && !assignedFacilityIds.contains(facilityId)) {
+                if (!assignedFacilityIds.contains(facilityId)) {
                     throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền quản lý tại cơ sở này");
                 }
                 records = handoverRecordRepository.findReturnHandoverRecords(facilityId, filterStatus);
@@ -244,8 +252,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 // Hiển thị toàn bộ lịch hẹn thuộc tất cả cơ sở mà nhân viên/quản lý được phân công
                 records = handoverRecordRepository.findReturnHandoverRecordsByFacilityIds(assignedFacilityIds, filterStatus);
             } else {
-                // Nếu chưa được gán cơ sở, xem các việc được chỉ định trực tiếp cho mình
-                records = handoverRecordRepository.findReturnHandoverRecordsForStaff(null, filterStatus, currentUserId);
+                records = List.of();
             }
         }
 
@@ -271,6 +278,11 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
 
         validateAccessToContract(currentUserId, contract);
+        User viewer = userRepository.findById(currentUserId).orElse(null);
+        if (viewer != null && viewer.getRole() != null
+                && "FACILITY_STAFF".equals(viewer.getRole().getRoleName())
+                && !currentUserId.equals(handoverRecord.getStaffId()))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn chưa được phân công lịch trả kho này");
 
         StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
         Facility facility = (unit != null) ? facilityRepository.findById(unit.getFacilityId()).orElse(null) : null;
@@ -298,6 +310,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         HandoverRecord handoverRecord = handoverRecordRepository.findById(request.getHandoverId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy lịch hẹn bàn giao"));
 
+        if (!"RETURN".equals(handoverRecord.getHandoverType()))
+            throw new BusinessException(HttpStatus.CONFLICT, "Biên bản không phải lịch trả kho");
+
         RentalContract contract = rentalContractRepository.findByContractId(handoverRecord.getContractId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
 
@@ -312,6 +327,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
 
         // BR16.4: Chỉ STAFF được giao kiểm tra hoặc FACILITY_MANAGER tại đúng cơ sở được lập biên bản nhận lại
         validateStaffOrManagerPermission(staffUser, facility.getFacilityId());
+        if ("FACILITY_STAFF".equals(staffUser.getRole().getRoleName())
+                && !staffOrManagerId.equals(handoverRecord.getStaffId()))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn chưa được phân công lịch trả kho này");
 
         // BR16.8: Idempotency - Gọi lặp lại không tạo biên bản mới
         if ("COMPLETED".equalsIgnoreCase(handoverRecord.getStatus())) {
@@ -321,6 +339,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             User customer = userRepository.findById(contract.getCustomerId()).orElse(null);
             return buildDetailResponse(handoverRecord, existingReport, contract, unit, facility, customer, staffUser);
         }
+        if (!"SCHEDULED".equalsIgnoreCase(handoverRecord.getStatus()) || !"ACTIVE".equals(contract.getStatus())
+                || !"OCCUPIED".equals(unit.getStatus()))
+            throw new BusinessException(HttpStatus.CONFLICT, "Lịch trả kho hoặc trạng thái kho không hợp lệ");
 
         // BR16.6: Chỉ hoàn tất nhận lại khi:
         // 1. Kho đã dọn trống (leftoverItems == false)
@@ -405,17 +426,13 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
 
     private UUID resolveStaffForFacility(UUID facilityId) {
         LocalDate today = LocalDate.now(VIETNAM_ZONE);
-        List<UUID> activeStaffIds = userFacilityAssignmentRepository.findActiveUserIdsByFacility(facilityId, today);
-        if (!activeStaffIds.isEmpty()) {
-            return activeStaffIds.get(0);
-        }
-        // Fallback: Tìm nhân viên hoặc quản lý bất kỳ trong hệ thống
-        return userRepository.findAll().stream()
-                .filter(u -> u.getRole() != null && ("FACILITY_STAFF".equalsIgnoreCase(u.getRole().getRoleName())
-                        || "FACILITY_MANAGER".equalsIgnoreCase(u.getRole().getRoleName())))
-                .map(User::getUserId)
-                .findFirst()
-                .orElseGet(() -> userRepository.findAll().get(0).getUserId());
+        return userFacilityAssignmentRepository.findActiveUserIdsByFacility(facilityId, today).stream()
+                .map(userRepository::findById).flatMap(Optional::stream)
+                .filter(u -> "ACTIVE".equals(u.getStatus()) && u.getRole() != null
+                        && "FACILITY_STAFF".equals(u.getRole().getRoleName()))
+                .map(User::getUserId).findFirst()
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT,
+                        "Cơ sở chưa có nhân viên đủ điều kiện xử lý lịch trả kho"));
     }
 
     private void validateAccessToContract(UUID currentUserId, RentalContract contract) {

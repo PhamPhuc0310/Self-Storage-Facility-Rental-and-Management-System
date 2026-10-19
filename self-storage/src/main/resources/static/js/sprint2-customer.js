@@ -13,7 +13,7 @@
   document.querySelectorAll('footer span.cursor-pointer').forEach(item => item.classList.remove('cursor-pointer'));
   const money = value => new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(value || 0);
   const {formatDateVN, formatDateTimeVN, toISODate, todayISODateVN, formatAppointmentTime, appointmentActions} = SafeBoxUc12Time;
-  const labels = {DEPOSIT:'Tiền cọc', INITIAL_RENT:'Tiền thuê ban đầu (hợp đồng cũ)', REMAINING_RENT:'Phần tiền thuê còn lại', SUCCESS:'Đã thanh toán', FAILED:'Thanh toán thất bại', PENDING:'Chờ xác nhận', SCHEDULED:'Đã đặt lịch', COMPLETED:'Hoàn thành', CANCELLED:'Đã hủy', REQUESTED:'Đã gửi yêu cầu', UNDER_REVIEW:'Đang xét duyệt', APPROVED:'Đã duyệt, chờ hoàn tiền', REJECTED:'Từ chối', CASH:'Tiền mặt', BANK_TRANSFER:'Chuyển khoản ngân hàng', DEMO_ONLINE_PAYMENT:'Phương thức cũ (mô phỏng)'};
+  const labels = {DEPOSIT:'Tiền cọc', INITIAL_RENT:'Tiền thuê ban đầu', REMAINING_RENT:'Phần tiền thuê còn lại', SUCCESS:'Đã thanh toán', FAILED:'Thanh toán thất bại', PENDING:'Chờ xác nhận', SCHEDULED:'Đã đặt lịch', COMPLETED:'Hoàn thành', CANCELLED:'Đã hủy', REQUESTED:'Đã gửi yêu cầu', UNDER_REVIEW:'Đang xét duyệt', APPROVED:'Đã duyệt, chờ hoàn tiền', REJECTED:'Từ chối', CASH:'Tiền mặt', BANK_TRANSFER:'Chuyển khoản ngân hàng', DEMO_ONLINE_PAYMENT:'Thanh toán trực tuyến'};
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let reservations = [], selected = null, summary = null, appointment = null, busy = false;
   async function api(path, options) {
@@ -65,6 +65,11 @@
     if (badge) badge.textContent = reservations.length;
     $('contract-list').innerHTML = reservations.map(card).join('');
     filter();
+    const requestedContract = new URLSearchParams(location.search).get('contractId');
+    if (requestedContract && !selected) {
+      const matching = reservations.find(r => r.status === 'CONFIRMED' && r.contract?.contractId === requestedContract);
+      if (matching) selected = matching;
+    }
     if (selected) {
       const updated = reservations.find(r => r.reservationId === selected.reservationId);
       if (updated?.status === 'CONFIRMED') { selected = updated; await detail(); }
@@ -84,8 +89,8 @@
     summary = s; appointment = a;
     $('contract-detail').hidden = false;
     $('detail-title').textContent = `Hợp đồng ${selected.contract.contractNumber} · ${selected.contract.facilityName}`;
-    $('payment-components').innerHTML = component('Tiền cọc', s.deposit, 'DEPOSIT') + component(s.termsVersion === 'v2' ? 'Phần tiền thuê còn lại' : 'Tiền thuê ban đầu (hợp đồng cũ)', s.initialRent, s.rentPaymentType, s.remainingPaymentAvailable);
-    $('payment-breakdown').textContent = s.termsVersion === 'v2' ? `Tiền thuê trước VAT: ${money(s.subtotal)} · VAT 10%: ${money(s.vatAmount)} · Tổng hợp đồng: ${money(s.contractTotal)} · Ngày đến hạn phần còn lại: ${s.remainingDueDate ? formatDateVN(s.remainingDueDate) : 'Chưa có lịch nhận kho'}` : `Hợp đồng cũ v1: tổng các khoản theo hóa đơn ${money(s.contractTotal)}; không áp dụng lại công thức VAT/cọc mới.`;
+    $('payment-components').innerHTML = component('Tiền cọc', s.deposit, 'DEPOSIT') + component(s.termsVersion === 'v2' ? 'Phần tiền thuê còn lại' : 'Tiền thuê ban đầu', s.initialRent, s.rentPaymentType, s.remainingPaymentAvailable);
+    $('payment-breakdown').textContent = s.termsVersion === 'v2' ? `Tiền thuê trước VAT: ${money(s.subtotal)} · VAT 10%: ${money(s.vatAmount)} · Tổng hợp đồng: ${money(s.contractTotal)} · Ngày đến hạn phần còn lại: ${s.remainingDueDate ? formatDateVN(s.remainingDueDate) : 'Chưa có lịch nhận kho'}` : `Tổng các khoản theo hóa đơn: ${money(s.contractTotal)}.`;
     $('payment-ready').textContent = s.readyForHandover ? 'Đã thanh toán đủ các khoản. Bàn giao thực tế thuộc quy trình tiếp theo.' : s.deposit.remainingAmount > 0 ? a?.status === 'SCHEDULED' ? 'Cần thanh toán đủ tiền cọc để đổi lịch. Lịch đã đặt vẫn được giữ nguyên.' : 'Cần thanh toán đủ tiền cọc để đặt lịch nhận kho.' : 'Đã đủ cọc; phần còn lại đến hạn vào ngày nhận kho.';
     $('refund-history').innerHTML = refunds.length ? refunds.map(r => `<p class="bg-surface-container-low p-3 rounded-lg">${labels[r.status] || escape(r.status)} · Gửi ${formatDateTimeVN(r.createdAt)}${r.reviewerId ? ` · Xét duyệt ${formatDateTimeVN(r.updatedAt)}` : ''}${r.completedAt ? ` · Hoàn ${formatDateTimeVN(r.completedAt)}` : ''} · Đề nghị ${money(r.requestedAmount)}${r.approvedAmount ? ` · Duyệt ${money(r.approvedAmount)}` : ''} · ${escape(r.reason)}</p>`).join('') : '<p>Chưa có yêu cầu hoàn cọc.</p>';
     $('refund-form').hidden = s.deposit.paidAmount <= 0 || refunds.some(r => ['REQUESTED','UNDER_REVIEW','APPROVED'].includes(r.status));

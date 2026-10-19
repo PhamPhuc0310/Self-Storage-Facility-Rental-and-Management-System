@@ -66,6 +66,17 @@ class AuthApiTest {
         mvc.perform(get("/api/role/manager").header("Authorization", "Bearer valid"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
     }
+
+    @Test
+    void staffPageIsPublicButManagerAndStaffApisRequireAuthentication() throws Exception {
+        mvc.perform(get("/staff-tasks.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+        mvc.perform(get("/api/staff/tasks")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/staff/facilities")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/manager/facilities")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/manager/reservations/pending")).andExpect(status().isUnauthorized());
+    }
 }
 
 

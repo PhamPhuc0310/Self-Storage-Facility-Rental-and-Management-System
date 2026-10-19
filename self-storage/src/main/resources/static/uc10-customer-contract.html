@@ -54,42 +54,7 @@
 </head>
 <body style="visibility:hidden" class="bg-surface text-on-surface min-h-screen flex flex-col">
     <!-- Header -->
-    <header class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-surface-container shadow-sm">
-        <div class="h-20 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="/stitch/trang_ch_safebox_storage.html" class="flex items-center gap-3">
-                    <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
-                    <div class="flex flex-col">
-                        <span class="text-xl font-bold text-primary tracking-tight">SafeBox Storage</span>
-                        <span class="text-xs text-on-surface-variant">Hệ thống lưu trữ thông minh</span>
-                    </div>
-                </a>
-                <nav class="hidden md:flex items-center gap-6 ml-6">
-                    <a class="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/trang_ch_safebox_storage.html">Trang chủ</a>
-                    <a class="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/t_m_kho_l_u_tr_safebox_storage.html">Tìm kho</a>
-                    <a class="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" href="/stitch/y_u_c_u_c_a_t_i_safebox_storage.html">Yêu cầu của tôi</a>
-                    <a class="text-sm font-bold text-secondary bg-surface-container px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5" href="/uc10-customer-contract.html">
-                        <span class="material-symbols-outlined text-base">description</span>
-                        <span>Hợp đồng của tôi</span>
-                    </a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold">
-                        <span class="material-symbols-outlined text-lg">person</span>
-                    </div>
-                    <div class="hidden sm:flex flex-col text-left">
-                        <span id="nav-user-name" class="text-sm font-semibold text-on-surface leading-tight">Khách hàng</span>
-                        <span class="text-xs text-on-surface-variant">Tài khoản khách</span>
-                    </div>
-                </div>
-                <button id="btn-logout" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-error transition-colors" title="Đăng xuất">
-                    <span class="material-symbols-outlined text-xl">logout</span>
-                </button>
-            </div>
-        </div>
-    </header>
+    <header class="fixed top-0 left-0"></header>
 
     <!-- Main Content -->
     <main class="w-full pt-28 pb-16 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
@@ -152,10 +117,10 @@
                                 </span>
                             </div>
                             <h2 id="contract-number-display" class="text-2xl sm:text-3xl font-bold text-primary mt-1 font-mono">
-                                HD-20261010-XXXX
+                                —
                             </h2>
                             <p class="text-xs text-on-surface-variant mt-1">
-                                Liên kết yêu cầu: <span id="reservation-code-display" class="font-mono font-semibold text-on-surface">#REQ-...</span> • Ngày lập: <span id="created-at-display">...</span>
+                                Liên kết yêu cầu: <span id="reservation-code-display" class="font-mono font-semibold text-on-surface">—</span> • Ngày lập: <span id="created-at-display">—</span>
                             </p>
                         </div>
                         <div class="flex items-center gap-3">
@@ -190,9 +155,9 @@
                                 <span>CƠ SỞ CHO THUÊ (SAFEBOX)</span>
                             </div>
                             <div class="space-y-1.5 text-xs text-on-surface-variant">
-                                <div>Tên cơ sở: <strong id="facility-name-display" class="text-on-surface text-sm block">SafeBox Storage</strong></div>
+                                <div>Tên cơ sở: <strong id="facility-name-display" class="text-on-surface text-sm block">—</strong></div>
                                 <div>Địa chỉ kho: <span id="facility-address-display" class="text-on-surface font-medium">...</span></div>
-                                <div>Hotline cơ sở: <span id="facility-phone-display" class="text-on-surface font-medium">1900 8868</span></div>
+                                <div>Hotline cơ sở: <span id="facility-phone-display" class="text-on-surface font-medium">—</span></div>
                                 <div>Quản lý lập HĐ: <span id="manager-name-display" class="text-on-surface font-medium">...</span></div>
                                 <div>Đại diện ký: <span id="company-signature-display" class="text-on-surface font-semibold text-secondary">SafeBox Storage</span></div>
                             </div>
@@ -211,19 +176,19 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Vị trí:</span>
-                                    <span id="unit-location-display" class="text-on-surface font-medium">Tầng 1, Khu A</span>
+                                    <span id="unit-location-display" class="text-on-surface font-medium">—</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Loại kho:</span>
-                                    <span id="unit-type-display" class="text-on-surface font-medium">Kho Tiêu Chuẩn</span>
+                                    <span id="unit-type-display" class="text-on-surface font-medium">—</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Kích thước & DT:</span>
-                                    <span id="unit-size-display" class="text-on-surface font-medium">5 m²</span>
+                                    <span id="unit-size-display" class="text-on-surface font-medium">—</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Chế độ bảo quản:</span>
-                                    <span id="unit-mode-display" class="text-on-surface font-medium">STANDARD</span>
+                                    <span id="unit-mode-display" class="text-on-surface font-medium">—</span>
                                 </div>
                             </div>
                         </div>
@@ -238,23 +203,21 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div class="p-4 rounded-xl border border-surface-container bg-white">
                                 <span class="text-xs text-on-surface-variant block">Thời gian thuê</span>
-                                <div class="text-base font-bold text-primary mt-1" id="duration-display">3 tháng</div>
-                                <span class="text-xs text-on-surface-variant block mt-0.5" id="date-range-display">01/10/2026 - 01/01/2027</span>
+                                <div class="text-base font-bold text-primary mt-1" id="duration-display">—</div>
+                                <span class="text-xs text-on-surface-variant block mt-0.5" id="date-range-display">—</span>
                             </div>
                             <div class="p-4 rounded-xl border border-surface-container bg-white">
                                 <span class="text-xs text-on-surface-variant block">Giá thuê hàng tháng</span>
-                                <div class="text-base font-bold text-primary mt-1" id="monthly-fee-display">1.500.000 đ</div>
+                                <div class="text-base font-bold text-primary mt-1" id="monthly-fee-display">—</div>
                                 <span class="text-xs text-on-surface-variant block mt-0.5">Kỳ thanh toán: Hàng tháng</span>
                             </div>
                             <div class="p-4 rounded-xl border border-surface-container bg-white">
                                 <span class="text-xs text-on-surface-variant block">Tiền đặt cọc bảo đảm (Deposit)</span>
-                                <div class="text-base font-bold text-amber-700 mt-1" id="deposit-display">1.500.000 đ</div>
-                                <span class="text-xs text-green-700 font-medium block mt-0.5">✓ Hoàn lại 100% khi hết HĐ</span>
+                                <div class="text-base font-bold text-amber-700 mt-1" id="deposit-display">—</div>
                             </div>
                             <div class="p-4 rounded-xl border-2 border-secondary bg-secondary/5">
                                 <span class="text-xs text-secondary font-bold uppercase tracking-wider block">Tổng thanh toán ban đầu</span>
-                                <div class="text-xl font-bold text-secondary mt-1 font-mono" id="total-payable-display">3.000.000 đ</div>
-                                <span class="text-xs text-on-surface-variant block mt-0.5">(Cọc 1 tháng + Tiền thuê tháng 1)</span>
+                                <div class="text-xl font-bold text-secondary mt-1 font-mono" id="total-payable-display">—</div>
                             </div>
                         </div>
                     </div>
@@ -266,14 +229,10 @@
                                 <span class="material-symbols-outlined text-secondary">gavel</span>
                                 <span>Điều khoản & Cam kết hợp đồng thuê kho</span>
                             </h3>
-                            <span class="text-xs text-on-surface-variant" id="terms-version-display">Phiên bản: TERMS-2026-V1</span>
+                            <span class="text-xs text-on-surface-variant" id="terms-version-display">Phiên bản: —</span>
                         </div>
                         <div class="p-4 rounded-xl bg-surface-container-low text-xs sm:text-sm text-on-surface-variant leading-relaxed space-y-2 border border-surface-container" id="terms-list-container">
-                            <p><strong>1. Mục đích sử dụng:</strong> Bên thuê cam kết sử dụng kho đúng mục đích lưu trữ hợp pháp, không lưu trữ hàng cấm, vũ khí, hóa chất nguy hiểm hoặc chất dễ cháy nổ.</p>
-                            <p><strong>2. An toàn & PCCC:</strong> Tuân thủ nghiêm ngặt quy định phòng cháy chữa cháy, nội quy an ninh và quy trình ra vào cơ sở SafeBox.</p>
-                            <p><strong>3. Thanh toán & Tiền cọc:</strong> Khách hàng thanh toán tiền đặt cọc và tiền thuê kỳ đầu trước khi bàn giao kho. Tiền cọc nhằm bảo đảm thực hiện nghĩa vụ hợp đồng.</p>
-                            <p><strong>4. Hoàn trả tiền cọc:</strong> Tiền cọc sẽ được hoàn trả đầy đủ trong vòng 03 ngày làm việc sau khi kết thúc hợp đồng và bàn giao lại kho nguyên trạng ban đầu.</p>
-                            <p><strong>5. Hiệu lực hợp đồng:</strong> Hợp đồng có hiệu lực kể từ thời điểm ký xác nhận điện tử và hoàn tất biên bản bàn giao thực tế tại cơ sở SafeBox.</p>
+                            <p>Điều khoản sẽ hiển thị theo hợp đồng của bạn.</p>
                         </div>
                     </div>
                 </div>
@@ -334,21 +293,21 @@
                     </div>
 
                     <!-- Payment Pending Section -->
-                    <div id="payment-pending-section" class="space-y-6">
+                    <div id="payment-pending-section" class="hidden space-y-6">
                         <!-- Invoice breakdown bar -->
                         <div class="p-5 rounded-xl bg-surface-container-low border border-surface-container space-y-3">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div class="text-xs text-on-surface-variant">
-                                    Mã hóa đơn: <strong id="inv-number-display" class="text-on-surface font-mono">INV-XXXXXX</strong>
+                                    Mã hóa đơn: <strong id="inv-number-display" class="text-on-surface font-mono">—</strong>
                                 </div>
                                 <span id="inv-status-badge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                                    Chờ thanh toán
+                                    —
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
-                                <div>Tiền đặt cọc: <strong id="inv-deposit-display" class="text-on-surface block text-sm">1.500.000 đ</strong></div>
-                                <div>Tiền thuê kỳ đầu: <strong id="inv-rental-display" class="text-on-surface block text-sm">1.500.000 đ</strong></div>
-                                <div>Tổng thanh toán: <strong id="inv-total-display" class="text-secondary block text-base font-bold font-mono">3.000.000 đ</strong></div>
+                                <div>Tiền đặt cọc: <strong id="inv-deposit-display" class="text-on-surface block text-sm">—</strong></div>
+                                <div>Tiền thuê kỳ đầu: <strong id="inv-rental-display" class="text-on-surface block text-sm">—</strong></div>
+                                <div>Tổng thanh toán: <strong id="inv-total-display" class="text-secondary block text-base font-bold font-mono">—</strong></div>
                             </div>
                         </div>
 
@@ -382,44 +341,11 @@
                             </div>
                         </div>
 
-                        <!-- VietQR Payment Info Block -->
+                        <!-- Payment information from the invoice -->
                         <div id="method-bank-transfer-box" class="p-5 rounded-2xl bg-surface-container-low border border-surface-container space-y-4">
-                            <div class="flex flex-col sm:flex-row items-center gap-6">
-                                <!-- QR Mockup -->
-                                <div class="bg-white p-4 rounded-xl shadow-sm border border-surface-container flex flex-col items-center">
-                                    <img id="vietqr-image" alt="VietQR Payment Code" class="w-48 h-48 object-contain rounded-lg" src=""/>
-                                    <span class="text-xs text-on-surface-variant mt-2 font-medium">Quét bằng ứng dụng Ngân hàng</span>
-                                </div>
-                                <!-- Bank details -->
-                                <div class="space-y-2.5 text-xs sm:text-sm text-on-surface-variant flex-1 w-full">
-                                    <div class="flex justify-between py-1 border-b border-surface-container">
-                                        <span>Ngân hàng thụ hưởng:</span>
-                                        <strong class="text-on-surface">MBBank (Ngân hàng Quân Đội)</strong>
-                                    </div>
-                                    <div class="flex justify-between py-1 border-b border-surface-container">
-                                        <span>Số tài khoản:</span>
-                                        <div class="flex items-center gap-2">
-                                            <strong id="bank-acc-display" class="text-secondary font-mono font-bold text-base">090123456789</strong>
-                                            <button onclick="copyToClipboard('090123456789')" class="text-xs text-secondary hover:underline">Sao chép</button>
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-between py-1 border-b border-surface-container">
-                                        <span>Chủ tài khoản:</span>
-                                        <strong class="text-on-surface uppercase">CONG TY TNHH SAFEBOX VIETNAM</strong>
-                                    </div>
-                                    <div class="flex justify-between py-1 border-b border-surface-container">
-                                        <span>Số tiền thanh toán:</span>
-                                        <strong id="bank-amount-display" class="text-secondary font-mono font-bold text-base">3.000.000 đ</strong>
-                                    </div>
-                                    <div class="flex justify-between py-1 border-b border-surface-container">
-                                        <span>Nội dung chuyển khoản:</span>
-                                        <div class="flex items-center gap-2">
-                                            <strong id="bank-memo-display" class="text-primary font-mono font-bold">SAFEBOX HD20261010</strong>
-                                            <button onclick="copyToClipboard(document.getElementById('bank-memo-display').innerText)" class="text-xs text-secondary hover:underline">Sao chép</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <p class="text-sm text-on-surface-variant">Số tiền theo hóa đơn: <strong id="bank-amount-display" class="text-secondary font-mono">—</strong></p>
+                            <p class="text-sm text-on-surface-variant">Mã tham chiếu: <strong id="bank-memo-display" class="text-primary font-mono">—</strong></p>
+                            <p class="text-xs text-on-surface-variant">Thông tin này dùng để ghi nhận giao dịch trong hệ thống. Vui lòng liên hệ cơ sở để được hướng dẫn thanh toán.</p>
                         </div>
 
                         <!-- Reference Code & Pay Button -->
@@ -490,7 +416,7 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="/auth.js"></script>
+    <script src="/auth.js"></script><script src="/js/stitch-public-nav.js"></script>
     <script>
         SafeBoxAuth.requireRole('CUSTOMER');
     </script>

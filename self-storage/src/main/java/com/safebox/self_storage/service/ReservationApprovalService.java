@@ -118,18 +118,18 @@ public class ReservationApprovalService {
         units.save(unit);
         LocalDateTime now = access.now();
         RentalContract c = new RentalContract();
-        c.contractId = UUID.randomUUID(); c.contractNumber = "SB-CT-" + c.contractId.toString().substring(0, 12).toUpperCase();
+        c.contractNumber = "SB-CT-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
         c.reservationId = id; c.customerId = r.getCustomerId(); c.unitId = unit.getUnitId();
         c.startDate = r.getStartDate(); c.endDate = r.getEndDate();
         c.monthlyRentalFee = monthly; c.depositAmount = deposit;
         c.billingCycle = "MONTHLY"; c.termsVersion = v2 ? "v2" : "v1"; c.status = "CONFIRMED";
         c.approvedBy = access.currentId(); c.approvedAt = now; c.createdAt = now;
-        contracts.saveAndFlush(c);
-        invoices.save(invoice(c, "DEPOSIT", deposit, now));
-        invoices.save(invoice(c, v2 ? "REMAINING_RENT" : "INITIAL_RENT", v2 ? price.remaining() : monthly, now));
+        RentalContract saved = contracts.saveAndFlush(c);
+        invoices.save(invoice(saved, "DEPOSIT", deposit, now));
+        invoices.save(invoice(saved, v2 ? "REMAINING_RENT" : "INITIAL_RENT", v2 ? price.remaining() : monthly, now));
         r.setStatus("CONFIRMED");
         reservations.saveAndFlush(r);
-        return c;
+        return saved;
     }
     @Transactional
     public void reject(UUID id, RejectReservationRequest request) {
@@ -146,8 +146,8 @@ public class ReservationApprovalService {
         reservations.saveAndFlush(r);
     }
     private Invoice invoice(RentalContract c, String type, BigDecimal amount, LocalDateTime now) {
-        Invoice i = new Invoice(); i.invoiceId = UUID.randomUUID();
-        i.invoiceNumber = "INV-" + i.invoiceId.toString().substring(0, 8).toUpperCase();
+        Invoice i = new Invoice();
+        i.invoiceNumber = "INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         i.contractId = c.contractId; i.invoiceType = type;
         i.description = "DEPOSIT".equals(type) ? "v2".equals(c.termsVersion) ? "Tiền cọc (1/3 tổng gồm VAT)" : "Tiền cọc" :
                 "v2".equals(c.termsVersion) ? "Phần tiền thuê còn lại (2/3 tổng gồm VAT)" : "Tiền thuê ban đầu";
