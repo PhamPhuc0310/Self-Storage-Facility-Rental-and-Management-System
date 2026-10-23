@@ -23,6 +23,10 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, UU
 
     List<SupportTicket> findByFacilityIdOrderByCreatedAtDesc(UUID facilityId);
 
+    List<SupportTicket> findByFacilityIdInOrderByCreatedAtDesc(java.util.Collection<UUID> facilityIds);
+
+    List<SupportTicket> findAllByOrderByCreatedAtDesc();
+
     List<SupportTicket> findByFacilityIdAndStatusOrderByCreatedAtDesc(UUID facilityId, String status);
 
     boolean existsByTicketNumber(String ticketNumber);

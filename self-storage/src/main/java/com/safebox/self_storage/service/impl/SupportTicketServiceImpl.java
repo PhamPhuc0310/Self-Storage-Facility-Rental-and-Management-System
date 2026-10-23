@@ -124,12 +124,29 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SupportTicketSummaryResponse> getMyTickets(UUID customerId) {
-        if (customerId == null) {
+    public List<SupportTicketSummaryResponse> getMyTickets(UUID currentUserId) {
+        if (currentUserId == null) {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
         }
 
-        List<SupportTicket> tickets = supportTicketRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+        User user = userRepository.findById(currentUserId).orElse(null);
+        String role = (user != null && user.getRole() != null) ? user.getRole().getRoleName() : "CUSTOMER";
+
+        List<SupportTicket> tickets;
+        if ("SYSTEM_ADMIN".equalsIgnoreCase(role)) {
+            tickets = supportTicketRepository.findAllByOrderByCreatedAtDesc();
+        } else if ("FACILITY_MANAGER".equalsIgnoreCase(role) || "FACILITY_STAFF".equalsIgnoreCase(role)) {
+            LocalDate today = LocalDate.now(VIETNAM_ZONE);
+            List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
+            if (assignedFacilityIds.isEmpty()) {
+                tickets = List.of();
+            } else {
+                tickets = supportTicketRepository.findByFacilityIdInOrderByCreatedAtDesc(assignedFacilityIds);
+            }
+        } else {
+            tickets = supportTicketRepository.findByCustomerIdOrderByCreatedAtDesc(currentUserId);
+        }
+
         return tickets.stream().map(this::mapToSummaryResponse).toList();
     }
 
