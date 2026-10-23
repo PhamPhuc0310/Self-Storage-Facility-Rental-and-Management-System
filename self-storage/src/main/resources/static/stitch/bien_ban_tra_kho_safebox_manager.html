@@ -766,6 +766,55 @@
       }
     }
 
+
+    async function handleCloseContract() {
+      if (!selectedAppointment || !selectedAppointment.contractId) {
+        alert("Không xác định được hợp đồng cần đóng.");
+        return;
+      }
+
+      if (!confirm("Xác nhận tất toán tài chính và đóng hợp đồng này (COMPLETED)? Ô kho sẽ được giải phóng theo trạng thái bạn đã chọn.")) {
+        return;
+      }
+
+      const token = SafeBoxAuth.getToken();
+      const unitNextStatus = document.getElementById('close-unit-status').value;
+      const notes = document.getElementById('close-contract-notes').value.trim();
+
+      const btn = document.getElementById('btn-submit-close-contract');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span> Đang đóng hợp đồng...`;
+
+      try {
+        const res = await fetch(`/api/facility/contracts/${selectedAppointment.contractId}/complete-return`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ unitNextStatus, notes })
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          alert("Đóng hợp đồng thành công! Hợp đồng: " + result.contractNumber + " đã chuyển sang COMPLETED. Ô kho đã chuyển sang: " + result.unitStatus);
+          document.getElementById('close-contract-form-area').classList.add('hidden');
+          document.getElementById('contract-closed-banner').classList.remove('hidden');
+          document.getElementById('res-unit-status').textContent = result.unitStatus;
+          await loadAppointments();
+        } else {
+          const err = await res.json().catch(() => ({}));
+          alert(err.message || "Đóng hợp đồng thất bại. Vui lòng kiểm tra các khoản nợ hoặc cọc chưa xử lý.");
+        }
+      } catch (err) {
+        console.error('Error closing contract:', err);
+        alert("Lỗi kết nối khi gửi yêu cầu đóng hợp đồng.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm">lock_clock</span><span>Xác nhận đóng hợp đồng & Tất toán (COMPLETED)</span>`;
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', initManagerPage);
   </script>
 </body>
