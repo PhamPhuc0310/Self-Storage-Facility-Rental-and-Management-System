@@ -1,6 +1,8 @@
 package com.safebox.self_storage.service.impl;
 
+import com.safebox.self_storage.dto.CompleteContractRequest;
 import com.safebox.self_storage.dto.CompleteReturnInspectionRequest;
+import com.safebox.self_storage.dto.response.ContractCompletionResponse;
 import com.safebox.self_storage.dto.CreateReturnScheduleRequest;
 import com.safebox.self_storage.dto.response.FacilityReturnTaskItemResponse;
 import com.safebox.self_storage.dto.response.ReturnInspectionDetailResponse;
@@ -36,6 +38,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
     private final InspectionReportRepository inspectionReportRepository;
     private final UserFacilityAssignmentRepository userFacilityAssignmentRepository;
     private final InvoiceRepository invoiceRepository;
+    private final DepositRefundRepository depositRefundRepository;
+    private final ActivityLogRepository activityLogRepository;
 
     public ReturnInspectionServiceImpl(
             RentalContractRepository rentalContractRepository,
@@ -45,7 +49,11 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             HandoverRecordRepository handoverRecordRepository,
             InspectionReportRepository inspectionReportRepository,
             UserFacilityAssignmentRepository userFacilityAssignmentRepository,
-            InvoiceRepository invoiceRepository) {
+            InvoiceRepository invoiceRepository,
+            DepositRefundRepository depositRefundRepository,
+            ActivityLogRepository activityLogRepository) {
+        this.depositRefundRepository = depositRefundRepository;
+        this.activityLogRepository = activityLogRepository;
         this.rentalContractRepository = rentalContractRepository;
         this.storageUnitRepository = storageUnitRepository;
         this.facilityRepository = facilityRepository;
@@ -397,6 +405,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         report.setTemperature(request.getTemperature());
         report.setHumidity(request.getHumidity());
         report.setNote(request.getNote());
+        report.setEvidenceUrls(request.getEvidenceUrls());
         report = inspectionReportRepository.save(report);
 
         // BR16.7: Nếu kho đủ điều kiện sử dụng -> AVAILABLE. Nếu cần sửa chữa -> MAINTENANCE.
@@ -602,9 +611,217 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 (inspector != null) ? inspector.getFullName() : "Nhân viên kiểm tra",
                 contract.getDepositAmount(),
                 unpaidInvoices,
-                false, // BR16.9: financialObligationsSettled is false in Sprint 2
+                "COMPLETED".equalsIgnoreCase(contract.getStatus()),
                 financialNotes,
-                handoverRecord.getNote()
+                handoverRecord.getNote(),
+                (report != null) ? report.getEvidenceUrls() : null
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReturnInspectionDetailResponse getReturnInspectionByContract(UUID currentUserId, UUID contractId) {
+        if (currentUserId == null) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
+        }
+        if (contractId == null) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Mã hợp đồng không được để trống");
+        }
+
+        RentalContract contract = rentalContractRepository.findByContractId(contractId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
+
+        validateAccessToContract(currentUserId, contract);
+
+        StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
+        Facility facility = (unit != null) ? facilityRepository.findById(unit.getFacilityId()).orElse(null) : null;
+        User customer = userRepository.findById(contract.getCustomerId()).orElse(null);
+
+        HandoverRecord handoverRecord = handoverRecordRepository
+                .findFirstByContractIdAndHandoverTypeAndStatus(contractId, "RETURN", "COMPLETED")
+                .or(() -> handoverRecordRepository.findFirstByContractIdAndHandoverTypeAndStatus(contractId, "RETURN", "SCHEDULED"))
+                .or(() -> handoverRecordRepository.findByContractIdAndHandoverTypeOrderByScheduledAtDesc(contractId, "RETURN").stream().findFirst())
+                .orElse(null);
+
+        InspectionReport report = inspectionReportRepository
+                .findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(contractId, "RETURN_INSPECTION")
+                .orElse(null);
+
+        if (handoverRecord == null && report == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "Hợp đồng chưa có lịch hẹn hoặc biên bản kiểm tra trả kho");
+        }
+
+        User inspector = null;
+        if (report != null && report.getInspectedBy() != null) {
+            inspector = userRepository.findById(report.getInspectedBy()).orElse(null);
+        } else if (handoverRecord != null && handoverRecord.getStaffId() != null) {
+            inspector = userRepository.findById(handoverRecord.getStaffId()).orElse(null);
+        }
+
+        if (handoverRecord == null) {
+            handoverRecord = new HandoverRecord();
+            handoverRecord.setContractId(contractId);
+            handoverRecord.setUnitId(contract.getUnitId());
+            handoverRecord.setStatus("COMPLETED");
+            handoverRecord.setActualAt(report != null ? report.getInspectionDate() : LocalDateTime.now(VIETNAM_ZONE));
+        }
+
+        return buildDetailResponse(handoverRecord, report, contract, unit, facility, customer, inspector);
+    }
+
+    @Override
+    @Transactional
+    public ContractCompletionResponse completeContractAndFinalizeUnit(
+            UUID staffOrManagerId, UUID contractId, CompleteContractRequest request) {
+        if (staffOrManagerId == null) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
+        }
+        if (contractId == null) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Mã hợp đồng không được để trống");
+        }
+
+        RentalContract contract = rentalContractRepository.findByContractId(contractId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
+
+        StorageUnit unit = storageUnitRepository.findById(contract.getUnitId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin ô kho"));
+
+        Facility facility = facilityRepository.findById(unit.getFacilityId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin cơ sở"));
+
+        User actor = userRepository.findById(staffOrManagerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Tài khoản nhân viên/quản lý không tồn tại"));
+
+        // BR20.1, BR20.2: Chỉ STAFF được phân công hoặc FACILITY_MANAGER tại đúng cơ sở được xử lý
+        validateStaffOrManagerPermission(actor, facility.getFacilityId());
+
+        User customer = userRepository.findById(contract.getCustomerId()).orElse(null);
+        String customerName = (customer != null) ? customer.getFullName() : "Khách hàng";
+
+        // Idempotency: Nếu đã đóng rồi thì trả về kết quả thành công
+        if ("COMPLETED".equalsIgnoreCase(contract.getStatus()) || "CLOSED".equalsIgnoreCase(contract.getStatus())) {
+            return new ContractCompletionResponse(
+                    contract.getContractId(),
+                    contract.getContractNumber(),
+                    contract.getStatus(),
+                    contract.getActualEndDate() != null ? contract.getActualEndDate() : LocalDate.now(VIETNAM_ZONE),
+                    unit.getUnitId(),
+                    unit.getUnitNumber(),
+                    unit.getStatus(),
+                    facility.getFacilityId(),
+                    facility.getName(),
+                    contract.getCustomerId(),
+                    customerName,
+                    staffOrManagerId,
+                    actor.getFullName(),
+                    LocalDateTime.now(VIETNAM_ZONE),
+                    "Hợp đồng đã hoàn tất thủ tục trả kho trước đó",
+                    contract.getDepositAmount(),
+                    "COMPLETED",
+                    "Đã tất toán toàn bộ các nghĩa vụ tài chính",
+                    "Hợp đồng đã được đóng hoàn tất trước đó."
+            );
+        }
+
+        // BR20.4: Hợp đồng phải hoàn tất bước nhận lại kho (RETURNED hoặc có biên bản trả kho)
+        Optional<InspectionReport> returnReportOpt = inspectionReportRepository
+                .findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(contractId, "RETURN_INSPECTION");
+
+        if (!"RETURNED".equalsIgnoreCase(contract.getStatus()) && returnReportOpt.isEmpty()) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Hợp đồng chưa hoàn tất bước kiểm tra nhận lại kho (trạng thái hiện tại: "
+                            + contract.getStatus() + "). Vui lòng thực hiện kiểm tra trả kho trước khi đóng hợp đồng.");
+        }
+
+        // BR20.4: Kiểm tra nghĩa vụ tài chính (hóa đơn chưa thanh toán)
+        List<Invoice> invoices = invoiceRepository.findByContractId(contractId);
+        long unpaidCount = invoices.stream()
+                .filter(inv -> !"PAID".equalsIgnoreCase(inv.getStatus()))
+                .count();
+        if (unpaidCount > 0) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Hợp đồng còn " + unpaidCount + " khoản hóa đơn chưa thanh toán tất toán. Vui lòng hoàn tất thanh toán trước khi đóng hợp đồng.");
+        }
+
+        // BR20.4: Kiểm tra yêu cầu hoàn tiền cọc đang xử lý dở dang (UC19)
+        boolean hasPendingRefund = depositRefundRepository.existsByContractIdAndStatusIn(
+                contractId, List.of("REQUESTED", "UNDER_REVIEW", "APPROVED"));
+        if (hasPendingRefund) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Hợp đồng đang có yêu cầu hoàn cọc đang chờ duyệt hoặc chi trả. Cần hoàn tất quyết toán hoàn cọc trước khi đóng hợp đồng.");
+        }
+
+        // BR20.3: Không chuyển unit sang AVAILABLE nếu chưa kiểm tra tình trạng hoặc cần bảo trì
+        boolean isDamaged = false;
+        String inspectionSummary = "Kho trong tình trạng tốt, đã kiểm tra đạt chuẩn";
+        if (returnReportOpt.isPresent()) {
+            InspectionReport report = returnReportOpt.get();
+            if ("DAMAGED".equalsIgnoreCase(report.getConditionStatus())
+                    || (report.getEstimatedRepairCost() != null && report.getEstimatedRepairCost().compareTo(BigDecimal.ZERO) > 0)) {
+                isDamaged = true;
+                inspectionSummary = "Kho có hư hỏng (" + (report.getDamageDescription() != null ? report.getDamageDescription() : "Cần sửa chữa")
+                        + "), chi phí ước tính: " + report.getEstimatedRepairCost() + " VNĐ";
+            }
+        }
+        if (request != null && "MAINTENANCE".equalsIgnoreCase(request.getUnitNextStatus())) {
+            isDamaged = true;
+            inspectionSummary += " | Quản lý chỉ định đưa vào bảo trì";
+        }
+
+        // Cập nhật trạng thái ô kho
+        if (isDamaged) {
+            unit.setStatus("MAINTENANCE");
+        } else {
+            unit.setStatus("AVAILABLE");
+        }
+        storageUnitRepository.save(unit);
+
+        // Cập nhật hợp đồng sang COMPLETED
+        LocalDate today = LocalDate.now(VIETNAM_ZONE);
+        contract.setStatus("COMPLETED");
+        if (contract.getActualEndDate() == null) {
+            contract.setActualEndDate(today);
+        }
+        rentalContractRepository.save(contract);
+
+        // BR20.5: Ghi nhận vết kiểm toán ActivityLog
+        String notes = (request != null && request.getNotes() != null) ? " | Ghi chú: " + request.getNotes() : "";
+        activityLogRepository.save(new ActivityLog(
+                staffOrManagerId,
+                "COMPLETE_CONTRACT",
+                "RENTAL_CONTRACT",
+                contractId,
+                "Hoàn tất trả kho, quyết toán và đóng hợp đồng " + contract.getContractNumber()
+                        + ". Ô kho chuyển sang: " + unit.getStatus() + notes,
+                LocalDateTime.now(VIETNAM_ZONE)
+        ));
+
+        String depositStatus = "Đã tất toán";
+        List<DepositRefund> refunds = depositRefundRepository.findByContractIdOrderByCreatedAtDesc(contractId);
+        if (!refunds.isEmpty()) {
+            depositStatus = refunds.get(0).status;
+        }
+
+        return new ContractCompletionResponse(
+                contract.getContractId(),
+                contract.getContractNumber(),
+                contract.getStatus(),
+                contract.getActualEndDate(),
+                unit.getUnitId(),
+                unit.getUnitNumber(),
+                unit.getStatus(),
+                facility.getFacilityId(),
+                facility.getName(),
+                contract.getCustomerId(),
+                customerName,
+                staffOrManagerId,
+                actor.getFullName(),
+                LocalDateTime.now(VIETNAM_ZONE),
+                inspectionSummary,
+                contract.getDepositAmount(),
+                depositStatus,
+                "Tất toán tài chính thành công. Các hóa đơn và tiền cọc đã được xử lý đầy đủ.",
+                "Đóng hợp đồng và cập nhật trạng thái kho thành công."
         );
     }
 }

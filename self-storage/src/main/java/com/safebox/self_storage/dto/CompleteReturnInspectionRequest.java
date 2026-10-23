@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * DTO yêu cầu hoàn tất kiểm tra và nhận lại kho của nhân viên/quản lý cơ sở (UC16 - BR16.3-BR16.8).
+ * DTO yêu cầu hoàn tất kiểm tra và nhận lại kho của nhân viên/quản lý cơ sở (UC16 - BR16.3-BR16.8 & UC20 - BR20.1-BR20.5).
  */
 public class CompleteReturnInspectionRequest {
 
@@ -24,6 +24,7 @@ public class CompleteReturnInspectionRequest {
     private String staffSignature;
     private String note;
     private String unitNextStatus;
+    private String evidenceUrls;
 
     public CompleteReturnInspectionRequest() {
     }
@@ -154,5 +155,13 @@ public class CompleteReturnInspectionRequest {
 
     public void setUnitNextStatus(String unitNextStatus) {
         this.unitNextStatus = unitNextStatus;
+    }
+
+    public String getEvidenceUrls() {
+        return evidenceUrls;
+    }
+
+    public void setEvidenceUrls(String evidenceUrls) {
+        this.evidenceUrls = evidenceUrls;
     }
 }
