@@ -573,7 +573,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         // BR16.9, BR16.10: Sprint 2 lưu khoản chưa tất toán để theo dõi, không tự ý hoàn cọc hay phạt
         String financialNotes = "Hợp đồng đã nhận lại kho vật lý (RETURNED). Tiền cọc ("
                 + String.format("%,.0f", contract.getDepositAmount())
-                + " VNĐ) và các chi phí phát sinh nếu có được lưu giữ để theo dõi; việc hoàn tiền cọc và thanh toán bù trừ sẽ được tất toán tại Sprint 3.";
+                + " VNĐ) đã được lập hồ sơ quyết toán và chuyển giao cho Bộ phận Kế toán - Tài chính xử lý hoàn tiền về tài khoản của khách hàng theo quy định hợp đồng.";
 
         return new ReturnInspectionDetailResponse(
                 handoverRecord.getHandoverId(),
