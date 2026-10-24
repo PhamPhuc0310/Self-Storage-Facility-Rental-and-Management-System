@@ -54,6 +54,9 @@ public class InspectionReport {
     @Column(name = "note", columnDefinition = "NVARCHAR(MAX)")
     private String note;
 
+    @Column(name = "evidence_urls", columnDefinition = "NVARCHAR(MAX)")
+    private String evidenceUrls;
+
     public InspectionReport() {
     }
 
@@ -159,5 +162,13 @@ public class InspectionReport {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public String getEvidenceUrls() {
+        return evidenceUrls;
+    }
+
+    public void setEvidenceUrls(String evidenceUrls) {
+        this.evidenceUrls = evidenceUrls;
     }
 }

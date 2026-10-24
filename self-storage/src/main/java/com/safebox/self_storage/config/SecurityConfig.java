@@ -7,15 +7,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -41,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/customer/rentals", "/api/customer/rentals/**", "/api/rentals/my", "/api/rentals/my/**").hasAnyRole("CUSTOMER", "SYSTEM_ADMIN", "FACILITY_MANAGER")
                         .requestMatchers("/api/facility/rentals", "/api/facility/rentals/**").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
                         .requestMatchers("/api/facility/returns", "/api/facility/returns/**").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
+                        .requestMatchers("/api/facility/contracts/**", "/api/v1/return-inspections/**", "/api/v1/contracts/**").hasAnyRole("CUSTOMER", "FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
+                        .requestMatchers("/api/support-tickets/**", "/api/v1/support-tickets/**").hasAnyRole("CUSTOMER", "FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
                         .requestMatchers("/api/role/customer").hasRole("CUSTOMER")
                         .requestMatchers("/api/role/staff").hasRole("FACILITY_STAFF")
                         .requestMatchers("/api/role/manager").hasRole("FACILITY_MANAGER")

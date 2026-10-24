@@ -176,7 +176,7 @@ class ReturnInspectionControllerTest {
                 "AVAILABLE", "GOOD", null, BigDecimal.ZERO, null, null,
                 true, "CARD_AND_KEY", "Lock #LCK-99214", true, "Nguyễn Văn An",
                 "Phạm Gia Huy", staffId, "Phạm Gia Huy", new BigDecimal("1500000"),
-                0, false, "Tiền cọc lưu giữ theo dõi", null
+                0, false, "Tiền cọc lưu giữ theo dõi", null, null
         );
 
         when(returnInspectionService.completeReturnHandoverAndInspection(eq(staffId), any()))
