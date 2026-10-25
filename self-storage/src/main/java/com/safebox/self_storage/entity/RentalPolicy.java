@@ -47,6 +47,18 @@ public class RentalPolicy {
     @Column(name = "overdue_grace_days", nullable = false)
     private Integer overdueGraceDays;
 
+    /** Tỷ lệ phạt theo ngày (BR18.2), ví dụ: 0.05 tương đương 5%/ngày */
+    @Column(name = "daily_penalty_rate", nullable = false, precision = 5, scale = 4)
+    private java.math.BigDecimal dailyPenaltyRate = new java.math.BigDecimal("0.05");
+
+    /** Mức phạt cố định mỗi ngày (nếu áp dụng loại FIXED_DAILY) */
+    @Column(name = "fixed_penalty_amount", nullable = false, precision = 18, scale = 2)
+    private java.math.BigDecimal fixedPenaltyAmount = java.math.BigDecimal.ZERO;
+
+    /** Loại công thức tính phạt: PERCENT_DAILY, FIXED_DAILY */
+    @Column(name = "penalty_type", nullable = false, length = 50)
+    private String penaltyType = "PERCENT_DAILY";
+
     /** Quy định và điều khoản hủy thuê */
     @Column(name = "cancellation_policy")
     private String cancellationPolicy;
@@ -124,6 +136,30 @@ public class RentalPolicy {
 
     public void setOverdueGraceDays(Integer overdueGraceDays) {
         this.overdueGraceDays = overdueGraceDays;
+    }
+
+    public java.math.BigDecimal getDailyPenaltyRate() {
+        return dailyPenaltyRate;
+    }
+
+    public void setDailyPenaltyRate(java.math.BigDecimal dailyPenaltyRate) {
+        this.dailyPenaltyRate = dailyPenaltyRate;
+    }
+
+    public java.math.BigDecimal getFixedPenaltyAmount() {
+        return fixedPenaltyAmount;
+    }
+
+    public void setFixedPenaltyAmount(java.math.BigDecimal fixedPenaltyAmount) {
+        this.fixedPenaltyAmount = fixedPenaltyAmount;
+    }
+
+    public String getPenaltyType() {
+        return penaltyType;
+    }
+
+    public void setPenaltyType(String penaltyType) {
+        this.penaltyType = penaltyType;
     }
 
     public String getCancellationPolicy() {
