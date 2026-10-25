@@ -36,6 +36,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
     private final InspectionReportRepository inspectionReportRepository;
     private final UserFacilityAssignmentRepository userFacilityAssignmentRepository;
     private final InvoiceRepository invoiceRepository;
+    private final TerminationRequestRepository terminationRequestRepository;
 
     public ReturnInspectionServiceImpl(
             RentalContractRepository rentalContractRepository,
@@ -45,7 +46,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             HandoverRecordRepository handoverRecordRepository,
             InspectionReportRepository inspectionReportRepository,
             UserFacilityAssignmentRepository userFacilityAssignmentRepository,
-            InvoiceRepository invoiceRepository) {
+            InvoiceRepository invoiceRepository,
+            TerminationRequestRepository terminationRequestRepository) {
         this.rentalContractRepository = rentalContractRepository;
         this.storageUnitRepository = storageUnitRepository;
         this.facilityRepository = facilityRepository;
@@ -54,6 +56,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         this.inspectionReportRepository = inspectionReportRepository;
         this.userFacilityAssignmentRepository = userFacilityAssignmentRepository;
         this.invoiceRepository = invoiceRepository;
+        this.terminationRequestRepository = terminationRequestRepository;
     }
 
     @Override
@@ -105,9 +108,13 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Giờ hẹn trả kho không được ở trong quá khứ");
         }
 
-        // BR16.1, BR16.2: Sprint 2 xử lý trả đúng hạn vào ngày kết thúc hợp đồng
+        // UC19 adds an explicit early-return request; the existing UC16 appointment owns scheduling.
         LocalDate scheduledDate = scheduledAt.toLocalDate();
-        if (!scheduledDate.equals(contract.getEndDate())) {
+        boolean approvedEarlyDate = !scheduledDate.equals(contract.getEndDate())
+                && terminationRequestRepository.findFirstByContractIdAndTypeAndStatusIn(
+                        contractId, "EARLY_RETURN", List.of("REQUESTED", "SETTLEMENT_APPROVED"))
+                        .map(t -> scheduledAt.equals(t.scheduledReturnAt)).orElse(false);
+        if (!scheduledDate.equals(contract.getEndDate()) && !approvedEarlyDate) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
                     "Vui lòng chọn ngày hẹn trả kho vào ngày kết thúc hợp đồng ("
                             + contract.getEndDate().format(DATE_FORMATTER)

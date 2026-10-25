@@ -45,6 +45,7 @@ class ReturnInspectionServiceTest {
     @Mock private InspectionReportRepository inspectionReportRepository;
     @Mock private UserFacilityAssignmentRepository userFacilityAssignmentRepository;
     @Mock private InvoiceRepository invoiceRepository;
+    @Mock private TerminationRequestRepository terminationRequestRepository;
 
     @InjectMocks
     private ReturnInspectionServiceImpl returnInspectionService;
