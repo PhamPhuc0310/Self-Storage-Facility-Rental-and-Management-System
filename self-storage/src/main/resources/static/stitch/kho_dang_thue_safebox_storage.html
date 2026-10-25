@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
@@ -450,6 +450,10 @@
           <button onclick="closeContractDetailModal()" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold transition-colors">
             Đóng
           </button>
+          <button id="modal-renewal-btn" onclick="navigateToRenewal()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-all shadow-sm">
+            <span class="material-symbols-outlined text-sm">autorenew</span>
+            <span>Gia hạn hợp đồng (UC17)</span>
+          </button>
           <button id="modal-return-schedule-btn" onclick="navigateToReturnSchedule()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary-container transition-all shadow-sm">
             <span class="material-symbols-outlined text-sm">event_repeat</span>
             <span>Đặt lịch trả kho</span>
@@ -709,6 +713,18 @@
           `;
         }
 
+        let renewalBtnHtml = '';
+        if (item.status === 'ACTIVE') {
+          renewalBtnHtml = `
+            <a href="/stitch/gia_han_hop_dong_safebox_storage.html?contractId=${item.contractId}" 
+               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-all shadow-sm"
+               title="Gia hạn hợp đồng thuê kho (UC17)">
+              <span class="material-symbols-outlined text-sm">autorenew</span>
+              <span>Gia hạn kho</span>
+            </a>
+          `;
+        }
+
         card.innerHTML = `
           <!-- Thumbnail & Unit Identifier -->
           <div class="xl:w-72 w-full h-48 xl:h-auto rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-200">
@@ -791,6 +807,7 @@
                   <span class="material-symbols-outlined text-sm">visibility</span>
                   <span>Xem chi tiết &amp; Hóa đơn</span>
                 </button>
+                ${renewalBtnHtml}
                 ${returnBtnHtml}
               </div>
             </div>
@@ -984,6 +1001,12 @@
       // Return Schedule Button logic (BR15.10)
       const returnBtn = document.getElementById('modal-return-schedule-btn');
       returnBtn.classList.toggle('hidden', !c.canScheduleReturn);
+
+      // Renewal Button logic (UC17)
+      const renewalBtn = document.getElementById('modal-renewal-btn');
+      if (renewalBtn) {
+        renewalBtn.classList.toggle('hidden', c.status !== 'ACTIVE');
+      }
     }
 
     // Switch Modal Tabs
@@ -999,6 +1022,15 @@
           content.classList.add('hidden');
         }
       });
+    }
+
+    // Navigate to renewal (UC17)
+    function navigateToRenewal() {
+      if (selectedContractDetail && selectedContractDetail.contract) {
+        window.location.href = `/stitch/gia_han_hop_dong_safebox_storage.html?contractId=${selectedContractDetail.contract.contractId}`;
+      } else {
+        window.location.href = '/stitch/gia_han_hop_dong_safebox_storage.html';
+      }
     }
 
     // Navigate to return scheduling (UC16)

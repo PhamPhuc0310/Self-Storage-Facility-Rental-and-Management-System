@@ -43,7 +43,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/reservations/my", "/api/reservations/my/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/contracts/my", "/api/contracts/my/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/invoices/my", "/api/invoices/my/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/customer/rentals", "/api/customer/rentals/**", "/api/rentals/my", "/api/rentals/my/**").hasAnyRole("CUSTOMER", "SYSTEM_ADMIN", "FACILITY_MANAGER")
+                        .requestMatchers("/api/customer/rentals", "/api/customer/rentals/**", "/api/rentals/my", "/api/rentals/my/**",
+                                "/api/customer/renewals", "/api/customer/renewals/**", "/api/customer/contracts/**").hasAnyRole("CUSTOMER", "SYSTEM_ADMIN", "FACILITY_MANAGER")
                         .requestMatchers("/api/facility/rentals", "/api/facility/rentals/**").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
                         .requestMatchers("/api/facility/returns", "/api/facility/returns/**").hasAnyRole("FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")
                         .requestMatchers("/api/facility/contracts/**", "/api/v1/return-inspections/**", "/api/v1/contracts/**").hasAnyRole("CUSTOMER", "FACILITY_STAFF", "FACILITY_MANAGER", "SYSTEM_ADMIN")

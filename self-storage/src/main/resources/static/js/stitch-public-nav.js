@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   if (!window.SafeBoxAuth) return;
   const header = document.querySelector('header');
   if (!header) return;
@@ -52,13 +52,15 @@
     ['Hợp đồng của tôi','/uc10-customer-contract.html'],
     ['Kho đang thuê','/stitch/kho_dang_thue_safebox_storage.html'],
     ['Thanh toán và lịch nhận kho','/stitch/uc11-customer-payments-appointments.html'],
+    ['Gia hạn hợp đồng','/stitch/gia_han_hop_dong_safebox_storage.html'],
     ['Hỗ trợ kỹ thuật & Sự cố','/stitch/ho_tro_khach_hang_safebox_storage.html']
   ];
   const managerLinks = [
     ['Tổng quan quản lý','/stitch/t_ng_quan_qu_n_l_safebox_manager.html'],
     ['Duyệt yêu cầu','/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html'],
     ['Vận hành và phân công','/stitch/uc12-manager-operations.html'],
-    ['Tiếp nhận trả kho','/stitch/bien_ban_tra_kho_safebox_manager.html']
+    ['Tiếp nhận trả kho','/stitch/bien_ban_tra_kho_safebox_manager.html'],
+    ['Xét duyệt gia hạn','/stitch/quan_ly_gia_han_safebox_manager.html']
   ];
   function link(label, href) {
     const a = document.createElement('a');
