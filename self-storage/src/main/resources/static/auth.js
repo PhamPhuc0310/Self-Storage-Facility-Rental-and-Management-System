@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const loginPath = '/stitch/ng_nh_p_ng_k_safebox_storage.html';
   const destinations = {
     CUSTOMER: '/stitch/kho_dang_thue_safebox_storage.html',
@@ -81,6 +81,6 @@
     clearAuth();
     location.replace(loginPath);
   }
-  window.SafeBoxAuth = { getToken, getCurrentUser, safeReturnTo, isAuthenticated: () => !!getToken(), authFetch,
+  window.SafeBoxAuth = { getToken, getCurrentUser, getUser: getCurrentUser, safeReturnTo, isAuthenticated: () => !!getToken(), authFetch,
     logout, requireAuth: () => requireRole(), requireRole, saveAuth, redirectForRole, clearAuth };
 })();

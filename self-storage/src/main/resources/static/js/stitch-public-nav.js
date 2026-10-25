@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   if (!window.SafeBoxAuth) return;
   const header = document.querySelector('header');
   if (!header) return;
@@ -51,7 +51,8 @@
     ['Yêu cầu của tôi','/stitch/y_u_c_u_c_a_t_i_safebox_storage.html'],
     ['Hợp đồng của tôi','/uc10-customer-contract.html'],
     ['Kho đang thuê','/stitch/kho_dang_thue_safebox_storage.html'],
-    ['Thanh toán và lịch nhận kho','/stitch/uc11-customer-payments-appointments.html']
+    ['Thanh toán và lịch nhận kho','/stitch/uc11-customer-payments-appointments.html'],
+    ['Hỗ trợ kỹ thuật & Sự cố','/stitch/ho_tro_khach_hang_safebox_storage.html']
   ];
   const managerLinks = [
     ['Tổng quan quản lý','/stitch/t_ng_quan_qu_n_l_safebox_manager.html'],

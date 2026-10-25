@@ -1,7 +1,9 @@
 package com.safebox.self_storage.controller;
 
+import com.safebox.self_storage.dto.CompleteContractRequest;
 import com.safebox.self_storage.dto.CompleteReturnInspectionRequest;
 import com.safebox.self_storage.dto.CreateReturnScheduleRequest;
+import com.safebox.self_storage.dto.response.ContractCompletionResponse;
 import com.safebox.self_storage.dto.response.FacilityReturnTaskItemResponse;
 import com.safebox.self_storage.dto.response.ReturnInspectionDetailResponse;
 import com.safebox.self_storage.dto.response.ReturnScheduleResponse;
@@ -14,8 +16,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Controller xử lý các API của Use Case UC16:
- * "Đặt lịch trả kho và xác nhận tình trạng sau trả" (BR16.1 – BR16.10).
+ * Controller xử lý các API của:
+ * - UC16: "Đặt lịch trả kho và xác nhận tình trạng sau trả" (BR16.1 – BR16.10).
+ * - UC20: "Hoàn tất trả kho, kiểm tra và đóng hợp đồng" (BR20.1 – BR20.5).
  */
 @RestController
 public class ReturnInspectionController {
@@ -110,9 +113,21 @@ public class ReturnInspectionController {
     }
 
     /**
-     * UC16: Nhân viên/Quản lý cơ sở xác nhận kiểm tra và hoàn tất nhận lại kho (BR16.3 – BR16.10).
+     * UC20: Xem chi tiết biên bản kiểm tra trả kho theo contractId (BR20.5).
      */
-    @PostMapping({"/api/facility/returns/{handoverId}/complete", "/api/facility/returns/complete"})
+    @GetMapping({"/api/facility/returns/contract/{contractId}", "/api/v1/return-inspections/contract/{contractId}"})
+    public ResponseEntity<ReturnInspectionDetailResponse> getReturnInspectionByContract(
+            @PathVariable("contractId") UUID contractId) {
+        UUID currentUserId = getCurrentUserId();
+        ReturnInspectionDetailResponse detail = returnInspectionService.getReturnInspectionByContract(
+                currentUserId, contractId);
+        return ResponseEntity.ok(detail);
+    }
+
+    /**
+     * UC16 & UC20: Nhân viên/Quản lý cơ sở xác nhận kiểm tra và hoàn tất nhận lại kho (BR16.3 – BR16.10, BR20.1, BR20.5).
+     */
+    @PostMapping({"/api/facility/returns/{handoverId}/complete", "/api/facility/returns/complete", "/api/v1/return-inspections/{handoverId}/complete"})
     public ResponseEntity<ReturnInspectionDetailResponse> completeReturnInspection(
             @PathVariable(value = "handoverId", required = false) UUID handoverId,
             @RequestBody CompleteReturnInspectionRequest request) {
@@ -122,6 +137,22 @@ public class ReturnInspectionController {
         }
         ReturnInspectionDetailResponse response = returnInspectionService.completeReturnHandoverAndInspection(
                 staffOrManagerId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * UC20: Quản lý/Nhân viên cơ sở hoàn tất thủ tục tất toán tài chính và đóng hợp đồng, giải phóng ô kho (BR20.1 – BR20.5).
+     */
+    @PostMapping({"/api/facility/contracts/{contractId}/complete-return", "/api/v1/contracts/{contractId}/complete-return"})
+    public ResponseEntity<ContractCompletionResponse> completeContract(
+            @PathVariable("contractId") UUID contractId,
+            @RequestBody(required = false) CompleteContractRequest request) {
+        UUID staffOrManagerId = getCurrentUserId();
+        if (request == null) {
+            request = new CompleteContractRequest();
+        }
+        ContractCompletionResponse response = returnInspectionService.completeContractAndFinalizeUnit(
+                staffOrManagerId, contractId, request);
         return ResponseEntity.ok(response);
     }
 }

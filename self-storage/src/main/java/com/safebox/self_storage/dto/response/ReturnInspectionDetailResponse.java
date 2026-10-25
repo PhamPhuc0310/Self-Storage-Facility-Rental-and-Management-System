@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * DTO chi tiết biên bản nhận lại kho và kiểm tra tình trạng (UC16 - BR16.5, BR16.8, BR16.9, BR16.10).
+ * DTO chi tiết biên bản nhận lại kho và kiểm tra tình trạng (UC16 - BR16.5, BR16.8, BR16.9, BR16.10 & UC20 - BR20.1-BR20.5).
  */
 public record ReturnInspectionDetailResponse(
         UUID handoverId,
@@ -45,6 +45,7 @@ public record ReturnInspectionDetailResponse(
         long unpaidInvoicesCount,
         boolean financialObligationsSettled,
         String financialStatusNotes,
-        String note
+        String note,
+        String evidenceUrls
 ) {
 }
