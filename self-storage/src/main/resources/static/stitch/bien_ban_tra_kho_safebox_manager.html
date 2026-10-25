@@ -94,8 +94,8 @@
       <div class="flex items-center gap-3">
         <!-- Status Filter -->
         <select id="filter-status" onchange="loadAppointments()" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 focus:outline-none focus:border-primary">
-          <option value="ALL">Tất cả trạng thái</option>
-          <option value="SCHEDULED" selected>Chờ tiếp nhận (SCHEDULED)</option>
+          <option value="ALL" selected>Tất cả trạng thái</option>
+          <option value="SCHEDULED">Chờ tiếp nhận (SCHEDULED)</option>
           <option value="COMPLETED">Đã hoàn tất (COMPLETED)</option>
         </select>
         <button onclick="loadAppointments()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition-colors">
@@ -434,7 +434,46 @@
 
             <div class="p-3 rounded-xl bg-white/80 border border-emerald-200 text-xs text-slate-700">
               <strong class="text-slate-900 block mb-1">Theo dõi tài chính:</strong>
-              <span id="res-financial-note">Khoản tiền cọc đang được bảo lưu để tất toán theo quy định hợp đồng.</span>
+              <span id="res-financial-note">Khoản tiền đặt cọc đã được lập hồ sơ quyết toán và chuyển giao cho Bộ phận Kế toán - Tài chính xử lý hoàn tiền về tài khoản khách hàng.</span>
+            </div>
+
+            <!-- Form Đóng hợp đồng & Tất toán (UC20) -->
+            <div id="close-contract-form-area" class="mt-4 pt-4 border-t border-emerald-200 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
+                <h4 class="font-bold text-slate-900 text-sm">Bước tiếp theo: Tất toán tài chính & Đóng hợp đồng</h4>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Biên bản nhận lại kho đã lập xong. Tiếp tục xác nhận để hoàn trả tiền cọc cho khách hàng (sau khi trừ chi phí hư hại nếu có), vô hiệu hóa quyền truy cập và chính thức đóng hợp đồng (<span class="font-mono font-bold text-emerald-700">COMPLETED</span>).
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Trạng thái ô kho sau thanh lý:</label>
+                  <select id="close-unit-status" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-primary">
+                    <option value="AVAILABLE" selected>AVAILABLE (Sẵn sàng đón khách mới)</option>
+                    <option value="MAINTENANCE">MAINTENANCE (Chuyển sang bảo dưỡng)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Ghi chú tất toán tài chính / hoàn cọc:</label>
+                  <input type="text" id="close-contract-notes" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-primary" placeholder="Ví dụ: Đã đối soát tiền cọc, chuyển lệnh hoàn cọc..." value="Đã kiểm tra kho nguyên vẹn, phê duyệt hoàn trả 100% tiền cọc">
+                </div>
+              </div>
+              <div class="pt-2 flex justify-end">
+                <button type="button" id="btn-submit-close-contract" onclick="handleCloseContract()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 shadow-md transition-all flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-sm">lock_clock</span>
+                  <span>Xác nhận đóng hợp đồng & Tất toán cọc (COMPLETED)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Banner đã đóng hợp đồng thành công -->
+            <div id="contract-closed-banner" class="hidden mt-4 p-4 rounded-2xl bg-white border border-emerald-300 flex items-center gap-3">
+              <span class="material-symbols-outlined text-emerald-600 text-2xl">verified</span>
+              <div>
+                <strong class="text-emerald-900 text-xs block font-bold">Hợp đồng đã đóng tất toán hoàn tất (COMPLETED)!</strong>
+                <span class="text-slate-600 text-[11px]">Hồ sơ đã được lưu trữ, quyền truy cập bị hủy bỏ và lệnh hoàn tiền cọc đã được bàn giao cho Kế toán.</span>
+              </div>
             </div>
           </div>
 
@@ -629,6 +668,19 @@
         document.getElementById('res-unit-status').textContent = detail.unitStatus;
         document.getElementById('res-inspector').textContent = detail.inspectorName || 'Nhân viên cơ sở';
         document.getElementById('res-financial-note').textContent = detail.financialStatusNotes || '';
+
+        // UC20: Xu ly hien thi form Dong hop dong & Tat toan coc
+        const closeArea = document.getElementById('close-contract-form-area');
+        const closedBanner = document.getElementById('contract-closed-banner');
+        if (closeArea && closedBanner) {
+          if (detail.contractStatus === 'COMPLETED' || detail.contractStatus === 'CLOSED') {
+            closeArea.classList.add('hidden');
+            closedBanner.classList.remove('hidden');
+          } else {
+            closeArea.classList.remove('hidden');
+            closedBanner.classList.add('hidden');
+          }
+        }
       } else {
         form.classList.remove('hidden');
         resultCard.classList.add('hidden');
