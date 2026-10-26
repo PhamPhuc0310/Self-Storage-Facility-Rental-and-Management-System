@@ -11,4 +11,5 @@ public class BusinessException extends RuntimeException {
     }
 
     public HttpStatus status() { return status; }
+    public HttpStatus getStatus() { return status; }
 }
