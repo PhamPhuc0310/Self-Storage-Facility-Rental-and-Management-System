@@ -106,4 +106,14 @@ public interface RentalContractRepository extends JpaRepository<RentalContract, 
      * Kiểm tra sự tồn tại của contract_number để đảm bảo tính duy nhất.
      */
     boolean existsByContractNumber(String contractNumber);
+
+    @Query("SELECT c FROM RentalContract c JOIN StorageUnit u ON c.unitId = u.unitId "
+            + "WHERE u.facilityId IN :facilityIds "
+            + "ORDER BY c.endDate ASC")
+    List<RentalContract> findByFacilityIds(@Param("facilityIds") Collection<UUID> facilityIds);
+
+    @Query("SELECT c FROM RentalContract c JOIN StorageUnit u ON c.unitId = u.unitId "
+            + "WHERE u.facilityId = :facilityId "
+            + "ORDER BY c.endDate ASC")
+    List<RentalContract> findByFacilityId(@Param("facilityId") UUID facilityId);
 }
