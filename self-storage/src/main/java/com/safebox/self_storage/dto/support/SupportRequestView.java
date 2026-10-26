@@ -1,0 +1,3 @@
+package com.safebox.self_storage.dto.support;
+import java.time.LocalDateTime; import java.util.*;
+public record SupportRequestView(UUID requestId,UUID contractId,String contractNumber,UUID facilityId,String facilityName,String requestType,String title,String description,String priority,String status,LocalDateTime createdAt,LocalDateTime resolvedAt,String resolutionNote,UUID requestedBy,String requestedByName,UUID assignedStaffId,String assignedStaffName,List<MessageView> messages){ public record MessageView(UUID messageId,UUID authorId,String authorName,String message,LocalDateTime createdAt){} }

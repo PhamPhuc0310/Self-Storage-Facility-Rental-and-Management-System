@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Xét duyệt gia hạn hợp đồng - SafeBox Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#001229",
+            "primary-container": "#0f2744",
+            "on-primary-container": "#798fb1",
+            secondary: "#0051d5",
+            "secondary-container": "#316bf3",
+            "on-secondary-container": "#fefcff",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#dbe1ff",
+            background: "#faf8ff",
+            "on-background": "#131b2e",
+            surface: "#faf8ff",
+            "on-surface": "#131b2e",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f2f3ff",
+            "surface-container": "#eaedff",
+            "surface-container-high": "#e2e7ff",
+            "surface-container-highest": "#dae2fd",
+            "on-surface-variant": "#44474d",
+            outline: "#74777e",
+            "outline-variant": "#c4c6ce",
+            error: "#ba1a1a",
+            "error-container": "#ffdad6"
+          },
+          fontFamily: {
+            "headline-sm": ["Be Vietnam Pro"],
+            "headline-md": ["Be Vietnam Pro"],
+            "body-sm": ["Be Vietnam Pro"],
+            "body-md": ["Be Vietnam Pro"],
+            "label-button": ["Be Vietnam Pro"],
+            "label-badge": ["Be Vietnam Pro"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html, body {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined' !important;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-review-ticket, #print-review-ticket * {
+        visibility: visible;
+      }
+      #print-review-ticket {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 24px;
+        background: white !important;
+        color: black !important;
+        z-index: 999999;
+      }
+      aside, header, #alert-banner {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex">
+
+  <!-- Left Sidebar (SafeBox Manager Standard Layout) -->
+  <aside class="fixed left-0 top-0 h-full w-72 bg-primary-container text-on-secondary-container z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="flex flex-col">
+      <!-- Brand Logo -->
+      <div class="h-20 px-6 flex items-center gap-3 bg-primary/40">
+        <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-white tracking-tight font-semibold">SafeBox Admin</span>
+          <span class="font-body-sm text-body-sm text-on-primary-container">Quản lý cơ sở kho</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="px-4 py-6 space-y-1.5" data-active-classes="bg-secondary-container text-on-secondary font-bold rounded-lg">
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="tong-quan" href="/stitch/t_ng_quan_qu_n_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">dashboard</span>
+          <span class="font-label-button text-label-button">Tổng quan</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="co-so-cua-toi" href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">domain</span>
+          <span class="font-label-button text-label-button">Cơ sở của tôi</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="loai-kho" href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">category</span>
+          <span class="font-label-button text-label-button">Loại kho</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="kho-vat-ly" href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">inventory_2</span>
+          <span class="font-label-button text-label-button">Kho vật lý</span>
+        </a>
+        <a class="flex items-center justify-between px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="yeu-cau-dat-kho" href="/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html">
+          <div class="flex items-center">
+            <span class="material-symbols-outlined mr-3">assignment</span>
+            <span class="font-label-button text-label-button">Yêu cầu đặt kho</span>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary font-label-badge text-label-badge">— MỚI</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" href="/stitch/uc12-manager-operations.html">
+          <span class="material-symbols-outlined mr-3">assignment_ind</span>
+          <span class="font-label-button text-label-button">Vận hành &amp; phân công</span>
+        </a>
+        <!-- Active Page: UC17 -->
+        <a aria-current="page" class="flex items-center px-4 py-3 transition-colors bg-secondary-container text-on-secondary font-bold rounded-lg" href="/stitch/quan_ly_gia_han_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">autorenew</span>
+          <span class="font-label-button text-label-button">Xét duyệt gia hạn (UC17)</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" href="/stitch/quan_ly_qua_han_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">gavel</span>
+          <span class="font-label-button text-label-button">Quản lý phí phạt &amp; quá hạn</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sign Out in Sidebar -->
+    <div class="p-4 mb-4">
+      <a class="flex items-center px-4 py-3 rounded-lg text-error-container hover:bg-error/20 hover:text-on-error transition-colors" data-path="dang-nhap" href="javascript:void(0)" onclick="SafeBoxAuth.logout()">
+        <span class="material-symbols-outlined mr-3 text-error">logout</span>
+        <span class="font-label-button text-label-button">Đăng xuất</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Right Main View -->
+  <div class="pl-72 flex-1 flex flex-col min-h-screen">
+    
+    <!-- Top Bar -->
+    <header class="h-20 bg-surface/90 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40">
+      <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-secondary text-2xl">autorenew</span>
+        <div>
+          <h2 id="top-facility-title" class="font-headline-sm text-headline-sm text-on-surface font-semibold flex items-center gap-2">
+            <span>Xét duyệt gia hạn hợp đồng thuê kho</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">UC17</span>
+          </h2>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">Kiểm tra khả dụng ô kho, phê duyệt gia hạn &amp; đôn đốc thanh toán trong 24h</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+          <div class="w-8 h-8 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold text-xs" id="user-avatar">QL</div>
+          <div class="flex flex-col text-left">
+            <span class="font-label-button text-label-button text-on-surface leading-tight font-semibold" id="user-fullname">Quản lý cơ sở</span>
+            <span class="font-body-sm text-body-sm text-secondary font-medium" id="user-role">FACILITY_MANAGER</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadFacilityRenewals()" class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-button text-label-button flex items-center gap-1.5 transition-all">
+            <span class="material-symbols-outlined text-lg">refresh</span>
+            <span>Làm mới</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="p-8 space-y-6 flex-1">
+      
+      <!-- Top Alert Banner -->
+      <div id="alert-banner" class="hidden p-4 rounded-xl border text-xs font-medium flex items-start gap-3 animate-in fade-in duration-200" role="alert">
+        <span id="alert-icon" class="material-symbols-outlined text-lg mt-0.5">info</span>
+        <div class="flex-1" id="alert-text">Thông báo</div>
+        <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-600">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+
+      <!-- Header Section with KPI Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-5 rounded-2xl bg-surface-container-lowest border border-slate-100 shadow-sm space-y-1">
+          <span class="text-xs text-slate-500 font-medium">Chờ xét duyệt (PENDING)</span>
+          <p id="kpi-pending" class="text-2xl font-extrabold text-amber-600 font-mono">0</p>
+          <span class="text-[10px] text-slate-400">Cần kiểm tra kho &amp; phản hồi</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-surface-container-lowest border border-slate-100 shadow-sm space-y-1">
+          <span class="text-xs text-slate-500 font-medium">Chờ thanh toán (APPROVED)</span>
+          <p id="kpi-approved" class="text-2xl font-extrabold text-blue-600 font-mono">0</p>
+          <span class="text-[10px] text-slate-400">Đã duyệt trong 24h</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-surface-container-lowest border border-slate-100 shadow-sm space-y-1">
+          <span class="text-xs text-slate-500 font-medium">Đã gia hạn thành công</span>
+          <p id="kpi-completed" class="text-2xl font-extrabold text-emerald-600 font-mono">0</p>
+          <span class="text-[10px] text-slate-400">Hợp đồng đã có hiệu lực mới</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-surface-container-lowest border border-slate-100 shadow-sm space-y-1">
+          <span class="text-xs text-slate-500 font-medium">Bị từ chối / Đã hủy</span>
+          <p id="kpi-rejected" class="text-2xl font-extrabold text-rose-600 font-mono">0</p>
+          <span class="text-[10px] text-slate-400">Kèm lý do phản hồi</span>
+        </div>
+      </div>
+
+      <!-- Filter Controls & Actions Bar -->
+      <div class="p-4 rounded-2xl bg-surface-container-lowest border border-slate-100 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Status Tabs -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <button onclick="filterStatus('')" class="status-btn active px-3 py-1.5 rounded-lg bg-surface-container text-primary font-bold">
+            Tất cả
+          </button>
+          <button onclick="filterStatus('PENDING')" class="status-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Chờ duyệt
+          </button>
+          <button onclick="filterStatus('APPROVED')" class="status-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Đã duyệt
+          </button>
+          <button onclick="filterStatus('COMPLETED')" class="status-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Hoàn tất
+          </button>
+          <button onclick="filterStatus('REJECTED')" class="status-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Đã từ chối
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs">
+            <span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+            <input id="search-input" oninput="handleSearch(this.value)" placeholder="Tìm mã hợp đồng, khách hàng, kho..." class="bg-transparent border-none focus:outline-none w-64"/>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Renewals Data Table -->
+      <div class="bg-surface-container-lowest rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-surface-container-low text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th class="p-4">Mã yêu cầu</th>
+                <th class="p-4">Khách hàng</th>
+                <th class="p-4">Hợp đồng &amp; Ô kho</th>
+                <th class="p-4">Kỳ hạn gia hạn</th>
+                <th class="p-4 text-right">Tổng tiền</th>
+                <th class="p-4 text-center">Trạng thái</th>
+                <th class="p-4 text-right">Xét duyệt</th>
+              </tr>
+            </thead>
+            <tbody id="manager-renewals-tbody" class="divide-y divide-slate-100 text-slate-800">
+              <tr>
+                <td colspan="7" class="p-8 text-center text-slate-400">
+                  <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-secondary border-t-transparent mb-2"></div>
+                  <p>Đang tải danh sách yêu cầu gia hạn tại cơ sở...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL: XÉT DUYỆT / CHI TIẾT YÊU CẦU GIA HẠN (BR17.3) -->
+  <div id="review-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-primary text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-xl text-secondary-fixed">assignment_turned_in</span>
+          <div>
+            <h3 class="font-bold text-sm">Xét Duyệt Yêu Cầu Gia Hạn Hợp Đồng</h3>
+            <span id="modal-renewal-id" class="text-[11px] font-mono text-white/70">#--</span>
+          </div>
+        </div>
+        <button onclick="closeModal('review-modal')" class="text-white/80 hover:text-white">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1">
+        
+        <!-- Status & Condition Checklist (BR17.3) -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <span class="font-bold text-slate-700 block uppercase tracking-wider text-[11px]">
+            Kiểm tra điều kiện cơ sở &amp; Ô kho (BR17.3):
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span class="material-symbols-outlined text-base">check_circle</span>
+              <span>Ô kho đang hoạt động (không bảo trì)</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span class="material-symbols-outlined text-base">check_circle</span>
+              <span>Không có lịch hẹn trả kho mở</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contract & Customer Info -->
+        <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-surface-container-low border border-slate-200">
+          <div>
+            <span class="text-slate-400 block text-[10px]">Khách hàng thuê:</span>
+            <span id="modal-customer-name" class="font-bold text-primary text-sm">--</span>
+            <span id="modal-customer-id" class="text-[10px] font-mono text-slate-500 block truncate">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Hợp đồng &amp; Ô kho:</span>
+            <span id="modal-contract-no" class="font-mono font-bold text-primary block">--</span>
+            <span id="modal-unit-info" class="text-xs text-slate-600">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Kỳ hạn hiện tại:</span>
+            <span id="modal-old-end-date" class="font-mono font-bold text-rose-600">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Kỳ hạn mới gia hạn (BR17.2):</span>
+            <span id="modal-new-end-date" class="font-mono font-bold text-emerald-700">--</span>
+          </div>
+        </div>
+
+        <!-- Snapshot Financials (BR17.4) -->
+        <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+          <h4 class="font-bold text-primary text-xs mb-1">Chi tiết tài chính chốt kỳ gia hạn</h4>
+          <div class="flex justify-between text-slate-600">
+            <span>Đơn giá tháng:</span>
+            <span id="modal-monthly-fee" class="font-mono">-- đ</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Số tháng gia hạn:</span>
+            <span id="modal-months" class="font-mono">-- tháng</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Tạm tính (Subtotal):</span>
+            <span id="modal-subtotal" class="font-mono">-- đ</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Thuế VAT:</span>
+            <span id="modal-vat" class="font-mono">-- đ</span>
+          </div>
+          <div class="pt-2 border-t border-slate-200 flex justify-between font-bold text-sm text-primary">
+            <span>Tổng tiền hóa đơn RENEWAL:</span>
+            <span id="modal-total-amount" class="text-secondary font-mono">-- đ</span>
+          </div>
+        </div>
+
+        <!-- Custom Payment Deadline setting -->
+        <div id="approve-settings-box" class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 space-y-2">
+          <label class="font-bold text-blue-900 block text-xs">Cấu hình thời hạn thanh toán (giờ):</label>
+          <div class="flex items-center gap-3">
+            <input id="input-payment-hours" type="number" min="1" max="168" value="24" class="w-24 text-xs font-bold font-mono px-3 py-1.5 rounded-lg border border-blue-300 text-center"/>
+            <span class="text-[11px] text-blue-800">giờ (mặc định 24h, khách có chừng này thời gian để đóng tiền)</span>
+          </div>
+        </div>
+
+        <!-- Rejection Reason input (Visible when rejecting) -->
+        <div id="reject-reason-box" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 space-y-2">
+          <label class="font-bold text-rose-900 block text-xs">Lý do từ chối yêu cầu gia hạn (bắt buộc):</label>
+          <textarea id="input-reject-reason" rows="2" placeholder="Ví dụ: Ô kho đã có lịch bảo trì định kỳ của cơ sở, quý khách vui lòng liên hệ quầy tiếp tân..." class="w-full text-xs rounded-lg border border-rose-300 p-2.5 focus:outline-none"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 text-xs">
+        <button onclick="closeModal('review-modal')" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold text-slate-700">
+          Đóng
+        </button>
+
+        <div class="flex items-center gap-2" id="modal-action-buttons">
+          <!-- Dynamic actions: Approve, Reject, Print -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRINTABLE CONTAINER: PHIẾU XÉT DUYỆT GIA HẠN HỢP ĐỒNG -->
+  <div id="print-review-ticket" class="hidden font-serif p-8 max-w-2xl mx-auto bg-white text-slate-900">
+    <div class="text-center space-y-1 mb-6 border-b border-slate-300 pb-4">
+      <h3 class="font-bold uppercase text-base">HỆ THỐNG QUẢN LÝ KHO THÔNG MINH SAFEBOX STORAGE</h3>
+      <h2 class="font-bold uppercase text-lg text-secondary">PHIẾU KẾT QUẢ XÉT DUYỆT GIA HẠN HỢP ĐỒNG</h2>
+      <p class="text-xs italic">Mã xét duyệt: <span id="print-ticket-id">--</span></p>
+    </div>
+
+    <div class="space-y-4 text-xs leading-relaxed">
+      <div class="grid grid-cols-2 gap-4">
+        <p><strong>Cơ sở phụ trách:</strong> <span id="print-ticket-facility">--</span></p>
+        <p><strong>Người xét duyệt:</strong> <span id="print-ticket-manager">--</span></p>
+        <p><strong>Số hợp đồng thuê:</strong> <span id="print-ticket-contract">--</span></p>
+        <p><strong>Ô kho lưu trữ:</strong> <span id="print-ticket-unit">--</span></p>
+      </div>
+
+      <div class="p-3 bg-slate-100 rounded">
+        <p><strong>Khách hàng:</strong> <span id="print-ticket-customer">--</span></p>
+        <p><strong>Thời hạn thuê mới:</strong> <span id="print-ticket-period">--</span></p>
+        <p><strong>Tổng chi phí gia hạn:</strong> <span id="print-ticket-amount">--</span></p>
+        <p><strong>Kết quả xét duyệt:</strong> <strong id="print-ticket-status" class="uppercase">--</strong></p>
+      </div>
+
+      <p class="text-[11px] italic text-slate-500 pt-4">
+        Phiếu này được lưu trữ trong hồ sơ vận hành cơ sở để phục vụ kiểm toán nội bộ và quản lý sức chứa kho vật lý.
+      </p>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="/auth.js"></script>
+  <script>
+    let renewals = [];
+    let currentFilter = '';
+    let currentSearch = '';
+    let selectedRenewal = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authed = await SafeBoxAuth.requireRole('FACILITY_MANAGER', 'SYSTEM_ADMIN');
+      if (!authed) return;
+
+      const user = SafeBoxAuth.getCurrentUser();
+      if (user) {
+        if (document.getElementById('user-fullname')) document.getElementById('user-fullname').textContent = user.fullName || user.email;
+        if (document.getElementById('user-role')) document.getElementById('user-role').textContent = user.role;
+        if (document.getElementById('user-avatar')) document.getElementById('user-avatar').textContent = (user.fullName || 'QL').substring(0, 2).toUpperCase();
+        if (document.getElementById('sidebar-manager-name')) document.getElementById('sidebar-manager-name').textContent = user.fullName || user.email;
+      }
+
+      await loadFacilityRenewals();
+    });
+
+    function formatMoney(amount) {
+      if (amount == null || isNaN(amount)) return '0 đ';
+      return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '--';
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('vi-VN');
+      } catch (_) { return dateStr; }
+    }
+
+    function showAlert(text, type = 'info') {
+      const banner = document.getElementById('alert-banner');
+      const icon = document.getElementById('alert-icon');
+      const textElem = document.getElementById('alert-text');
+      
+      banner.className = `p-4 rounded-xl border text-xs font-medium flex items-start gap-3 animate-in fade-in duration-200 ${
+        type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' :
+        type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+        'bg-blue-50 border-blue-200 text-blue-800'
+      }`;
+      icon.textContent = type === 'error' ? 'error' : type === 'success' ? 'check_circle' : 'info';
+      textElem.textContent = text;
+      banner.classList.remove('hidden');
+    }
+
+    function hideAlert() {
+      document.getElementById('alert-banner').classList.add('hidden');
+    }
+
+    async function loadFacilityRenewals() {
+      const tbody = document.getElementById('manager-renewals-tbody');
+      try {
+        let url = '/api/manager/renewals?page=0&size=50';
+        if (currentFilter) url += `&status=${currentFilter}`;
+
+        const res = await SafeBoxAuth.authFetch(url);
+        if (!res.ok) {
+          let errData;
+          try { errData = await res.json(); } catch(e){}
+          throw new Error(errData?.message || `Lỗi máy chủ (${res.status}): Không thể tải danh sách gia hạn tại cơ sở`);
+        }
+
+        const pageData = await res.json();
+        const items = pageData.content || [];
+        renewals = items;
+
+        // Update KPIs
+        updateKPIs(items);
+
+        renderRenewalsTable(items);
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-rose-500">Lỗi: ${err.message}</td></tr>`;
+      }
+    }
+
+    function updateKPIs(items) {
+      document.getElementById('kpi-pending').textContent = items.filter(x => x.status === 'PENDING').length;
+      document.getElementById('kpi-approved').textContent = items.filter(x => x.status === 'APPROVED').length;
+      document.getElementById('kpi-completed').textContent = items.filter(x => x.status === 'COMPLETED').length;
+      document.getElementById('kpi-rejected').textContent = items.filter(x => x.status === 'REJECTED' || x.status === 'CANCELLED').length;
+    }
+
+    function renderRenewalsTable(items) {
+      const tbody = document.getElementById('manager-renewals-tbody');
+      
+      let filtered = items;
+      if (currentSearch) {
+        const q = currentSearch.toLowerCase();
+        filtered = items.filter(x => 
+          (x.contractNumber && x.contractNumber.toLowerCase().includes(q)) ||
+          (x.customerName && x.customerName.toLowerCase().includes(q)) ||
+          (x.unitNumber && x.unitNumber.toLowerCase().includes(q))
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-slate-400">
+              <span class="material-symbols-outlined text-3xl mb-1 text-slate-300">task_alt</span>
+              <p>Không có yêu cầu gia hạn nào cần xử lý.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(r => {
+        let statusBadge = '';
+        switch (r.status) {
+          case 'PENDING': statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Chờ duyệt</span>'; break;
+          case 'APPROVED': statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">Đã duyệt</span>'; break;
+          case 'COMPLETED': statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Thành công</span>'; break;
+          case 'REJECTED': statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Đã từ chối</span>'; break;
+          case 'CANCELLED': statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">Đã hủy</span>'; break;
+          default: statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">${r.status}</span>`;
+        }
+
+        let actionBtn = `
+          <button onclick="openReviewModal('${r.renewalId}')" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-semibold text-xs inline-flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            <span>Chi tiết</span>
+          </button>
+        `;
+
+        if (r.status === 'PENDING') {
+          actionBtn = `
+            <button onclick="openReviewModal('${r.renewalId}')" class="px-3 py-1.5 rounded-lg bg-secondary text-white hover:bg-secondary-container font-bold text-xs inline-flex items-center gap-1 shadow-sm">
+              <span class="material-symbols-outlined text-sm">edit_note</span>
+              <span>Xét duyệt</span>
+            </button>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-4 font-mono font-bold text-primary">#${r.renewalId.substring(0,8)}</td>
+            <td class="p-4">
+              <strong class="font-bold text-slate-900 block">${r.customerName || 'Khách hàng'}</strong>
+              <span class="text-slate-400 text-[10px] font-mono">${r.customerId?.substring(0,8) || '--'}</span>
+            </td>
+            <td class="p-4">
+              <strong class="font-mono text-primary block">${r.contractNumber}</strong>
+              <span class="text-slate-500 text-[11px]">${r.facilityName} · Kho ${r.unitNumber}</span>
+            </td>
+            <td class="p-4">
+              <div class="flex items-center gap-1 font-mono text-[11px]">
+                <span>${formatDate(r.oldEndDate)}</span>
+                <span class="text-secondary font-bold">→</span>
+                <strong class="text-emerald-700">${formatDate(r.newEndDate)}</strong>
+              </div>
+              <span class="text-[10px] text-slate-400 block">+${r.extensionMonths} tháng</span>
+            </td>
+            <td class="p-4 text-right font-mono font-bold text-slate-900">${formatMoney(r.renewalAmount)}</td>
+            <td class="p-4 text-center">${statusBadge}</td>
+            <td class="p-4 text-right whitespace-nowrap">
+              ${actionBtn}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterStatus(status) {
+      currentFilter = status;
+      document.querySelectorAll('.status-btn').forEach(b => {
+        b.className = 'status-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium';
+      });
+      event.target.className = 'status-btn active px-3 py-1.5 rounded-lg bg-surface-container text-primary font-bold';
+      loadFacilityRenewals();
+    }
+
+    function handleSearch(val) {
+      currentSearch = val.trim();
+      renderRenewalsTable(renewals);
+    }
+
+    // Open review modal (BR17.3)
+    async function openReviewModal(renewalId) {
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/manager/renewals/${renewalId}`);
+        if (!res.ok) throw new Error('Không thể tải chi tiết yêu cầu gia hạn');
+        const data = await res.json();
+        selectedRenewal = data;
+
+        document.getElementById('modal-renewal-id').textContent = '#' + data.renewalId;
+        document.getElementById('modal-customer-name').textContent = data.customerName || 'Khách hàng SafeBox';
+        document.getElementById('modal-customer-id').textContent = data.customerId || '--';
+        document.getElementById('modal-contract-no').textContent = data.contractNumber;
+        document.getElementById('modal-unit-info').textContent = `${data.facilityName} · Kho ${data.unitNumber}`;
+
+        document.getElementById('modal-old-end-date').textContent = formatDate(data.oldEndDate);
+        document.getElementById('modal-new-end-date').textContent = formatDate(data.newEndDate) + ` (+${data.extensionMonths} tháng)`;
+
+        document.getElementById('modal-monthly-fee').textContent = formatMoney(data.monthlyPrice) + '/tháng';
+        document.getElementById('modal-months').textContent = data.extensionMonths + ' tháng';
+        document.getElementById('modal-subtotal').textContent = formatMoney(data.subtotal);
+        document.getElementById('modal-vat').textContent = formatMoney(data.vatAmount);
+        document.getElementById('modal-total-amount').textContent = formatMoney(data.renewalAmount);
+
+        const actionsContainer = document.getElementById('modal-action-buttons');
+        const approveBox = document.getElementById('approve-settings-box');
+        const rejectBox = document.getElementById('reject-reason-box');
+
+        actionsContainer.innerHTML = '';
+
+        if (data.status === 'PENDING') {
+          approveBox.classList.remove('hidden');
+          rejectBox.classList.add('hidden');
+
+          actionsContainer.innerHTML = `
+            <button onclick="toggleRejectBox()" id="btn-show-reject" class="px-4 py-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-semibold text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">block</span>
+              <span>Từ chối</span>
+            </button>
+            <button onclick="executeApproval('${data.renewalId}')" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-sm">
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              <span>Phê duyệt gia hạn</span>
+            </button>
+          `;
+        } else {
+          approveBox.classList.add('hidden');
+          rejectBox.classList.add('hidden');
+
+          actionsContainer.innerHTML = `
+            <button onclick="printReviewTicket('${data.renewalId}')" class="px-4 py-2 rounded-lg bg-secondary text-white font-semibold text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">print</span>
+              <span>In phiếu kết quả</span>
+            </button>
+          `;
+        }
+
+        document.getElementById('review-modal').classList.remove('hidden');
+
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    function toggleRejectBox() {
+      const rejectBox = document.getElementById('reject-reason-box');
+      const approveBox = document.getElementById('approve-settings-box');
+      const actionsContainer = document.getElementById('modal-action-buttons');
+
+      rejectBox.classList.remove('hidden');
+      approveBox.classList.add('hidden');
+
+      actionsContainer.innerHTML = `
+        <button onclick="cancelRejectMode()" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold text-xs text-slate-700">
+          Quay lại
+        </button>
+        <button onclick="executeRejection('${selectedRenewal.renewalId}')" class="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1 shadow-sm">
+          <span class="material-symbols-outlined text-sm">cancel</span>
+          <span>Xác nhận từ chối</span>
+        </button>
+      `;
+    }
+
+    function cancelRejectMode() {
+      openReviewModal(selectedRenewal.renewalId);
+    }
+
+    // Execute Approval (BR17.3)
+    async function executeApproval(renewalId) {
+      const hours = parseInt(document.getElementById('input-payment-hours').value, 10) || 24;
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/manager/renewals/${renewalId}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customPaymentHours: hours })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Không thể phê duyệt yêu cầu gia hạn');
+        }
+
+        showAlert('Đã phê duyệt yêu cầu gia hạn thành công! Hóa đơn RENEWAL đã được tạo và mở hạn thanh toán.', 'success');
+        closeModal('review-modal');
+        loadFacilityRenewals();
+
+      } catch (err) {
+        showAlert('Lỗi phê duyệt: ' + err.message, 'error');
+      }
+    }
+
+    // Execute Rejection with Reason (BR17.3)
+    async function executeRejection(renewalId) {
+      const reason = document.getElementById('input-reject-reason').value.trim();
+      if (!reason) {
+        alert('Vui lòng nhập lý do từ chối yêu cầu gia hạn!');
+        return;
+      }
+
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/manager/renewals/${renewalId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: reason })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Không thể từ chối yêu cầu gia hạn');
+        }
+
+        showAlert('Đã từ chối yêu cầu gia hạn.', 'info');
+        closeModal('review-modal');
+        loadFacilityRenewals();
+
+      } catch (err) {
+        showAlert('Lỗi từ chối: ' + err.message, 'error');
+      }
+    }
+
+    // PRINT REVIEW TICKET
+    function printReviewTicket(renewalId) {
+      if (!selectedRenewal) return;
+      document.getElementById('print-ticket-id').textContent = selectedRenewal.renewalId.substring(0,8).toUpperCase();
+      document.getElementById('print-ticket-facility').textContent = selectedRenewal.facilityName;
+      document.getElementById('print-ticket-manager').textContent = selectedRenewal.approvedByName || 'Quản lý cơ sở';
+      document.getElementById('print-ticket-contract').textContent = selectedRenewal.contractNumber;
+      document.getElementById('print-ticket-unit').textContent = selectedRenewal.unitNumber;
+      document.getElementById('print-ticket-customer').textContent = selectedRenewal.customerName || 'Khách hàng';
+      document.getElementById('print-ticket-period').textContent = `${formatDate(selectedRenewal.oldEndDate)} đến ${formatDate(selectedRenewal.newEndDate)} (+${selectedRenewal.extensionMonths} tháng)`;
+      document.getElementById('print-ticket-amount').textContent = formatMoney(selectedRenewal.renewalAmount);
+      document.getElementById('print-ticket-status').textContent = selectedRenewal.statusLabel || selectedRenewal.status;
+
+      const printContainer = document.getElementById('print-review-ticket');
+      printContainer.classList.remove('hidden');
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          printContainer.classList.add('hidden');
+        }, 500);
+      }, 100);
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

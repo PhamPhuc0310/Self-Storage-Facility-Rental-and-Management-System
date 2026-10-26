@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Gia hạn hợp đồng thuê kho - SafeBox Storage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#001229",
+            "primary-container": "#0f2744",
+            secondary: "#0051d5",
+            "secondary-container": "#316bf3",
+            "secondary-fixed": "#dbe1ff",
+            background: "#faf8ff",
+            "on-background": "#131b2e",
+            surface: "#faf8ff",
+            "on-surface": "#131b2e",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f2f3ff",
+            "surface-container": "#eaedff",
+            "surface-container-high": "#e2e7ff",
+            "surface-container-highest": "#dae2fd",
+            "on-surface-variant": "#44474d",
+            outline: "#74777e",
+            "outline-variant": "#c4c6ce",
+            error: "#ba1a1a",
+            "error-container": "#ffdad6"
+          },
+          fontFamily: {
+            headline: ["Plus Jakarta Sans", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, h4, h5, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Custom radio chips */
+    .month-chip.active {
+      background-color: #0051d5;
+      color: #ffffff;
+      border-color: #0051d5;
+      box-shadow: 0 4px 12px rgba(0, 81, 213, 0.25);
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printable-container, #printable-container * {
+        visibility: visible;
+      }
+      #printable-container {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 24px;
+        background: white !important;
+        color: black !important;
+        z-index: 999999;
+      }
+      .no-print, header, footer, #alert-banner {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header standard SafeBox -->
+  <header class="sticky top-0 z-50 bg-surface/95 backdrop-blur-md shadow-sm border-b border-outline-variant/30 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="/stitch/trang_ch_safebox_storage.html" class="flex items-center gap-3">
+        <img src="/stitch/assets/safebox-storage-logo.svg" alt="SafeBox Logo" class="h-8 w-auto"/>
+        <div>
+          <span class="font-bold text-base text-primary block leading-tight">SafeBox Storage</span>
+          <span class="text-[10px] text-on-surface-variant block">Gia hạn hợp đồng thuê kho</span>
+        </div>
+      </a>
+      <div class="flex items-center gap-4">
+        <a href="/stitch/kho_dang_thue_safebox_storage.html" class="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:underline">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span>Kho đang thuê của tôi</span>
+        </a>
+        <button onclick="SafeBoxAuth.logout()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-100 flex items-center gap-1 text-slate-700">
+          <span class="material-symbols-outlined text-sm">logout</span>
+          <span>Đăng xuất</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- Top Alert / Message Banner -->
+    <div id="alert-banner" class="hidden p-4 rounded-xl border text-xs font-medium flex items-start gap-3 animate-in fade-in duration-200" role="alert">
+      <span id="alert-icon" class="material-symbols-outlined text-lg mt-0.5">info</span>
+      <div class="flex-1" id="alert-text">Thông báo hệ thống</div>
+      <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-600">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+
+    <!-- Page Title & Navigation Tabs -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div>
+        <div class="flex items-center gap-2 text-xs text-on-surface-variant mb-1">
+          <a href="/stitch/trang_ch_safebox_storage.html" class="hover:underline">Trang chủ</a>
+          <span>/</span>
+          <a href="/stitch/kho_dang_thue_safebox_storage.html" class="hover:underline">Kho đang thuê</a>
+          <span>/</span>
+          <span class="text-primary font-semibold">Gia hạn hợp đồng (UC17)</span>
+        </div>
+        <h1 class="text-2xl font-extrabold text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-2xl">autorenew</span>
+          <span>Yêu Cầu Gia Hạn Hợp Đồng Thuê Kho</span>
+        </h1>
+        <p class="text-xs text-on-surface-variant mt-1">
+          Nối tiếp thời hạn thuê an toàn, giữ nguyên vị trí ô kho mà không cần bàn giao lại
+        </p>
+      </div>
+
+      <!-- Action Tabs -->
+      <div class="inline-flex p-1 bg-surface-container rounded-xl text-xs font-semibold">
+        <button id="tab-btn-request" onclick="switchMainTab('request')" class="px-4 py-2 rounded-lg bg-surface-container-lowest text-primary shadow-sm flex items-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-sm">add_circle</span>
+          <span>Tạo yêu cầu gia hạn</span>
+        </button>
+        <button id="tab-btn-history" onclick="switchMainTab('history')" class="px-4 py-2 rounded-lg text-on-surface-variant hover:text-primary flex items-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-sm">history</span>
+          <span>Lịch sử gia hạn</span>
+          <span id="history-badge-count" class="ml-1 px-1.5 py-0.2 bg-secondary/10 text-secondary rounded-full text-[10px] font-bold">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: TẠO YÊU CẦU GIA HẠN MỚI (BR17.1, BR17.2, BR17.4) -->
+    <section id="tab-section-request" class="space-y-6">
+      
+      <!-- Selection of Contract if multiple -->
+      <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-primary flex items-center gap-2">
+              <span class="material-symbols-outlined text-secondary text-base">description</span>
+              <span>1. Chọn hợp đồng thuê cần gia hạn (BR17.1)</span>
+            </h2>
+            <p class="text-xs text-on-surface-variant">Chỉ những hợp đồng đang có hiệu lực (ACTIVE) và không có lịch trả kho mở mới đủ điều kiện gia hạn</p>
+          </div>
+          <div class="w-full sm:w-80">
+            <select id="select-active-contract" onchange="onContractSelectionChange(this.value)" class="w-full text-xs font-medium rounded-xl border border-slate-200 px-3 py-2.5 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20">
+              <option value="">Đang tải danh sách hợp đồng...</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Contract Details Summary Card -->
+        <div id="contract-card-summary" class="hidden p-4 rounded-xl bg-surface-container-low border border-slate-200/60 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div>
+            <span class="text-slate-400 block text-[11px] mb-0.5">Số hợp đồng:</span>
+            <span id="summary-contract-no" class="font-mono font-bold text-primary">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[11px] mb-0.5">Cơ sở / Ô kho:</span>
+            <span id="summary-facility-unit" class="font-semibold text-primary">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[11px] mb-0.5">Ngày hết hạn hiện tại:</span>
+            <span id="summary-current-end-date" class="font-bold text-rose-600">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[11px] mb-0.5">Trạng thái hợp đồng:</span>
+            <span id="summary-contract-status" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Rule Warning Notice if contract cannot renew -->
+        <div id="contract-warning-notice" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-amber-600 text-base mt-0.5">warning</span>
+          <div id="contract-warning-text" class="flex-1">--</div>
+        </div>
+      </div>
+
+      <!-- Extension Period & Price Snapshot Calculation (BR17.2 & BR17.4) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Period & Notes Form (7 cols) -->
+        <div class="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-slate-100 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-primary flex items-center gap-2 mb-1">
+              <span class="material-symbols-outlined text-secondary text-base">calendar_month</span>
+              <span>2. Chọn thời hạn gia hạn</span>
+            </h2>
+            <p class="text-xs text-on-surface-variant">
+              Kỳ hạn mới sẽ bắt đầu nối tiếp ngay sau ngày kết thúc hiện tại, bảo lưu toàn bộ lịch sử (BR17.2).
+            </p>
+          </div>
+
+          <!-- Quick Month Selection Chips -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-slate-700 block">Thời gian gia hạn mong muốn:</label>
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+              <button type="button" onclick="selectMonths(1)" class="month-chip active px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-center transition-all">
+                +1 tháng
+              </button>
+              <button type="button" onclick="selectMonths(3)" class="month-chip px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-center transition-all">
+                +3 tháng
+              </button>
+              <button type="button" onclick="selectMonths(6)" class="month-chip px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-center transition-all">
+                +6 tháng
+              </button>
+              <button type="button" onclick="selectMonths(12)" class="month-chip px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-center transition-all">
+                +12 tháng
+              </button>
+              <button type="button" onclick="selectMonths(24)" class="month-chip px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-center transition-all">
+                +24 tháng
+              </button>
+            </div>
+            
+            <!-- Custom Months Input -->
+            <div class="pt-2 flex items-center gap-3">
+              <span class="text-xs text-slate-500">Hoặc tự nhập số tháng:</span>
+              <input id="input-custom-months" type="number" min="1" max="60" value="1" oninput="onCustomMonthsInput(this.value)" class="w-24 text-xs font-bold font-mono px-3 py-1.5 rounded-lg border border-slate-300 text-center focus:outline-none focus:ring-2 focus:ring-secondary/20"/>
+              <span class="text-xs text-slate-500">tháng (tối đa 60 tháng)</span>
+            </div>
+          </div>
+
+          <!-- Timeline Comparison -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3">
+            <span class="text-[11px] font-bold uppercase text-slate-500 tracking-wider block">Kỳ hạn hợp đồng sau khi gia hạn:</span>
+            <div class="flex items-center justify-between text-xs">
+              <div class="text-left">
+                <span class="text-slate-400 block text-[10px]">Ngày hết hạn cũ</span>
+                <span id="timeline-old-end-date" class="font-mono font-bold text-slate-700">--</span>
+              </div>
+              <div class="flex-1 px-4 flex items-center justify-center">
+                <div class="w-full h-0.5 bg-secondary/30 relative flex items-center justify-center">
+                  <span id="timeline-months-label" class="bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">+1 tháng</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-slate-400 block text-[10px]">Ngày hết hạn mới (Dự kiến)</span>
+                <span id="timeline-new-end-date" class="font-mono font-bold text-emerald-700">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Notes & Vouchers -->
+          <div class="space-y-4 pt-2">
+            <div>
+              <label class="text-xs font-semibold text-slate-700 block mb-1">Ghi chú cho ban quản lý (tùy chọn):</label>
+              <textarea id="input-customer-notes" rows="2" placeholder="Ví dụ: Mong muốn giữ mã bảo mật cũ, liên hệ qua Zalo..." class="w-full text-xs rounded-xl border border-slate-200 p-3 focus:outline-none focus:ring-2 focus:ring-secondary/20"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Financial Snapshot Breakdown (BR17.4) (5 cols) -->
+        <div class="lg:col-span-5 bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-slate-100 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-primary flex items-center gap-2 mb-1">
+              <span class="material-symbols-outlined text-secondary text-base">receipt_long</span>
+              <span>3. Báo giá dự kiến (Snapshot BR17.4)</span>
+            </h2>
+            <p class="text-xs text-on-surface-variant">
+              Giá thuê, thuế VAT và các ưu đãi sẽ được chốt cố định theo chính sách tại thời điểm gia hạn.
+            </p>
+          </div>
+
+          <!-- Breakdown List -->
+          <div class="space-y-3 text-xs border-y border-slate-100 py-4">
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Đơn giá thuê tháng:</span>
+              <span id="calc-monthly-price" class="font-mono font-semibold text-slate-900">0 đ/tháng</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Số tháng gia hạn:</span>
+              <span id="calc-months" class="font-mono font-semibold text-slate-900">1 tháng</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Tạm tính (Subtotal):</span>
+              <span id="calc-subtotal" class="font-mono font-semibold text-slate-900">0 đ</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Thuế GTGT (VAT 10%):</span>
+              <span id="calc-vat" class="font-mono font-semibold text-slate-900">0 đ</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Ưu đãi / Giảm giá:</span>
+              <span id="calc-discount" class="font-mono font-semibold text-emerald-700">- 0 đ</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-sm">
+              <span class="font-bold text-primary">Tổng tiền thanh toán:</span>
+              <span id="calc-total-amount" class="font-bold text-secondary font-mono text-base">0 đ</span>
+            </div>
+          </div>
+
+          <!-- Notice on Payment -->
+          <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] leading-relaxed flex items-start gap-2">
+            <span class="material-symbols-outlined text-blue-600 text-sm mt-0.5">info</span>
+            <div>
+              <strong>Quy trình thực hiện:</strong> Yêu cầu sẽ được gửi tới Ban Quản lý cơ sở để xét duyệt khả dụng (BR17.3). Sau khi duyệt, quý khách sẽ có 24 giờ để hoàn tất thanh toán để kỳ hạn mới chính thức có hiệu lực (BR17.5).
+            </div>
+          </div>
+
+          <!-- Submit Request Button -->
+          <button id="btn-submit-renewal" onclick="submitRenewalRequest()" class="w-full py-3.5 rounded-xl bg-secondary text-white font-bold text-xs hover:bg-secondary-container transition-all shadow-md flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-base">send</span>
+            <span>Xác nhận gửi yêu cầu gia hạn</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: LỊCH SỬ VÀ QUẢN LÝ CÁC YÊU CẦU GIA HẠN CỦA TÔI -->
+    <section id="tab-section-history" class="hidden space-y-6">
+      
+      <!-- Filter Bar -->
+      <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <button onclick="filterHistoryStatus('')" class="status-filter-btn active px-3 py-1.5 rounded-lg bg-surface-container text-primary font-bold">
+            Tất cả
+          </button>
+          <button onclick="filterHistoryStatus('PENDING')" class="status-filter-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Chờ xét duyệt
+          </button>
+          <button onclick="filterHistoryStatus('APPROVED')" class="status-filter-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Chờ thanh toán
+          </button>
+          <button onclick="filterHistoryStatus('COMPLETED')" class="status-filter-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Đã gia hạn thành công
+          </button>
+          <button onclick="filterHistoryStatus('REJECTED')" class="status-filter-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Bị từ chối
+          </button>
+          <button onclick="filterHistoryStatus('CANCELLED')" class="status-filter-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium">
+            Đã hủy
+          </button>
+        </div>
+
+        <button onclick="loadCustomerRenewals()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+          <span>Làm mới</span>
+        </button>
+      </div>
+
+      <!-- Renewal Requests Table Container -->
+      <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-surface-container-low text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th class="p-4">Mã yêu cầu</th>
+                <th class="p-4">Hợp đồng / Kho</th>
+                <th class="p-4">Kỳ hạn nối tiếp</th>
+                <th class="p-4 text-right">Tổng tiền</th>
+                <th class="p-4 text-center">Trạng thái</th>
+                <th class="p-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="renewals-table-body" class="divide-y divide-slate-100 text-slate-800">
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">
+                  <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-secondary border-t-transparent mb-2"></div>
+                  <p>Đang tải lịch sử yêu cầu gia hạn...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: CHI TIẾT YÊU CẦU GIA HẠN -->
+  <div id="renewal-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-gradient-to-r from-primary to-primary-container text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-xl text-secondary-fixed">description</span>
+          <div>
+            <h3 class="font-bold text-sm">Chi Tiết Yêu Cầu Gia Hạn</h3>
+            <span id="detail-renewal-id" class="text-[11px] font-mono text-white/70">#--</span>
+          </div>
+        </div>
+        <button onclick="closeModal('renewal-detail-modal')" class="text-white/80 hover:text-white">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1">
+        <div id="detail-status-banner" class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-semibold flex items-center justify-between">
+          <span id="detail-status-text">Đang tải trạng thái...</span>
+          <span id="detail-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-200 text-blue-800">--</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div>
+            <span class="text-slate-400 block text-[10px]">Hợp đồng:</span>
+            <span id="detail-contract-no" class="font-mono font-bold text-primary">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Cơ sở &amp; Ô kho:</span>
+            <span id="detail-facility-unit" class="font-semibold text-primary">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Kỳ hạn thuê cũ:</span>
+            <span id="detail-old-end-date" class="font-mono font-bold text-slate-700">--</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Kỳ hạn thuê mới:</span>
+            <span id="detail-new-end-date" class="font-mono font-bold text-emerald-700">--</span>
+          </div>
+        </div>
+
+        <!-- Financial Breakdown in Modal -->
+        <div class="border border-slate-200 rounded-xl p-4 space-y-2">
+          <h4 class="font-bold text-primary text-xs mb-2">Thông tin tài chính (Snapshot BR17.4)</h4>
+          <div class="flex justify-between text-slate-600">
+            <span>Đơn giá tháng:</span>
+            <span id="detail-monthly-price" class="font-mono">-- đ</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Số tháng gia hạn:</span>
+            <span id="detail-months" class="font-mono">-- tháng</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Tạm tính (Subtotal):</span>
+            <span id="detail-subtotal" class="font-mono">-- đ</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Thuế GTGT (VAT 10%):</span>
+            <span id="detail-vat" class="font-mono">-- đ</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Ưu đãi:</span>
+            <span id="detail-discount" class="font-mono text-emerald-700">- 0 đ</span>
+          </div>
+          <div class="pt-2 border-t border-slate-200 flex justify-between font-bold text-sm text-primary">
+            <span>Tổng cộng:</span>
+            <span id="detail-total-amount" class="text-secondary font-mono">-- đ</span>
+          </div>
+        </div>
+
+        <!-- Approval / Rejection Context -->
+        <div id="detail-review-context" class="hidden p-3.5 rounded-xl border text-xs">
+          <!-- Dynamic text for reason / payment deadline -->
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 text-xs">
+        <button onclick="closeModal('renewal-detail-modal')" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold text-slate-700">
+          Đóng
+        </button>
+        <div class="flex items-center gap-2" id="detail-actions-container">
+          <!-- Dynamic action buttons: Pay, Cancel, Print -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: THANH TOÁN PHÍ GIA HẠN (BR17.5) -->
+  <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      
+      <div class="px-6 py-4 bg-secondary text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-xl">payments</span>
+          <h3 class="font-bold text-sm">Thanh Toán Phí Gia Hạn Hợp Đồng</h3>
+        </div>
+        <button onclick="closeModal('payment-modal')" class="text-white/80 hover:text-white">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+          <div>
+            <span class="text-blue-600 block text-[11px]">Số tiền cần thanh toán:</span>
+            <span id="pay-amount-display" class="text-xl font-bold font-mono text-blue-950">0 đ</span>
+          </div>
+          <div class="text-right">
+            <span class="text-blue-600 block text-[11px]">Hạn chót thanh toán:</span>
+            <span id="pay-deadline-display" class="font-bold text-rose-600">--</span>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="font-bold text-slate-700 block">Chọn phương thức thanh toán:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="p-3 rounded-xl border border-secondary bg-secondary/5 flex flex-col items-center justify-center gap-1 cursor-pointer">
+              <input type="radio" name="payMethod" value="VNPAY" checked class="hidden"/>
+              <span class="material-symbols-outlined text-secondary text-xl">qr_code_scanner</span>
+              <span class="font-bold text-secondary text-[11px]">VNPAY-QR</span>
+            </label>
+            <label class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer">
+              <input type="radio" name="payMethod" value="BANK_TRANSFER" class="hidden"/>
+              <span class="material-symbols-outlined text-slate-600 text-xl">account_balance</span>
+              <span class="font-bold text-slate-700 text-[11px]">Chuyển khoản</span>
+            </label>
+            <label class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer">
+              <input type="radio" name="payMethod" value="CASH" class="hidden"/>
+              <span class="material-symbols-outlined text-slate-600 text-xl">point_of_sale</span>
+              <span class="font-bold text-slate-700 text-[11px]">Tại quầy</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Simulated QR payment container -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
+          <div class="w-32 h-32 mx-auto bg-white p-2 rounded-lg border border-slate-200 shadow-inner flex items-center justify-center">
+            <span class="material-symbols-outlined text-6xl text-slate-700">qr_code_2</span>
+          </div>
+          <p class="text-[11px] text-slate-500">Quét mã QR bằng App Ngân hàng hoặc Ví VNPAY để thanh toán</p>
+          <div class="text-[11px] font-mono text-slate-600 bg-slate-100 py-1 px-2 rounded">
+            Nội dung: <strong id="pay-reference-code">SB RENEWAL</strong>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 italic">
+          * Đảm bảo tính Idempotency (BR17.5): Mỗi giao dịch được bảo vệ bằng mã định danh bất biến, ngăn chặn trừ tiền 2 lần khi thử lại.
+        </p>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        <button onclick="closeModal('payment-modal')" class="px-4 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700">
+          Đóng
+        </button>
+        <button id="btn-confirm-pay" onclick="executeRenewalPayment()" class="px-5 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">check_circle</span>
+          <span>Xác nhận đã thanh toán</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRINT CONTAINER: PHỤ LỤC HỢP ĐỒNG GIA HẠN & BIÊN LAI (HIỂN THỊ KHI IN ẤN) -->
+  <div id="printable-container" class="hidden">
+    <!-- Template Phụ Lục Hợp Đồng Gia Hạn (A4 Standard) -->
+    <div id="print-template-addendum" class="max-w-3xl mx-auto p-8 font-serif leading-relaxed text-slate-900 bg-white">
+      
+      <!-- Quốc hiệu tiêu ngữ -->
+      <div class="text-center space-y-1 mb-6">
+        <h3 class="font-bold uppercase tracking-wider text-sm">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h3>
+        <p class="font-semibold text-xs underline underline-offset-4">Độc lập - Tự do - Hạnh phúc</p>
+        <p class="text-[11px] text-slate-500 pt-1">---o0o---</p>
+      </div>
+
+      <!-- Tên Phụ Lục -->
+      <div class="text-center space-y-1 mb-8">
+        <h2 class="text-xl font-bold uppercase tracking-tight">PHỤ LỤC HỢP ĐỒNG THUÊ KHO TỰ QUẢN</h2>
+        <p class="text-xs italic">(V/v: Gia hạn thời hạn thuê kho và điều chỉnh phương án thanh toán)</p>
+        <p class="text-xs font-mono font-bold pt-1">Số phụ lục: <span id="print-addendum-no">PL-GH-...</span></p>
+      </div>
+
+      <!-- Căn cứ pháp lý -->
+      <div class="text-xs space-y-1.5 mb-6 text-justify">
+        <p>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 và các văn bản hướng dẫn thi hành;</p>
+        <p>- Căn cứ Hợp đồng thuê kho tự quản số: <strong id="print-contract-no" class="font-mono font-bold">SB-CT-...</strong> đã ký giữa hai bên;</p>
+        <p>- Căn cứ nhu cầu thực tế của Khách hàng và khả năng đáp ứng của Hệ thống SafeBox Storage.</p>
+      </div>
+
+      <!-- Hai bên tham gia -->
+      <div class="text-xs space-y-4 mb-6">
+        <div class="p-3 bg-slate-50 rounded-lg">
+          <strong class="block text-primary uppercase mb-1">BÊN CHO THUÊ (BÊN A): CÔNG TY CỔ PHẦN SAFEBOX STORAGE VIỆT NAM</strong>
+          <p>Cơ sở cung cấp dịch vụ: <span id="print-facility-name" class="font-semibold">SafeBox Storage</span></p>
+          <p>Mã kho vật lý cho thuê: <span id="print-unit-number" class="font-mono font-bold">--</span></p>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-lg">
+          <strong class="block text-primary uppercase mb-1">BÊN THUÊ KHO (BÊN B): KHÁCH HÀNG THUÊ KHO</strong>
+          <p>Họ và tên khách hàng: <span id="print-customer-name" class="font-semibold">--</span></p>
+          <p>Mã định danh khách hàng: <span id="print-customer-id" class="font-mono">--</span></p>
+        </div>
+      </div>
+
+      <!-- Các điều khoản gia hạn -->
+      <div class="text-xs space-y-4 text-justify mb-8">
+        <div>
+          <h4 class="font-bold text-sm mb-1">ĐIỀU 1: ĐIỀU CHỈNH THỜI HẠN THUÊ KHO (BR17.2)</h4>
+          <p>1.1. Hai bên thống nhất gia hạn thêm <strong id="print-months">--</strong> tháng thuê cho Hợp đồng trên.</p>
+          <p>1.2. Thời hạn thuê trước khi gia hạn: đến hết ngày <strong id="print-old-end-date" class="font-mono">--/--/----</strong>.</p>
+          <p>1.3. Thời hạn thuê mới có hiệu lực liên tục đến hết ngày: <strong id="print-new-end-date" class="font-mono font-bold text-emerald-800">--/--/----</strong>.</p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-sm mb-1">ĐIỀU 2: GIÁ THUÊ VÀ NGHĨA VỤ THANH TOÁN (BR17.4, BR17.5)</h4>
+          <p>2.1. Đơn giá thuê tháng chốt snapshot: <strong id="print-monthly-fee" class="font-mono">-- đ</strong>/tháng.</p>
+          <p>2.2. Thuế GTGT (VAT 10%): <strong id="print-vat" class="font-mono">-- đ</strong>.</p>
+          <p>2.3. Tổng số tiền gia hạn đã thanh toán: <strong id="print-total-amount" class="font-mono font-bold">-- đ</strong> (Bằng chữ: <span id="print-amount-words" class="italic">--</span>).</p>
+          <p>2.4. Trạng thái thanh toán: <strong class="text-emerald-700">ĐÃ HOÀN TẤT THANH TOÁN (HÓA ĐƠN HỢP LỆ)</strong>.</p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-sm mb-1">ĐIỀU 3: HIỆU LỰC THI HÀNH</h4>
+          <p>3.1. Phụ lục này là bộ phận không thể tách rời của Hợp đồng thuê kho số nêu trên.</p>
+          <p>3.2. Toàn bộ các điều khoản khác của Hợp đồng gốc không bị sửa đổi bởi Phụ lục này vẫn giữ nguyên hiệu lực thi hành.</p>
+        </div>
+      </div>
+
+      <!-- Chữ ký 2 bên -->
+      <div class="grid grid-cols-2 gap-8 text-center text-xs pt-4 border-t border-slate-300">
+        <div class="space-y-16">
+          <p class="font-bold uppercase">ĐẠI DIỆN BÊN A<br/><span class="font-normal italic">(Ký, ghi rõ họ tên và đóng dấu)</span></p>
+          <p class="font-semibold" id="print-sign-manager">SafeBox Storage Manager</p>
+        </div>
+        <div class="space-y-16">
+          <p class="font-bold uppercase">ĐẠI DIỆN BÊN B<br/><span class="font-normal italic">(Xác nhận điện tử hợp lệ)</span></p>
+          <p class="font-semibold" id="print-sign-customer">Khách hàng</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Standard Footer -->
+  <footer class="bg-surface-container-low border-t border-slate-200 py-6 text-center text-xs text-on-surface-variant no-print">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p>© 2026 SafeBox Storage Vietnam Corporation. Use Case UC17 - Contract Renewal Management.</p>
+      <div class="flex items-center gap-4">
+        <span>Hotline: 1900 8868</span>
+        <span>•</span>
+        <a href="/stitch/kho_dang_thue_safebox_storage.html" class="hover:underline text-secondary">Kho của tôi</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC (BR17.1 - BR17.5) -->
+  <script src="/auth.js"></script>
+  <script>
+    // State management
+    let activeContracts = [];
+    let selectedContract = null;
+    let selectedMonths = 1;
+    let currentPreview = null;
+    let currentViewingRenewal = null;
+    let historyFilter = '';
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Verify Authentication
+      const authed = await SafeBoxAuth.requireRole('CUSTOMER', 'FACILITY_MANAGER', 'SYSTEM_ADMIN');
+      if (!authed) return;
+
+      // 2. Read query params
+      const params = new URLSearchParams(window.location.search);
+      const urlContractId = params.get('contractId');
+      const urlRenewalId = params.get('renewalId');
+
+      // 3. Load active customer contracts
+      await loadActiveContracts(urlContractId);
+
+      // 4. Load history count
+      await loadCustomerRenewals();
+
+      // If renewalId specified, show that detail directly
+      if (urlRenewalId) {
+        switchMainTab('history');
+        openRenewalDetail(urlRenewalId);
+      }
+    });
+
+    // Helper: Format Money
+    function formatMoney(amount) {
+      if (amount == null || isNaN(amount)) return '0 đ';
+      return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+    }
+
+    // Helper: Format Date
+    function formatDate(dateStr) {
+      if (!dateStr) return '--';
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('vi-VN');
+      } catch (_) { return dateStr; }
+    }
+
+    // Helper: Show Alert
+    function showAlert(text, type = 'info') {
+      const banner = document.getElementById('alert-banner');
+      const icon = document.getElementById('alert-icon');
+      const textElem = document.getElementById('alert-text');
+      
+      banner.className = `p-4 rounded-xl border text-xs font-medium flex items-start gap-3 animate-in fade-in duration-200 ${
+        type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800' :
+        type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+        'bg-blue-50 border-blue-200 text-blue-800'
+      }`;
+      icon.textContent = type === 'error' ? 'error' : type === 'success' ? 'check_circle' : 'info';
+      textElem.textContent = text;
+      banner.classList.remove('hidden');
+    }
+
+    function hideAlert() {
+      document.getElementById('alert-banner').classList.add('hidden');
+    }
+
+    // Tab switcher
+    function switchMainTab(tab) {
+      const reqTabBtn = document.getElementById('tab-btn-request');
+      const hisTabBtn = document.getElementById('tab-btn-history');
+      const reqSec = document.getElementById('tab-section-request');
+      const hisSec = document.getElementById('tab-section-history');
+
+      if (tab === 'request') {
+        reqTabBtn.className = 'px-4 py-2 rounded-lg bg-surface-container-lowest text-primary shadow-sm flex items-center gap-1.5 transition-all';
+        hisTabBtn.className = 'px-4 py-2 rounded-lg text-on-surface-variant hover:text-primary flex items-center gap-1.5 transition-all';
+        reqSec.classList.remove('hidden');
+        hisSec.classList.add('hidden');
+      } else {
+        hisTabBtn.className = 'px-4 py-2 rounded-lg bg-surface-container-lowest text-primary shadow-sm flex items-center gap-1.5 transition-all';
+        reqTabBtn.className = 'px-4 py-2 rounded-lg text-on-surface-variant hover:text-primary flex items-center gap-1.5 transition-all';
+        hisSec.classList.remove('hidden');
+        reqSec.classList.add('hidden');
+        loadCustomerRenewals();
+      }
+    }
+
+    // Load active contracts of current customer
+    async function loadActiveContracts(targetContractId) {
+      const select = document.getElementById('select-active-contract');
+      try {
+        const res = await SafeBoxAuth.authFetch('/api/customer/rentals?status=ACTIVE&size=50');
+        if (!res.ok) throw new Error('Không thể lấy danh sách hợp đồng');
+        const data = await res.json();
+        let items = data.items || data.content || (Array.isArray(data) ? data : []);
+        
+        // If targetContractId was passed in URL query but wasn't in list, fetch it directly
+        if (targetContractId && !items.some(c => c.contractId === targetContractId)) {
+          try {
+            const singleRes = await SafeBoxAuth.authFetch(`/api/customer/rentals/${targetContractId}`);
+            if (singleRes.ok) {
+              const singleData = await singleRes.json();
+              const c = singleData.contract || singleData;
+              if (c && c.contractId) items.unshift(c);
+            }
+          } catch (_) {}
+        }
+
+        activeContracts = items;
+        select.innerHTML = '';
+
+        if (items.length === 0) {
+          select.innerHTML = '<option value="">Không có hợp đồng ACTIVE nào</option>';
+          showAlert('Bạn hiện không có hợp đồng đang hoạt động (ACTIVE) nào để gia hạn.', 'error');
+          return;
+        }
+
+        items.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.contractId;
+          opt.textContent = `${c.contractNumber} (${c.facilityName} - Kho ${c.unitNumber})`;
+          select.appendChild(opt);
+        });
+
+        // Preselect
+        if (targetContractId && items.some(c => c.contractId === targetContractId)) {
+          select.value = targetContractId;
+        }
+
+        onContractSelectionChange(select.value);
+
+      } catch (err) {
+        select.innerHTML = '<option value="">Lỗi tải hợp đồng</option>';
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    // Handle contract selection change
+    async function onContractSelectionChange(contractId) {
+      if (!contractId) return;
+      selectedContract = activeContracts.find(c => c.contractId === contractId);
+
+      // Display summary
+      const summaryCard = document.getElementById('contract-card-summary');
+      if (selectedContract) {
+        summaryCard.classList.remove('hidden');
+        document.getElementById('summary-contract-no').textContent = selectedContract.contractNumber;
+        document.getElementById('summary-facility-unit').textContent = `${selectedContract.facilityName} · Kho ${selectedContract.unitNumber}`;
+        document.getElementById('summary-current-end-date').textContent = formatDate(selectedContract.endDate);
+      }
+
+      // Fetch live price preview
+      await fetchRenewalPreview(contractId, selectedMonths);
+    }
+
+    // Months selection
+    function selectMonths(m) {
+      selectedMonths = m;
+      document.getElementById('input-custom-months').value = m;
+
+      // Update chip active classes
+      document.querySelectorAll('.month-chip').forEach(btn => {
+        if (btn.textContent.trim() === `+${m} tháng`) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      if (selectedContract) {
+        fetchRenewalPreview(selectedContract.contractId, selectedMonths);
+      }
+    }
+
+    function onCustomMonthsInput(val) {
+      const m = parseInt(val, 10);
+      if (m && m >= 1 && m <= 60) {
+        selectedMonths = m;
+        document.querySelectorAll('.month-chip').forEach(btn => btn.classList.remove('active'));
+        if (selectedContract) {
+          fetchRenewalPreview(selectedContract.contractId, selectedMonths);
+        }
+      }
+    }
+
+    // API: Fetch Renewal Preview (BR17.2, BR17.4)
+    async function fetchRenewalPreview(contractId, months) {
+      const submitBtn = document.getElementById('btn-submit-renewal');
+      const warningNotice = document.getElementById('contract-warning-notice');
+      const warningText = document.getElementById('contract-warning-text');
+
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/customer/contracts/${contractId}/renewals/preview?months=${months}`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Không thể tính toán xem trước gia hạn');
+        }
+
+        const preview = await res.json();
+        currentPreview = preview;
+
+        // Render timeline
+        document.getElementById('timeline-old-end-date').textContent = formatDate(preview.currentEndDate);
+        document.getElementById('timeline-new-end-date').textContent = formatDate(preview.newEndDate);
+        document.getElementById('timeline-months-label').textContent = `+${preview.extensionMonths} tháng`;
+
+        // Render financial snapshot
+        document.getElementById('calc-monthly-price').textContent = formatMoney(preview.monthlyPrice) + '/tháng';
+        document.getElementById('calc-months').textContent = preview.extensionMonths + ' tháng';
+        document.getElementById('calc-subtotal').textContent = formatMoney(preview.subtotal);
+        document.getElementById('calc-vat').textContent = formatMoney(preview.vatAmount);
+        document.getElementById('calc-discount').textContent = '- ' + formatMoney(preview.discountAmount);
+        document.getElementById('calc-total-amount').textContent = formatMoney(preview.totalAmount);
+
+        // Check if renewal is prohibited by BR rules
+        if (!preview.canRenew) {
+          warningNotice.classList.remove('hidden');
+          warningText.textContent = preview.warningMessage || 'Hợp đồng không đủ điều kiện gia hạn vào thời điểm này.';
+          submitBtn.disabled = true;
+          submitBtn.className = 'w-full py-3.5 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed';
+        } else {
+          warningNotice.classList.add('hidden');
+          submitBtn.disabled = false;
+          submitBtn.className = 'w-full py-3.5 rounded-xl bg-secondary text-white font-bold text-xs hover:bg-secondary-container transition-all shadow-md flex items-center justify-center gap-2';
+        }
+
+      } catch (err) {
+        showAlert('Lỗi xem trước báo giá: ' + err.message, 'error');
+        submitBtn.disabled = true;
+        submitBtn.className = 'w-full py-3.5 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed';
+      }
+    }
+
+    // API: Submit Renewal Request (BR17.1, BR17.2, BR17.4)
+    async function submitRenewalRequest() {
+      if (!selectedContract) {
+        showAlert('Vui lòng chọn một hợp đồng hợp lệ.', 'error');
+        return;
+      }
+      if (!currentPreview || !currentPreview.canRenew) {
+        showAlert('Hợp đồng không đủ điều kiện gia hạn.', 'error');
+        return;
+      }
+
+      const note = document.getElementById('input-customer-notes').value.trim();
+      const submitBtn = document.getElementById('btn-submit-renewal');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span> Đang gửi yêu cầu...';
+
+      try {
+        const payload = {
+          months: selectedMonths,
+          note: note || null,
+          discountAmount: currentPreview.discountAmount || 0
+        };
+
+        const res = await SafeBoxAuth.authFetch(`/api/customer/contracts/${selectedContract.contractId}/renewals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Không thể tạo yêu cầu gia hạn');
+        }
+
+        const data = await res.json();
+        showAlert(`Đã tạo yêu cầu gia hạn thành công! Mã yêu cầu: ${data.renewalId.substring(0,8)}. Vui lòng chờ Quản lý cơ sở xét duyệt.`, 'success');
+
+        // Switch to history tab and display the newly created request
+        switchMainTab('history');
+
+      } catch (err) {
+        showAlert('Thất bại: ' + err.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined text-base">send</span> Xác nhận gửi yêu cầu gia hạn';
+      }
+    }
+
+    // API: Load Customer Renewals List (BR17.2: không ghi đè lịch sử)
+    async function loadCustomerRenewals() {
+      const tbody = document.getElementById('renewals-table-body');
+      const badgeCount = document.getElementById('history-badge-count');
+
+      try {
+        let url = '/api/customer/renewals/my?page=0&size=50';
+        if (historyFilter) url += `&status=${historyFilter}`;
+
+        const res = await SafeBoxAuth.authFetch(url);
+        if (!res.ok) throw new Error('Không thể tải lịch sử gia hạn');
+
+        const pageData = await res.json();
+        const items = pageData.content || [];
+        badgeCount.textContent = pageData.totalElements || items.length;
+
+        if (items.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-400">
+                <span class="material-symbols-outlined text-3xl mb-1 text-slate-300">inbox</span>
+                <p>Không có yêu cầu gia hạn nào${historyFilter ? ' với trạng thái ' + historyFilter : ''}.</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = items.map(r => {
+          const statusBadge = getStatusBadge(r.status);
+          
+          let actionButtons = `
+            <button onclick="openRenewalDetail('${r.renewalId}')" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] inline-flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">visibility</span>
+              <span>Chi tiết</span>
+            </button>
+          `;
+
+          if (r.status === 'APPROVED' && r.canPay) {
+            actionButtons += `
+              <button onclick="openPaymentModal('${r.renewalId}', ${r.renewalAmount}, '${r.paymentDeadline}')" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] inline-flex items-center gap-1 shadow-sm">
+                <span class="material-symbols-outlined text-xs">payments</span>
+                <span>Thanh toán</span>
+              </button>
+            `;
+          }
+
+          if (r.status === 'COMPLETED') {
+            actionButtons += `
+              <button onclick="printAddendum('${r.renewalId}')" class="px-2.5 py-1 rounded bg-secondary hover:bg-secondary-container text-white font-semibold text-[11px] inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">print</span>
+                <span>In phụ lục</span>
+              </button>
+            `;
+          }
+
+          return `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="p-4 font-mono font-bold text-primary">#${r.renewalId.substring(0,8)}</td>
+              <td class="p-4">
+                <strong class="font-mono text-primary block">${r.contractNumber}</strong>
+                <span class="text-slate-500 text-[11px]">${r.facilityName} · Kho ${r.unitNumber}</span>
+              </td>
+              <td class="p-4">
+                <div class="flex items-center gap-1.5 font-mono">
+                  <span>${formatDate(r.oldEndDate)}</span>
+                  <span class="text-secondary font-bold">→</span>
+                  <strong class="text-emerald-700">${formatDate(r.newEndDate)}</strong>
+                </div>
+                <span class="text-[10px] text-slate-400 block">+${r.extensionMonths} tháng</span>
+              </td>
+              <td class="p-4 text-right font-mono font-bold text-slate-900">${formatMoney(r.renewalAmount)}</td>
+              <td class="p-4 text-center">${statusBadge}</td>
+              <td class="p-4 text-right space-x-1.5 whitespace-nowrap">
+                ${actionButtons}
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-500">Lỗi: ${err.message}</td></tr>`;
+      }
+    }
+
+    function filterHistoryStatus(status) {
+      historyFilter = status;
+      document.querySelectorAll('.status-filter-btn').forEach(btn => {
+        btn.className = 'status-filter-btn px-3 py-1.5 rounded-lg hover:bg-slate-100 text-slate-600 font-medium';
+      });
+      event.target.className = 'status-filter-btn active px-3 py-1.5 rounded-lg bg-surface-container text-primary font-bold';
+      loadCustomerRenewals();
+    }
+
+    function getStatusBadge(status) {
+      switch (status) {
+        case 'PENDING':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Chờ xét duyệt</span>';
+        case 'APPROVED':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">Đã duyệt - Chờ thanh toán</span>';
+        case 'COMPLETED':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Gia hạn thành công</span>';
+        case 'REJECTED':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Bị từ chối</span>';
+        case 'CANCELLED':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">Đã hủy</span>';
+        default:
+          return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">${status}</span>`;
+      }
+    }
+
+    // Open detail modal
+    async function openRenewalDetail(renewalId) {
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/customer/renewals/${renewalId}`);
+        if (!res.ok) throw new Error('Không thể tải chi tiết yêu cầu');
+        const data = await res.json();
+        currentViewingRenewal = data;
+
+        document.getElementById('detail-renewal-id').textContent = '#' + data.renewalId;
+        document.getElementById('detail-status-text').textContent = data.statusLabel || data.status;
+        document.getElementById('detail-status-badge').innerHTML = getStatusBadge(data.status);
+        document.getElementById('detail-contract-no').textContent = data.contractNumber;
+        document.getElementById('detail-facility-unit').textContent = `${data.facilityName} · Kho ${data.unitNumber}`;
+        document.getElementById('detail-old-end-date').textContent = formatDate(data.oldEndDate);
+        document.getElementById('detail-new-end-date').textContent = formatDate(data.newEndDate) + ` (+${data.extensionMonths} tháng)`;
+
+        document.getElementById('detail-monthly-price').textContent = formatMoney(data.monthlyPrice) + '/tháng';
+        document.getElementById('detail-months').textContent = data.extensionMonths + ' tháng';
+        document.getElementById('detail-subtotal').textContent = formatMoney(data.subtotal);
+        document.getElementById('detail-vat').textContent = formatMoney(data.vatAmount);
+        document.getElementById('detail-discount').textContent = '- ' + formatMoney(data.discountAmount);
+        document.getElementById('detail-total-amount').textContent = formatMoney(data.renewalAmount);
+
+        // Approval / Rejection Context
+        const reviewBox = document.getElementById('detail-review-context');
+        if (data.status === 'REJECTED' && data.rejectionReason) {
+          reviewBox.classList.remove('hidden');
+          reviewBox.className = 'p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs';
+          reviewBox.innerHTML = `<strong>Lý do từ chối từ Quản lý:</strong><p class="mt-1 text-rose-800">${data.rejectionReason}</p>`;
+        } else if (data.status === 'APPROVED' && data.paymentDeadline) {
+          reviewBox.classList.remove('hidden');
+          reviewBox.className = 'p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs';
+          reviewBox.innerHTML = `<strong>Hạn chót thanh toán:</strong> ${new Date(data.paymentDeadline).toLocaleString('vi-VN')}<br/><span class="text-[11px] text-blue-700">Vui lòng hoàn tất thanh toán trước thời hạn này để kỳ hạn mới chính thức có hiệu lực.</span>`;
+        } else {
+          reviewBox.classList.add('hidden');
+        }
+
+        // Actions container
+        const actionsContainer = document.getElementById('detail-actions-container');
+        actionsContainer.innerHTML = '';
+
+        if (data.status === 'APPROVED' && data.canPay) {
+          actionsContainer.innerHTML += `
+            <button onclick="closeModal('renewal-detail-modal'); openPaymentModal('${data.renewalId}', ${data.renewalAmount}, '${data.paymentDeadline}')" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-sm">
+              <span class="material-symbols-outlined text-sm">payments</span>
+              <span>Thanh toán ngay</span>
+            </button>
+          `;
+        }
+
+        if (data.canCancel) {
+          actionsContainer.innerHTML += `
+            <button onclick="cancelRenewal('${data.renewalId}')" class="px-4 py-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-semibold text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">cancel</span>
+              <span>Hủy yêu cầu</span>
+            </button>
+          `;
+        }
+
+        if (data.status === 'COMPLETED') {
+          actionsContainer.innerHTML += `
+            <button onclick="printAddendum('${data.renewalId}')" class="px-4 py-2 rounded-lg bg-secondary text-white font-semibold text-xs flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">print</span>
+              <span>In phụ lục hợp đồng</span>
+            </button>
+          `;
+        }
+
+        // Show modal
+        document.getElementById('renewal-detail-modal').classList.remove('hidden');
+
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    // Cancel renewal request
+    async function cancelRenewal(renewalId) {
+      if (!confirm('Bạn có chắc chắn muốn hủy yêu cầu gia hạn này không?')) return;
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/customer/renewals/${renewalId}/cancel`, { method: 'POST' });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Không thể hủy yêu cầu gia hạn');
+        }
+        showAlert('Đã hủy yêu cầu gia hạn thành công.', 'info');
+        closeModal('renewal-detail-modal');
+        loadCustomerRenewals();
+      } catch (err) {
+        showAlert('Lỗi hủy: ' + err.message, 'error');
+      }
+    }
+
+    // Payment Modal Logic
+    let payingRenewalId = null;
+    let payingAmount = 0;
+
+    function openPaymentModal(renewalId, amount, deadline) {
+      payingRenewalId = renewalId;
+      payingAmount = amount;
+
+      document.getElementById('pay-amount-display').textContent = formatMoney(amount);
+      document.getElementById('pay-deadline-display').textContent = deadline ? new Date(deadline).toLocaleString('vi-VN') : 'Trong 24 giờ';
+      document.getElementById('pay-reference-code').textContent = 'GH ' + renewalId.substring(0,8).toUpperCase();
+
+      document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    // Execute Payment (BR17.5: Idempotency Key)
+    async function executeRenewalPayment() {
+      if (!payingRenewalId) return;
+      const confirmBtn = document.getElementById('btn-confirm-pay');
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span> Đang ghi nhận...';
+
+      // Pick method
+      const method = document.querySelector('input[name="payMethod"]:checked')?.value || 'VNPAY';
+      // Generate immutable idempotency key
+      const idempotencyKey = 'IDEM-' + payingRenewalId + '-' + Date.now();
+
+      try {
+        const payload = {
+          paymentMethod: method,
+          amount: payingAmount,
+          idempotencyKey: idempotencyKey,
+          referenceCode: 'TX-' + Date.now()
+        };
+
+        const res = await SafeBoxAuth.authFetch(`/api/customer/renewals/${payingRenewalId}/pay`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Thanh toán phí gia hạn thất bại');
+        }
+
+        const data = await res.json();
+        closeModal('payment-modal');
+        showAlert(`Thanh toán thành công! Hợp đồng đã chính thức được gia hạn đến ngày: ${formatDate(data.contractNewEndDate)}.`, 'success');
+
+        loadCustomerRenewals();
+
+        // Offer to print contract addendum immediately
+        if (confirm('Thanh toán thành công! Bạn có muốn in Phụ lục gia hạn hợp đồng ngay bây giờ không?')) {
+          printAddendum(payingRenewalId);
+        }
+
+      } catch (err) {
+        showAlert('Lỗi thanh toán: ' + err.message, 'error');
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<span class="material-symbols-outlined text-sm">check_circle</span> Xác nhận đã thanh toán';
+      }
+    }
+
+    // PRINT ADDENDUM FUNCTION (In Phụ Lục Hợp Đồng Gia Hạn)
+    async function printAddendum(renewalId) {
+      try {
+        let renewal = currentViewingRenewal;
+        if (!renewal || renewal.renewalId !== renewalId) {
+          const res = await SafeBoxAuth.authFetch(`/api/customer/renewals/${renewalId}`);
+          if (!res.ok) throw new Error('Không thể tải thông tin để in');
+          renewal = await res.json();
+        }
+
+        // Populate print fields
+        document.getElementById('print-addendum-no').textContent = `PL-GH-${renewal.renewalId.substring(0,8).toUpperCase()}`;
+        document.getElementById('print-contract-no').textContent = renewal.contractNumber;
+        document.getElementById('print-facility-name').textContent = renewal.facilityName;
+        document.getElementById('print-unit-number').textContent = renewal.unitNumber;
+        document.getElementById('print-customer-name').textContent = renewal.customerName || 'Khách hàng SafeBox';
+        document.getElementById('print-customer-id').textContent = renewal.customerId || '--';
+
+        document.getElementById('print-months').textContent = renewal.extensionMonths;
+        document.getElementById('print-old-end-date').textContent = formatDate(renewal.oldEndDate);
+        document.getElementById('print-new-end-date').textContent = formatDate(renewal.newEndDate);
+
+        document.getElementById('print-monthly-fee').textContent = formatMoney(renewal.monthlyPrice);
+        document.getElementById('print-vat').textContent = formatMoney(renewal.vatAmount);
+        document.getElementById('print-total-amount').textContent = formatMoney(renewal.renewalAmount);
+        document.getElementById('print-amount-words').textContent = formatMoney(renewal.renewalAmount) + ' Việt Nam Đồng';
+
+        document.getElementById('print-sign-manager').textContent = renewal.approvedByName || 'Ban Quản Lý SafeBox Storage';
+        document.getElementById('print-sign-customer').textContent = renewal.customerName || 'Khách hàng';
+
+        // Trigger browser print reliably
+        const printContainer = document.getElementById('printable-container');
+        printContainer.classList.remove('hidden');
+        setTimeout(() => {
+          window.print();
+          setTimeout(() => {
+            printContainer.classList.add('hidden');
+          }, 500);
+        }, 100);
+
+      } catch (err) {
+        showAlert('Lỗi chuẩn bị in: ' + err.message, 'error');
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    // Payment method selector UX enhancement
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('input[name="payMethod"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          document.querySelectorAll('input[name="payMethod"]').forEach(r => {
+            const lbl = r.closest('label');
+            if (r.checked) {
+              lbl.className = 'p-3 rounded-xl border-2 border-secondary bg-secondary/5 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all shadow-sm';
+            } else {
+              lbl.className = 'p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all';
+            }
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

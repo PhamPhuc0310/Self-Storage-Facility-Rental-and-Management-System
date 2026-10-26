@@ -19,4 +19,8 @@ public interface RentalPolicyRepository extends JpaRepository<RentalPolicy, UUID
      * @return Optional chứa chính sách thuê nếu tìm thấy
      */
     Optional<RentalPolicy> findFirstByFacilityIdAndStatusOrderByEffectiveFromDesc(UUID facilityId, String status);
+
+    Optional<RentalPolicy> findFirstByFacilityIdIsNullAndStatusOrderByEffectiveFromDesc(String status);
+
+    Optional<RentalPolicy> findFirstByStatusOrderByEffectiveFromDesc(String status);
 }

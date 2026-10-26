@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Quản lý quá hạn & Phí phát sinh - SafeBox Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#001229",
+            "primary-container": "#0f2744",
+            "on-primary-container": "#798fb1",
+            secondary: "#0051d5",
+            "secondary-container": "#316bf3",
+            "on-secondary-container": "#fefcff",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#dbe1ff",
+            background: "#faf8ff",
+            "on-background": "#131b2e",
+            surface: "#faf8ff",
+            "on-surface": "#131b2e",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f2f3ff",
+            "surface-container": "#eaedff",
+            "surface-container-high": "#e2e7ff",
+            "surface-container-highest": "#dae2fd",
+            "on-surface-variant": "#44474d",
+            outline: "#74777e",
+            "outline-variant": "#c4c6ce",
+            error: "#ba1a1a",
+            "error-container": "#ffdad6"
+          },
+          fontFamily: {
+            "headline-sm": ["Be Vietnam Pro"],
+            "headline-md": ["Be Vietnam Pro"],
+            "body-sm": ["Be Vietnam Pro"],
+            "body-md": ["Be Vietnam Pro"],
+            "label-button": ["Be Vietnam Pro"],
+            "label-badge": ["Be Vietnam Pro"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html, body {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined' !important;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    .status-tab.active { background-color: #316bf3; color: white; font-weight: 700; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-container, #printable-container * { visibility: visible; }
+      #printable-container {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+        background: white;
+      }
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex">
+
+  <!-- Left Sidebar (SafeBox Manager Standard Layout) -->
+  <aside class="fixed left-0 top-0 h-full w-72 bg-primary-container text-on-secondary-container z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="flex flex-col">
+      <!-- Brand Logo -->
+      <div class="h-20 px-6 flex items-center gap-3 bg-primary/40">
+        <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-white tracking-tight font-semibold">SafeBox Admin</span>
+          <span class="font-body-sm text-body-sm text-on-primary-container">Quản lý cơ sở kho</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="px-4 py-6 space-y-1.5" data-active-classes="bg-secondary-container text-on-secondary font-bold rounded-lg">
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="tong-quan" href="/stitch/t_ng_quan_qu_n_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">dashboard</span>
+          <span class="font-label-button text-label-button">Tổng quan</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="co-so-cua-toi" href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">domain</span>
+          <span class="font-label-button text-label-button">Cơ sở của tôi</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="loai-kho" href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">category</span>
+          <span class="font-label-button text-label-button">Loại kho</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="kho-vat-ly" href="/stitch/qu_n_l_lo_i_kho_kho_v_t_l_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">inventory_2</span>
+          <span class="font-label-button text-label-button">Kho vật lý</span>
+        </a>
+        <a class="flex items-center justify-between px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" data-path="yeu-cau-dat-kho" href="/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html">
+          <div class="flex items-center">
+            <span class="material-symbols-outlined mr-3">assignment</span>
+            <span class="font-label-button text-label-button">Yêu cầu đặt kho</span>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary font-label-badge text-label-badge">— MỚI</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" href="/stitch/uc12-manager-operations.html">
+          <span class="material-symbols-outlined mr-3">assignment_ind</span>
+          <span class="font-label-button text-label-button">Vận hành &amp; phân công</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" href="/stitch/quan_ly_gia_han_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">autorenew</span>
+          <span class="font-label-button text-label-button">Xét duyệt gia hạn (UC17)</span>
+        </a>
+        <!-- Active Tab: UC18 -->
+        <a aria-current="page" class="flex items-center px-4 py-3 transition-colors bg-secondary-container text-on-secondary font-bold rounded-lg" href="/stitch/quan_ly_qua_han_safebox_manager.html">
+          <span class="material-symbols-outlined mr-3">gavel</span>
+          <span class="font-label-button text-label-button">Quản lý phí phạt &amp; quá hạn</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sign Out in Sidebar -->
+    <div class="p-4 mb-4">
+      <a class="flex items-center px-4 py-3 rounded-lg text-error-container hover:bg-error/20 hover:text-on-error transition-colors" data-path="dang-nhap" href="javascript:void(0)" onclick="SafeBoxAuth.logout()">
+        <span class="material-symbols-outlined mr-3 text-error">logout</span>
+        <span class="font-label-button text-label-button">Đăng xuất</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Right Main View -->
+  <div class="pl-72 flex-1 flex flex-col min-h-screen">
+    <!-- TOP HEADER -->
+    <header class="h-20 bg-surface/90 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-secondary text-2xl">gavel</span>
+        <div>
+          <h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold flex items-center gap-2">
+            <span>Quản lý phí phạt &amp; quá hạn hợp đồng</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">UC18</span>
+          </h2>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">Tự động tính phí theo ngày quá hạn, điều chỉnh miễn giảm có lưu vết &amp; duyệt thu tiền</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+          <div class="w-8 h-8 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold text-xs" id="user-avatar">QL</div>
+          <div class="flex flex-col text-left">
+            <span class="font-label-button text-label-button text-on-surface leading-tight font-semibold" id="user-fullname">Quản lý cơ sở</span>
+            <span class="font-body-sm text-body-sm text-secondary font-medium" id="user-role">FACILITY_MANAGER</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="triggerBatchCalculate()" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-label-button text-label-button shadow-sm flex items-center gap-1.5 transition-all">
+            <span class="material-symbols-outlined text-lg">calculate</span>
+            <span>Quét &amp; Tính phí hôm nay</span>
+          </button>
+          <button onclick="loadOverdueContracts()" class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-button text-label-button flex items-center gap-1.5 transition-all">
+            <span class="material-symbols-outlined text-lg">refresh</span>
+            <span>Làm mới</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ALERT BANNER -->
+    <div id="alert-banner" class="hidden mx-8 mt-4 p-4 rounded-xl text-xs font-semibold flex items-center justify-between">
+      <span id="alert-text"></span>
+      <button onclick="hideAlert()" class="text-slate-500 hover:text-slate-800">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+
+    <!-- MAIN BODY -->
+    <main class="p-8 space-y-6 flex-1">
+
+      <!-- KPI METRIC CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- KPI 1: Overdue Contracts -->
+        <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Hợp đồng quá hạn</span>
+            <span class="p-2 rounded-xl bg-rose-50 text-rose-600">
+              <span class="material-symbols-outlined text-lg">alarm_on</span>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="kpi-overdue-count" class="text-2xl font-extrabold text-rose-600 font-mono">0</span>
+            <span class="text-[11px] text-slate-400">hợp đồng</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">Chưa gia hạn / chưa trả kho</p>
+        </div>
+
+        <!-- KPI 2: Total Debt -->
+        <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Nợ phí phạt chưa thu</span>
+            <span class="p-2 rounded-xl bg-amber-50 text-amber-600">
+              <span class="material-symbols-outlined text-lg">pending_actions</span>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1 font-mono">
+            <span id="kpi-total-debt" class="text-2xl font-extrabold text-amber-600">0</span>
+            <span class="text-xs font-bold text-amber-600">đ</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">Cần đôn đốc thanh toán</p>
+        </div>
+
+        <!-- KPI 3: Collected -->
+        <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Đã thu phí phạt</span>
+            <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+              <span class="material-symbols-outlined text-lg">price_check</span>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1 font-mono">
+            <span id="kpi-total-collected" class="text-2xl font-extrabold text-emerald-600">0</span>
+            <span class="text-xs font-bold text-emerald-600">đ</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">Ghi nhận vào doanh thu phạt</p>
+        </div>
+
+        <!-- KPI 4: Adjusted / Waived -->
+        <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Đã miễn giảm / Lưu vết</span>
+            <span class="p-2 rounded-xl bg-blue-50 text-blue-600">
+              <span class="material-symbols-outlined text-lg">history_edu</span>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="kpi-adjusted-count" class="text-2xl font-extrabold text-blue-600 font-mono">0</span>
+            <span class="text-[11px] text-slate-400">lần điều chỉnh</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">Tuân thủ BR18.5 (có lưu vết)</p>
+        </div>
+      </div>
+
+      <!-- FILTER & SEARCH BAR -->
+      <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <button onclick="filterStatus('ALL')" class="status-tab active px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            Tất cả
+          </button>
+          <button onclick="filterStatus('DEBT')" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            Còn nợ phí phạt
+          </button>
+          <button onclick="filterStatus('CLEARED')" class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            Đã thanh toán đủ
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <select id="facility-filter" onchange="loadOverdueContracts()" class="p-2 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white">
+            <option value="">Tất cả cơ sở phụ trách</option>
+          </select>
+          <div class="relative w-64">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
+            <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Tìm mã HĐ, tên khách, kho..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-secondary focus:outline-none"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- OVERDUE CONTRACTS TABLE -->
+      <div class="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                <th class="p-4">HỢP ĐỒNG & KHÁCH HÀNG</th>
+                <th class="p-4">Ô KHO & CƠ SỞ</th>
+                <th class="p-4">THỜI HẠN & QUÁ HẠN (BR18.1)</th>
+                <th class="p-4 text-right">ĐƠN GIÁ & CÔNG THỨC (BR18.2)</th>
+                <th class="p-4 text-right">CÔNG NỢ PHẠT</th>
+                <th class="p-4 text-center">TRẠNG THÁI</th>
+                <th class="p-4 text-right">THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody id="overdue-tbody" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="7" class="p-8 text-center text-slate-400">
+                  <span class="material-symbols-outlined text-3xl mb-1 animate-spin text-slate-300">sync</span>
+                  <p>Đang tải danh sách hợp đồng quá hạn...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL 1: CHI TIẾT HỢP ĐỒNG & LỊCH SỬ PHÍ PHẠT (BR18.3) -->
+  <div id="detail-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+        <div>
+          <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+            <span>Chi tiết quá hạn & Lịch sử phí phạt</span>
+            <span id="modal-contract-number" class="font-mono text-primary bg-primary/10 px-2 py-0.5 rounded"></span>
+          </h3>
+          <p class="text-xs text-slate-500">Xem giải thích cách tính theo từng kỳ (BR18.3) và lịch sử điều chỉnh nợ (BR18.5)</p>
+        </div>
+        <button onclick="closeModal('detail-modal')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6">
+        <!-- CONTRACT OVERVIEW CARD -->
+        <div class="p-4 rounded-xl bg-surface-container-low border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div>
+            <span class="text-slate-400 text-[11px] block">Khách hàng:</span>
+            <strong id="modal-customer-name" class="font-semibold text-slate-900"></strong>
+            <span id="modal-customer-phone" class="text-slate-500 block text-[11px]"></span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[11px] block">Vị trí kho:</span>
+            <strong id="modal-unit-info" class="font-semibold text-slate-900"></strong>
+            <span id="modal-facility-info" class="text-slate-500 block text-[11px]"></span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[11px] block">Thời hạn hợp đồng:</span>
+            <strong id="modal-dates-range" class="font-semibold text-slate-900"></strong>
+            <span id="modal-overdue-days" class="text-rose-600 font-bold block text-[11px]"></span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[11px] block">Tổng nợ phí phạt:</span>
+            <strong id="modal-debt-amount" class="text-rose-600 font-mono font-bold text-sm"></strong>
+            <span id="modal-paid-amount" class="text-emerald-700 block text-[11px]"></span>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTON FOR TODAY'S FEE -->
+        <div class="flex items-center justify-between p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-600">info</span>
+            <p class="text-xs text-amber-900">
+              Kỳ phí mới được tính theo ngày. Bạn có thể bấm tính phí kỳ hôm nay nếu chưa phát sinh.
+            </p>
+          </div>
+          <button id="btn-calc-today" class="px-3.5 py-1.5 rounded-lg bg-secondary text-white font-bold text-xs hover:bg-secondary-container shadow-sm flex items-center gap-1 shrink-0">
+            <span class="material-symbols-outlined text-sm">add_circle</span>
+            <span>Tính phí kỳ này</span>
+          </button>
+        </div>
+
+        <!-- PENALTY HISTORY LIST -->
+        <div>
+          <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>Danh sách các kỳ phí phạt đã phát sinh (BR18.3)</span>
+          </h4>
+          <div class="rounded-xl border border-slate-200 overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-[11px]">
+                <tr>
+                  <th class="p-3">NGÀY TÍNH</th>
+                  <th class="p-3">SỐ NGÀY PHẠT</th>
+                  <th class="p-3 text-right">PHÍ PHÁT SINH</th>
+                  <th class="p-3 text-right">CÒN NỢ</th>
+                  <th class="p-3">GIẢI THÍCH CÔNG THỨC (BR18.3)</th>
+                  <th class="p-3 text-center">TRẠNG THÁI</th>
+                  <th class="p-3 text-right">THAO TÁC</th>
+                </tr>
+              </thead>
+              <tbody id="modal-penalties-tbody" class="divide-y divide-slate-100">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AUDIT LOG: ADJUSTMENTS (BR18.5) -->
+        <div id="modal-adjustments-section" class="hidden">
+          <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-blue-800">
+            <span class="material-symbols-outlined text-sm">history_edu</span>
+            <span>Lịch sử lưu vết điều chỉnh / miễn giảm công nợ (BR18.5)</span>
+          </h4>
+          <div class="rounded-xl border border-blue-200 bg-blue-50/50 overflow-hidden p-3 space-y-2" id="modal-adjustments-list">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
+        <button onclick="printCurrentContractOverdueNotice()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">print</span>
+          <span>In thông báo quá hạn</span>
+        </button>
+        <button onclick="closeModal('detail-modal')" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ĐIỀU CHỈNH CÔNG NỢ (BR18.5) -->
+  <div id="adjust-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col">
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm">Điều chỉnh công nợ phí phạt</h3>
+          <p class="text-[11px] text-slate-500">Tuân thủ BR18.5: Nghiệp vụ điều chỉnh có lưu vết, không xóa nợ gốc</p>
+        </div>
+        <button onclick="closeModal('adjust-modal')" class="p-1 text-slate-400 hover:text-slate-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900">
+          Số nợ gốc hiện tại: <strong id="adjust-original-amount" class="font-mono text-sm">0 đ</strong>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Loại điều chỉnh:</label>
+          <select id="adjust-type" onchange="onAdjustTypeChange()" class="w-full p-2.5 rounded-xl border border-slate-300 bg-white font-medium">
+            <option value="WAIVER">Miễn giảm 100% (Xóa nợ còn lại)</option>
+            <option value="PARTIAL_DISCOUNT">Giảm trừ một phần tiền</option>
+            <option value="CORRECTION">Hiệu chỉnh do sai lệch tính toán</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Số tiền nợ sau điều chỉnh (VND):</label>
+          <input type="number" id="adjust-new-amount" value="0" min="0" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono font-bold text-slate-900"/>
+          <p class="text-[10px] text-slate-400 mt-1">Nhập 0 nếu miễn giảm toàn bộ.</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">
+            Lý do điều chỉnh <span class="text-rose-500">* (Bắt buộc theo BR18.5)</span>:
+          </label>
+          <textarea id="adjust-reason" rows="3" placeholder="Nhập lý do chi tiết (ví dụ: Khách hàng có văn bản xác nhận sự cố bất khả kháng, quản lý phê duyệt miễn giảm...)" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-secondary focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Ghi chú bổ sung (tùy chọn):</label>
+          <input type="text" id="adjust-note" placeholder="Số quyết định, biên bản làm việc..." class="w-full p-2.5 rounded-xl border border-slate-300 text-xs"/>
+        </div>
+      </div>
+
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closeModal('adjust-modal')" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold text-xs text-slate-700">
+          Hủy
+        </button>
+        <button id="btn-confirm-adjust" onclick="executePenaltyAdjustment()" class="px-5 py-2 rounded-lg bg-secondary text-white font-bold text-xs hover:bg-secondary-container shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">save</span>
+          <span>Xác nhận điều chỉnh</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: THU TIỀN TẠI QUẦY (CASH COLLECTION) -->
+  <div id="cash-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden flex flex-col">
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm">Thu tiền phí phạt tại quầy</h3>
+          <p class="text-[11px] text-slate-500">Ghi nhận thanh toán tiền mặt trực tiếp</p>
+        </div>
+        <button onclick="closeModal('cash-modal')" class="p-1 text-slate-400 hover:text-slate-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <span class="text-[11px] text-emerald-800 block">Số tiền cần thu:</span>
+          <strong id="cash-collect-amount" class="text-emerald-700 font-mono text-base font-bold">0 đ</strong>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Số tiền thực tế nhận:</label>
+          <input type="number" id="input-cash-amount" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono font-bold text-slate-900"/>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Mã tham chiếu / Phiếu thu:</label>
+          <input type="text" id="input-cash-ref" placeholder="PT-20261025-..." class="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-mono"/>
+        </div>
+      </div>
+
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closeModal('cash-modal')" class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 font-semibold text-xs text-slate-700">
+          Đóng
+        </button>
+        <button id="btn-confirm-cash" onclick="executeCashCollection()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">check_circle</span>
+          <span>Xác nhận đã thu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT CONTAINER: THÔNG BÁO QUÁ HẠN & BẢNG KÊ PHÍ PHẠT (A4) -->
+  <div id="printable-container" class="hidden">
+    <div id="print-overdue-ticket" class="max-w-3xl mx-auto p-8 font-serif leading-relaxed text-slate-900 bg-white">
+      <div class="text-center space-y-1 mb-6">
+        <h3 class="font-bold uppercase tracking-wider text-xs">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</h3>
+        <p class="font-semibold text-[11px] underline underline-offset-4">Độc lập - Tự do - Hạnh phúc</p>
+        <p class="text-[10px] text-slate-400 pt-1">---o0o---</p>
+      </div>
+
+      <div class="text-center space-y-1 mb-6">
+        <h2 class="text-lg font-bold uppercase tracking-tight text-slate-900">THÔNG BÁO ĐÔN ĐỐC QUÁ HẠN & BẢNG KÊ PHÍ PHÁT SINH</h2>
+        <p class="text-xs italic">(V/v: Hợp đồng thuê kho tự quản đã quá hạn thời điểm kết thúc theo quy định)</p>
+        <p class="text-[11px] font-mono font-bold pt-1">Mã hợp đồng: <span id="print-contract-no"></span></p>
+      </div>
+
+      <div class="text-xs space-y-2 mb-4">
+        <p><strong>Kính gửi Quý khách hàng:</strong> <span id="print-customer-name"></span></p>
+        <p><strong>Số điện thoại:</strong> <span id="print-customer-phone"></span></p>
+        <p><strong>Cơ sở kho thuê:</strong> <span id="print-facility-name"></span> · <strong>Ô kho:</strong> <span id="print-unit-number"></span></p>
+        <p><strong>Thời hạn thuê hợp đồng:</strong> từ <span id="print-start-date"></span> đến ngày <span id="print-end-date"></span></p>
+        <p class="text-rose-700 font-bold">
+          * Tình trạng: Đã quá hạn <span id="print-overdue-days"></span> ngày kể từ ngày kết thúc hợp đồng.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <h4 class="font-bold text-xs uppercase mb-2 border-b pb-1">BẢNG KÊ CÔNG NỢ PHÍ PHẠT QUÁ HẠN (BR18.2, BR18.3)</h4>
+        <table class="w-full text-[11px] border-collapse border border-slate-300">
+          <thead>
+            <tr class="bg-slate-100">
+              <th class="border border-slate-300 p-2">Kỳ tính</th>
+              <th class="border border-slate-300 p-2 text-center">Quá hạn</th>
+              <th class="border border-slate-300 p-2 text-center">Tính phí</th>
+              <th class="border border-slate-300 p-2 text-right">Phí phạt (VND)</th>
+              <th class="border border-slate-300 p-2 text-right">Đã nộp</th>
+              <th class="border border-slate-300 p-2 text-right">Còn nợ</th>
+            </tr>
+          </thead>
+          <tbody id="print-penalties-tbody">
+          </tbody>
+          <tfoot>
+            <tr class="font-bold bg-slate-50">
+              <td colspan="5" class="border border-slate-300 p-2 text-right">TỔNG CỘNG CÔNG NỢ PHÍ PHẠT:</td>
+              <td id="print-total-debt" class="border border-slate-300 p-2 text-right font-mono text-rose-700"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="text-[11px] space-y-1 mb-8">
+        <p><strong>Lưu ý:</strong></p>
+        <p>- Quý khách vui lòng liên hệ Ban quản lý cơ sở để thanh toán dứt điểm công nợ và hoàn tất thủ tục bàn giao trả kho (UC16) hoặc làm thủ tục gia hạn hợp đồng (UC17).</p>
+        <p>- Mọi thắc mắc về công thức tính phí hoặc đề nghị miễn giảm (BR18.5) xin vui lòng liên hệ trực tiếp Quản lý cơ sở để được hỗ trợ giải quyết theo đúng quy trình.</p>
+      </div>
+
+      <div class="grid grid-cols-2 text-center text-xs mt-8">
+        <div>
+          <p class="font-bold">ĐẠI DIỆN KHÁCH HÀNG</p>
+          <p class="text-[10px] text-slate-400 italic">(Ký và ghi rõ họ tên)</p>
+          <div class="h-20"></div>
+          <p id="print-customer-sign" class="font-semibold"></p>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-500 italic mb-1">Ngày ..... tháng ..... năm 2026</p>
+          <p class="font-bold">ĐẠI DIỆN SAFEBOX STORAGE</p>
+          <p class="text-[10px] text-slate-400 italic">(Ký, đóng dấu và ghi rõ họ tên)</p>
+          <div class="h-20"></div>
+          <p class="font-semibold">Ban Quản Lý Cơ Sở</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+  </div>
+
+  <script src="/auth.js"></script>
+  <script>
+    let overdueContracts = [];
+    let currentFilter = 'ALL';
+    let currentSearch = '';
+    let selectedContract = null;
+    let selectedPenalty = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authorized = await SafeBoxAuth.requireRole('FACILITY_MANAGER', 'SYSTEM_ADMIN');
+      if (!authorized) return;
+
+      const user = SafeBoxAuth.getCurrentUser();
+      if (user) {
+        document.getElementById('user-fullname').textContent = user.fullName || user.email;
+        document.getElementById('user-role').textContent = user.role;
+        document.getElementById('user-avatar').textContent = (user.fullName || 'QL').substring(0, 2).toUpperCase();
+      }
+
+      await loadFacilities();
+      await loadOverdueContracts();
+    });
+
+    function showAlert(msg, type = 'info') {
+      const banner = document.getElementById('alert-banner');
+      const text = document.getElementById('alert-text');
+      text.textContent = msg;
+
+      banner.className = 'mx-8 mt-4 p-4 rounded-xl text-xs font-semibold flex items-center justify-between ';
+      if (type === 'success') {
+        banner.className += 'bg-emerald-100 text-emerald-900 border border-emerald-300';
+      } else if (type === 'error') {
+        banner.className += 'bg-rose-100 text-rose-900 border border-rose-300';
+      } else {
+        banner.className += 'bg-blue-100 text-blue-900 border border-blue-300';
+      }
+      banner.classList.remove('hidden');
+    }
+
+    function hideAlert() {
+      document.getElementById('alert-banner').classList.add('hidden');
+    }
+
+    async function loadFacilities() {
+      try {
+        const res = await SafeBoxAuth.authFetch('/api/facilities');
+        if (res.ok) {
+          const list = await res.json();
+          const sel = document.getElementById('facility-filter');
+          list.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.facilityId;
+            opt.textContent = f.name;
+            sel.appendChild(opt);
+          });
+        }
+      } catch (e) {}
+    }
+
+    async function loadOverdueContracts() {
+      const tbody = document.getElementById('overdue-tbody');
+      try {
+        const facilityId = document.getElementById('facility-filter').value;
+        let url = `/api/manager/overdue/contracts?page=0&size=50`;
+        if (facilityId) url += `&facilityId=${facilityId}`;
+        if (currentFilter && currentFilter !== 'ALL') url += `&status=${currentFilter}`;
+        if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
+
+        const res = await SafeBoxAuth.authFetch(url);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Không thể tải danh sách hợp đồng quá hạn');
+        }
+
+        const data = await res.json();
+        const items = data.content || [];
+        overdueContracts = items;
+
+        updateKPIs(items);
+        renderTable(items);
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-rose-500">Lỗi: ${err.message}</td></tr>`;
+      }
+    }
+
+    function updateKPIs(items) {
+      document.getElementById('kpi-overdue-count').textContent = items.length;
+      
+      const totalDebt = items.reduce((sum, item) => sum + (item.totalPenaltyDebt || 0), 0);
+      document.getElementById('kpi-total-debt').textContent = totalDebt.toLocaleString('vi-VN');
+
+      const totalPaid = items.reduce((sum, item) => sum + (item.totalPenaltyPaid || 0), 0);
+      document.getElementById('kpi-total-collected').textContent = totalPaid.toLocaleString('vi-VN');
+
+      let adjCount = 0;
+      items.forEach(c => {
+        (c.penalties || []).forEach(p => {
+          adjCount += (p.adjustments || []).length;
+        });
+      });
+      document.getElementById('kpi-adjusted-count').textContent = adjCount;
+    }
+
+    function renderTable(items) {
+      const tbody = document.getElementById('overdue-tbody');
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-8 text-center text-slate-400">
+              <span class="material-symbols-outlined text-3xl mb-1 text-slate-300">task_alt</span>
+              <p>Không có hợp đồng nào quá hạn tại cơ sở.</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = items.map(c => {
+        const hasPendingApproval = (c.penalties || []).some(p => p.status === 'PENDING_APPROVAL');
+        let statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">Bình thường</span>';
+        if (hasPendingApproval) {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">Chờ duyệt thanh toán</span>';
+        } else if (c.totalPenaltyDebt > 0) {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Đang nợ phí phạt</span>';
+        } else if (c.totalPenaltyPaid > 0) {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Đã thanh toán đủ</span>';
+        }
+
+        const rateFormatted = (c.penalties && c.penalties.length > 0)
+          ? (c.penalties[0].penaltyRate * 100).toFixed(0) + '%/ngày'
+          : '5%/ngày';
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-4">
+              <strong class="font-mono text-primary block">${c.contractNumber}</strong>
+              <span class="text-slate-700 font-medium">${c.customerName || 'Khách hàng SafeBox'}</span>
+              <span class="text-slate-400 block text-[11px]">${c.customerPhone || ''}</span>
+            </td>
+            <td class="p-4">
+              <strong class="text-slate-800 block">${c.facilityName}</strong>
+              <span class="text-slate-500 text-[11px]">Kho: <strong>${c.unitNumber}</strong> (${c.unitTypeName})</span>
+            </td>
+            <td class="p-4">
+              <div class="flex items-center gap-1 font-mono text-[11px]">
+                <span>Hết hạn: ${formatDate(c.endDate)}</span>
+              </div>
+              <strong class="text-rose-600 block font-mono text-xs">Quá hạn: +${c.overdueDays} ngày</strong>
+              <span class="text-[10px] text-slate-400 block">(Ân hạn: ${c.graceDays} ngày · Tính phí: ${c.billableDays} ngày)</span>
+            </td>
+            <td class="p-4 text-right">
+              <strong class="font-mono text-slate-900 block">${formatMoney(c.monthlyRentalFee)}/tháng</strong>
+              <span class="text-slate-500 font-mono text-[11px]">~${formatMoney(c.dailyRent)}/ngày</span>
+              <span class="text-[10px] text-amber-700 font-bold block">Tỷ lệ: ${rateFormatted}</span>
+            </td>
+            <td class="p-4 text-right">
+              <strong class="font-mono text-sm block ${c.totalPenaltyDebt > 0 ? 'text-rose-600 font-bold' : 'text-slate-500'}">
+                ${formatMoney(c.totalPenaltyDebt)}
+              </strong>
+              <span class="text-[10px] text-emerald-700 block">Đã thu: ${formatMoney(c.totalPenaltyPaid)}</span>
+            </td>
+            <td class="p-4 text-center">
+              ${statusBadge}
+            </td>
+            <td class="p-4 text-right whitespace-nowrap space-x-1">
+              <button id="btn-detail-${c.contractId}" onclick="openContractDetail('${c.contractId}')" class="px-2.5 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-semibold text-xs inline-flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-sm">visibility</span>
+                <span>Chi tiết & Lịch sử</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterStatus(status) {
+      currentFilter = status;
+      document.querySelectorAll('.status-tab').forEach(b => {
+        b.className = 'status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors';
+      });
+      event.target.className = 'status-tab active px-3.5 py-1.5 rounded-lg text-xs font-semibold';
+      loadOverdueContracts();
+    }
+
+    function handleSearch(val) {
+      currentSearch = val.trim();
+      loadOverdueContracts();
+    }
+
+    // TRIGGER BATCH CALCULATE FOR TODAY
+    async function triggerBatchCalculate() {
+      if (!confirm('Hệ thống sẽ quét toàn bộ hợp đồng quá hạn tại cơ sở và tự động phát sinh hóa đơn phí phạt theo đúng chính sách cấu hình (Idempotent - không tính trùng lặp). Tiếp tục?')) return;
+      try {
+        const facilityId = document.getElementById('facility-filter').value;
+        let url = '/api/manager/overdue/batch-calculate';
+        if (facilityId) url += `?facilityId=${facilityId}`;
+
+        const res = await SafeBoxAuth.authFetch(url, { method: 'POST' });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Lỗi quét tính phí quá hạn');
+        }
+        const data = await res.json();
+        showAlert(data.message || 'Đã quét và phát sinh phí phạt quá hạn thành công.', 'success');
+        await loadOverdueContracts();
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    // OPEN CONTRACT DETAIL MODAL (BR18.3, BR18.5)
+    async function openContractDetail(contractId) {
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/contracts/${contractId}`);
+        if (!res.ok) throw new Error('Không thể tải chi tiết hợp đồng');
+        const c = await res.json();
+        selectedContract = c;
+
+        document.getElementById('modal-contract-number').textContent = c.contractNumber;
+        document.getElementById('modal-customer-name').textContent = c.customerName || 'Khách hàng SafeBox';
+        document.getElementById('modal-customer-phone').textContent = c.customerPhone ? 'SĐT: ' + c.customerPhone : '';
+        document.getElementById('modal-unit-info').textContent = `Kho ${c.unitNumber} (${c.unitTypeName})`;
+        document.getElementById('modal-facility-info').textContent = c.facilityName;
+        document.getElementById('modal-dates-range').textContent = `${formatDate(c.startDate)} → ${formatDate(c.endDate)}`;
+        document.getElementById('modal-overdue-days').textContent = `Quá hạn: ${c.overdueDays} ngày (Tính phí: ${c.billableDays} ngày)`;
+        document.getElementById('modal-debt-amount').textContent = formatMoney(c.totalPenaltyDebt);
+        document.getElementById('modal-paid-amount').textContent = `Đã thu: ${formatMoney(c.totalPenaltyPaid)}`;
+
+        const calcBtn = document.getElementById('btn-calc-today');
+        calcBtn.onclick = () => calculateFeeForSingleContract(c.contractId);
+
+        renderPenaltiesTable(c.penalties || []);
+        renderAdjustmentsList(c.penalties || []);
+
+        document.getElementById('detail-modal').classList.remove('hidden');
+
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    function renderPenaltiesTable(penalties) {
+      const tbody = document.getElementById('modal-penalties-tbody');
+      if (penalties.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Chưa có kỳ phí phạt nào phát sinh. Bấm "Tính phí kỳ này" để tạo phí.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = penalties.map(p => {
+        let badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Chưa trả</span>';
+        if (p.status === 'PENDING_APPROVAL') {
+          badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">Chờ quản lý duyệt</span>';
+        } else if (p.status === 'PAID') {
+          badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Đã thanh toán</span>';
+        } else if (p.status === 'ADJUSTED') {
+          badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">Đã điều chỉnh/Miễn</span>';
+        } else if (p.status === 'PARTIAL') {
+          badge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Một phần</span>';
+        }
+
+        let actions = ``;
+        if (p.status === 'PENDING_APPROVAL') {
+          actions = `
+            <button onclick="approvePenaltyPayment('${p.penaltyId}', true)" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] inline-flex items-center gap-0.5 cursor-pointer shadow-xs">
+              <span class="material-symbols-outlined text-xs">check_circle</span>
+              <span>Duyệt nhận tiền</span>
+            </button>
+            <button onclick="approvePenaltyPayment('${p.penaltyId}', false)" class="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] inline-flex items-center gap-0.5 cursor-pointer shadow-xs">
+              <span class="material-symbols-outlined text-xs">cancel</span>
+              <span>Từ chối</span>
+            </button>
+          `;
+        } else if (p.status !== 'PAID' && p.status !== 'ADJUSTED') {
+          actions = `
+            <button onclick="openCashModal('${p.penaltyId}', ${p.remainingAmount})" class="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] inline-flex items-center gap-0.5 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">payments</span>
+              <span>Thu tiền</span>
+            </button>
+            <button onclick="openAdjustModal('${p.penaltyId}', ${p.penaltyAmount})" class="px-2 py-1 rounded bg-secondary hover:bg-secondary-container text-white font-bold text-[10px] inline-flex items-center gap-0.5 cursor-pointer">
+              <span class="material-symbols-outlined text-xs">edit_note</span>
+              <span>Miễn/Giảm (BR18.5)</span>
+            </button>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-3 font-mono font-bold text-slate-900">${formatDate(p.periodDate)}</td>
+            <td class="p-3">
+              <span class="font-mono text-rose-600 font-bold">${p.overdueDays} ngày</span>
+              <span class="text-[10px] text-slate-400 block">(tính ${p.billableDays} ngày)</span>
+            </td>
+            <td class="p-3 text-right font-mono font-bold text-slate-900">${formatMoney(p.penaltyAmount)}</td>
+            <td class="p-3 text-right font-mono font-bold text-rose-600">${formatMoney(p.remainingAmount)}</td>
+            <td class="p-3 text-slate-600 text-[11px] max-w-xs leading-tight">
+              ${p.calculationExplanation}
+            </td>
+            <td class="p-3 text-center">${badge}</td>
+            <td class="p-3 text-right space-x-1 whitespace-nowrap">${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function approvePenaltyPayment(penaltyId, approved) {
+      const actionName = approved ? 'xác nhận đã nhận tiền và duyệt' : 'từ chối';
+      if (!confirm(`Bạn có chắc chắn muốn ${actionName} khoản thanh toán này?`)) return;
+
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/penalties/${penaltyId}/approve-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ approved: approved, note: approved ? 'Quản lý duyệt tiền đã vào tài khoản cơ sở' : 'Từ chối thanh toán' })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Lỗi xử lý duyệt thanh toán');
+        }
+
+        showAlert(approved ? 'Đã duyệt thanh toán thành công! Khoản nợ đã được tất toán.' : 'Đã từ chối thanh toán.', approved ? 'success' : 'info');
+        if (selectedContract) {
+          await openContractDetail(selectedContract.contractId);
+        }
+        await loadOverdueContracts();
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+
+    function renderAdjustmentsList(penalties) {
+      const sec = document.getElementById('modal-adjustments-section');
+      const container = document.getElementById('modal-adjustments-list');
+      
+      const allAdj = [];
+      penalties.forEach(p => {
+        (p.adjustments || []).forEach(a => allAdj.push(a));
+      });
+
+      if (allAdj.length === 0) {
+        sec.classList.add('hidden');
+        return;
+      }
+
+      sec.classList.remove('hidden');
+      container.innerHTML = allAdj.map(a => `
+        <div class="p-3 rounded-lg bg-white border border-blue-200 text-xs space-y-1">
+          <div class="flex items-center justify-between">
+            <strong class="text-blue-900 font-bold">${a.adjustmentType === 'WAIVER' ? 'Miễn giảm 100%' : 'Giảm trừ nợ'}: Giảm ${formatMoney(a.discountAmount)} (Nợ mới: ${formatMoney(a.adjustedAmount)})</strong>
+            <span class="text-slate-400 text-[11px] font-mono">${new Date(a.adjustedAt).toLocaleString('vi-VN')}</span>
+          </div>
+          <p class="text-slate-700"><strong>Lý do điều chỉnh (BR18.5):</strong> ${a.reason}</p>
+          <p class="text-slate-500 text-[11px]">Người thực hiện: <strong>${a.adjustedByName || 'Quản lý cơ sở'}</strong> ${a.note ? '· Ghi chú: ' + a.note : ''}</p>
+        </div>
+      `).join('');
+    }
+
+    // CALCULATE FEE FOR SINGLE CONTRACT
+    async function calculateFeeForSingleContract(contractId) {
+      try {
+        const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/contracts/${contractId}/calculate-fee`, { method: 'POST' });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Không thể tính phí cho hợp đồng');
+        }
+        showAlert('Đã phát sinh kỳ phí phạt thành công.', 'success');
+        await openContractDetail(contractId);
+        await loadOverdueContracts();
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    // ADJUSTMENT MODAL (BR18.5)
+    let adjustingPenaltyId = null;
+    let adjustingOriginalAmount = 0;
+
+    function openAdjustModal(penaltyId, originalAmount) {
+      adjustingPenaltyId = penaltyId;
+      adjustingOriginalAmount = originalAmount;
+      document.getElementById('adjust-original-amount').textContent = formatMoney(originalAmount);
+      document.getElementById('adjust-type').value = 'WAIVER';
+      document.getElementById('adjust-new-amount').value = 0;
+      document.getElementById('adjust-reason').value = '';
+      document.getElementById('adjust-note').value = '';
+      document.getElementById('adjust-modal').classList.remove('hidden');
+    }
+
+    function onAdjustTypeChange() {
+      const type = document.getElementById('adjust-type').value;
+      const amountInput = document.getElementById('adjust-new-amount');
+      if (type === 'WAIVER') {
+        amountInput.value = 0;
+        amountInput.disabled = true;
+      } else {
+        amountInput.disabled = false;
+        amountInput.value = Math.round(adjustingOriginalAmount / 2);
+      }
+    }
+
+    async function executePenaltyAdjustment() {
+      const reason = document.getElementById('adjust-reason').value.trim();
+      if (!reason) {
+        alert('Vui lòng nhập lý do điều chỉnh nợ! Quy tắc BR18.5 bắt buộc phải lưu vết lý do.');
+        return;
+      }
+
+      const type = document.getElementById('adjust-type').value;
+      const newAmount = parseFloat(document.getElementById('adjust-new-amount').value) || 0;
+
+      if (newAmount > adjustingOriginalAmount) {
+        alert('Số tiền sau điều chỉnh không được lớn hơn nợ gốc!');
+        return;
+      }
+
+      const btn = document.getElementById('btn-confirm-adjust');
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          adjustedAmount: newAmount,
+          adjustmentType: type,
+          reason: reason,
+          note: document.getElementById('adjust-note').value.trim() || null
+        };
+
+        const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/penalties/${adjustingPenaltyId}/adjust`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Lỗi điều chỉnh nợ');
+        }
+
+        showAlert('Đã điều chỉnh công nợ thành công và lưu vết kiểm toán (BR18.5).', 'success');
+        closeModal('adjust-modal');
+        if (selectedContract) {
+          await openContractDetail(selectedContract.contractId);
+        }
+        await loadOverdueContracts();
+
+      } catch (err) {
+        showAlert('Lỗi: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // CASH COLLECTION MODAL
+    let collectingPenaltyId = null;
+    let collectingAmount = 0;
+
+    function openCashModal(penaltyId, amount) {
+      collectingPenaltyId = penaltyId;
+      collectingAmount = amount;
+      document.getElementById('cash-collect-amount').textContent = formatMoney(amount);
+      document.getElementById('input-cash-amount').value = amount;
+      document.getElementById('input-cash-ref').value = 'PT-QH-' + penaltyId.substring(0,8).toUpperCase();
+      document.getElementById('cash-modal').classList.remove('hidden');
+    }
+
+    async function executeCashCollection() {
+      const amount = parseFloat(document.getElementById('input-cash-amount').value) || 0;
+      if (amount <= 0 || amount > collectingAmount) {
+        alert('Số tiền thu không hợp lệ!');
+        return;
+      }
+
+      const btn = document.getElementById('btn-confirm-cash');
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          paymentMethod: 'CASH',
+          amount: amount,
+          idempotencyKey: 'CASH-' + collectingPenaltyId + '-' + Date.now(),
+          referenceCode: document.getElementById('input-cash-ref').value.trim() || 'CASH-COLLECT'
+        };
+
+        const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/penalties/${collectingPenaltyId}/collect-cash`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Lỗi ghi nhận thu tiền');
+        }
+
+        showAlert('Đã ghi nhận thu tiền mặt phí phạt thành công!', 'success');
+        closeModal('cash-modal');
+        if (selectedContract) {
+          await openContractDetail(selectedContract.contractId);
+        }
+        await loadOverdueContracts();
+
+      } catch (err) {
+        showAlert('Lỗi thu tiền: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // PRINT OVERDUE NOTICE
+    function printCurrentContractOverdueNotice() {
+      if (!selectedContract) return;
+      document.getElementById('print-contract-no').textContent = selectedContract.contractNumber;
+      document.getElementById('print-customer-name').textContent = selectedContract.customerName || 'Khách hàng SafeBox';
+      document.getElementById('print-customer-phone').textContent = selectedContract.customerPhone || '--';
+      document.getElementById('print-facility-name').textContent = selectedContract.facilityName;
+      document.getElementById('print-unit-number').textContent = selectedContract.unitNumber;
+      document.getElementById('print-start-date').textContent = formatDate(selectedContract.startDate);
+      document.getElementById('print-end-date').textContent = formatDate(selectedContract.endDate);
+      document.getElementById('print-overdue-days').textContent = selectedContract.overdueDays;
+      document.getElementById('print-customer-sign').textContent = selectedContract.customerName || '';
+
+      const tbody = document.getElementById('print-penalties-tbody');
+      tbody.innerHTML = (selectedContract.penalties || []).map(p => `
+        <tr>
+          <td class="border border-slate-300 p-2 font-mono">${formatDate(p.periodDate)}</td>
+          <td class="border border-slate-300 p-2 text-center font-mono">${p.overdueDays} ngày</td>
+          <td class="border border-slate-300 p-2 text-center font-mono">${p.billableDays} ngày</td>
+          <td class="border border-slate-300 p-2 text-right font-mono">${formatMoney(p.penaltyAmount)}</td>
+          <td class="border border-slate-300 p-2 text-right font-mono">${formatMoney(p.paidAmount)}</td>
+          <td class="border border-slate-300 p-2 text-right font-mono font-bold text-rose-700">${formatMoney(p.remainingAmount)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('print-total-debt').textContent = formatMoney(selectedContract.totalPenaltyDebt);
+
+      const printContainer = document.getElementById('printable-container');
+      printContainer.classList.remove('hidden');
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => printContainer.classList.add('hidden'), 500);
+      }, 100);
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function formatMoney(amount) {
+      if (!amount && amount !== 0) return '0 đ';
+      return Math.round(amount).toLocaleString('vi-VN') + ' đ';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '--';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return dateStr;
+    }
+  </script>
+</body>
+</html>
