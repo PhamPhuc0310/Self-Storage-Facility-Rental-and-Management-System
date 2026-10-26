@@ -90,6 +90,7 @@
     $('task-payment-type').innerHTML = payable.join('') || '<option value="">Chưa có khoản đến hạn</option>';
     $('task-payment-type').disabled = !payable.length;
     $('task-payment-amount').disabled = !payable.length;
+    $('task-payment-amount').value = (s.initialRent.remainingAmount > 0) ? s.initialRent.remainingAmount : '';
     $('task-payment-method').disabled = !payable.length;
     $('task-payment-submit').disabled = !payable.length;
     $('pending-transfers').innerHTML = history.filter(p => p.status === 'PENDING' && p.paymentMethod === 'BANK_TRANSFER' && p.paymentType === s.rentPaymentType).map(p => `<div class="flex justify-between gap-3 p-2 bg-surface-container-low rounded-lg my-2"><span>${escape(p.transactionCode)} · ${money(p.amount)}</span><button class="confirm-transfer text-secondary underline" data-id="${p.id}">Xác nhận</button></div>`).join('') || '<p>Không có chuyển khoản chờ xác nhận.</p>';
