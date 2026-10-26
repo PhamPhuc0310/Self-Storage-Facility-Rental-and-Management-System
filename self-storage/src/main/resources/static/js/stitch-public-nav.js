@@ -53,7 +53,6 @@
     ['Kho đang thuê','/stitch/kho_dang_thue_safebox_storage.html'],
     ['Thanh toán và lịch nhận kho','/stitch/uc11-customer-payments-appointments.html'],
     ['Gia hạn hợp đồng','/stitch/gia_han_hop_dong_safebox_storage.html'],
-    ['Công nợ & Quá hạn (UC18)','/stitch/qua_han_cong_no_khach_hang.html'],
     ['Hỗ trợ kỹ thuật & Sự cố','/stitch/ho_tro_khach_hang_safebox_storage.html']
   ];
   const managerLinks = [
@@ -61,8 +60,7 @@
     ['Duyệt yêu cầu','/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html'],
     ['Vận hành và phân công','/stitch/uc12-manager-operations.html'],
     ['Tiếp nhận trả kho','/stitch/bien_ban_tra_kho_safebox_manager.html'],
-    ['Xét duyệt gia hạn','/stitch/quan_ly_gia_han_safebox_manager.html'],
-    ['Quản lý phí phạt & Quá hạn','/stitch/quan_ly_qua_han_safebox_manager.html']
+    ['Xét duyệt gia hạn','/stitch/quan_ly_gia_han_safebox_manager.html']
   ];
   function link(label, href) {
     const a = document.createElement('a');

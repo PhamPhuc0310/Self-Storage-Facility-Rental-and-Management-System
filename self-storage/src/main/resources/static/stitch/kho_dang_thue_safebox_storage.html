@@ -723,16 +723,6 @@
               <span>Gia hạn kho</span>
             </a>
           `;
-        let overdueDebtBtnHtml = '';
-        if (item.isOverdue) {
-          overdueDebtBtnHtml = `
-            <a href="/stitch/qua_han_cong_no_khach_hang.html" 
-               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 transition-all shadow-sm"
-               title="Xem chi tiết công nợ quá hạn và thanh toán phí phạt (UC18)">
-              <span class="material-symbols-outlined text-sm">price_change</span>
-              <span>Xử lý nợ quá hạn (UC18)</span>
-            </a>
-          `;
         }
 
         card.innerHTML = `
@@ -818,7 +808,6 @@
                   <span>Xem chi tiết &amp; Hóa đơn</span>
                 </button>
                 ${renewalBtnHtml}
-                ${overdueDebtBtnHtml}
                 ${returnBtnHtml}
               </div>
             </div>
