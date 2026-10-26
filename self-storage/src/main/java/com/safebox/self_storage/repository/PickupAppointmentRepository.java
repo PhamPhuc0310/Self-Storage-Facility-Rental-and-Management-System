@@ -22,4 +22,7 @@ public interface PickupAppointmentRepository extends JpaRepository<PickupAppoint
     List<PickupAppointment> findStaffOverlapping(@Param("staffId") UUID staffId,
                                                   @Param("windowStart") LocalDateTime windowStart,
                                                   @Param("windowEnd") LocalDateTime windowEnd);
+
+    @Query("SELECT COUNT(a) FROM PickupAppointment a WHERE a.assignedStaffId = :staffId AND a.facilityId = :facilityId AND a.status = 'SCHEDULED'")
+    long countScheduledAppointments(@Param("staffId") UUID staffId, @Param("facilityId") UUID facilityId);
 }

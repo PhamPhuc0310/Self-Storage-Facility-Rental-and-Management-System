@@ -23,4 +23,7 @@ public interface UserFacilityAssignmentRepository extends JpaRepository<UserFaci
             + "WHERE a.userId = :userId AND a.facilityId = :facilityId AND a.status = 'ACTIVE' "
             + "AND a.startDate <= :today AND (a.endDate IS NULL OR a.endDate >= :today)")
     boolean isUserAssignedToFacility(@Param("userId") UUID userId, @Param("facilityId") UUID facilityId, @Param("today") LocalDate today);
+
+    @Query("SELECT a FROM UserFacilityAssignment a WHERE a.userId = :userId AND a.facilityId = :facilityId AND a.status = 'ACTIVE' AND a.startDate <= :today AND (a.endDate IS NULL OR a.endDate >= :today)")
+    List<UserFacilityAssignment> findActiveAssignments(@Param("userId") UUID userId, @Param("facilityId") UUID facilityId, @Param("today") LocalDate today);
 }

@@ -56,4 +56,10 @@ public interface HandoverRecordRepository extends JpaRepository<HandoverRecord, 
             @org.springframework.data.repository.query.Param("facilityIds") java.util.Collection<UUID> facilityIds,
             @org.springframework.data.repository.query.Param("status") String status,
             @org.springframework.data.repository.query.Param("staffId") UUID staffId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(h) FROM HandoverRecord h, StorageUnit u " +
+            "WHERE h.unitId = u.unitId AND u.facilityId = :facilityId AND h.staffId = :staffId " +
+            "AND h.status IN ('PENDING', 'SCHEDULED')")
+    long countPendingHandoverWork(@org.springframework.data.repository.query.Param("staffId") UUID staffId,
+                                  @org.springframework.data.repository.query.Param("facilityId") UUID facilityId);
 }

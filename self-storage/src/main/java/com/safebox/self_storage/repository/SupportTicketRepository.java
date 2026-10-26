@@ -30,4 +30,11 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, UU
     List<SupportTicket> findByFacilityIdAndStatusOrderByCreatedAtDesc(UUID facilityId, String status);
 
     boolean existsByTicketNumber(String ticketNumber);
+
+    List<SupportTicket> findByAssignedToOrderByCreatedAtDesc(UUID assignedTo);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(t) FROM SupportTicket t WHERE t.assignedTo = :staffId AND t.facilityId = :facilityId AND t.status IN :statuses")
+    long countOpenWork(@org.springframework.data.repository.query.Param("staffId") UUID staffId,
+                       @org.springframework.data.repository.query.Param("facilityId") UUID facilityId,
+                       @org.springframework.data.repository.query.Param("statuses") List<String> statuses);
 }
