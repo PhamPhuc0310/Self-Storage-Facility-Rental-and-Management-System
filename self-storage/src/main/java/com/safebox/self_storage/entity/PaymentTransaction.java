@@ -79,6 +79,12 @@ public class PaymentTransaction {
     @Column(name = "updated_at")
     public LocalDateTime updatedAt;
 
+    @Column(name = "confirmed_by")
+    public UUID confirmedBy;
+
+    @Column(name = "confirmed_at")
+    public LocalDateTime confirmedAt;
+
     public PaymentTransaction() {
     }
 

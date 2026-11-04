@@ -1,0 +1,7 @@
+# Optional private profile: copy to application-private.properties locally.
+# Activate with SPRING_PROFILES_ACTIVE=private. The real file is Git-ignored.
+# Prefer environment variables rather than putting passwords in this file.
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+app.jwt.secret=${JWT_SECRET}

@@ -7,6 +7,7 @@ import com.safebox.self_storage.dto.CreateReturnScheduleRequest;
 import com.safebox.self_storage.dto.response.FacilityReturnTaskItemResponse;
 import com.safebox.self_storage.dto.response.ReturnInspectionDetailResponse;
 import com.safebox.self_storage.dto.response.ReturnScheduleResponse;
+import com.safebox.self_storage.dto.response.ReturnStaffOption;
 import com.safebox.self_storage.entity.*;
 import com.safebox.self_storage.exception.BusinessException;
 import com.safebox.self_storage.repository.*;
@@ -29,17 +30,22 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
     private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final LocalTime APPOINTMENT_OPEN = LocalTime.of(6, 0);
+    private static final LocalTime APPOINTMENT_CLOSE = LocalTime.of(23, 0);
 
     private final RentalContractRepository rentalContractRepository;
     private final StorageUnitRepository storageUnitRepository;
     private final FacilityRepository facilityRepository;
     private final UserRepository userRepository;
     private final HandoverRecordRepository handoverRecordRepository;
+    private final PickupAppointmentRepository pickupAppointmentRepository;
     private final InspectionReportRepository inspectionReportRepository;
     private final UserFacilityAssignmentRepository userFacilityAssignmentRepository;
     private final InvoiceRepository invoiceRepository;
+    private final TerminationRequestRepository terminationRequestRepository;
     private final DepositRefundRepository depositRefundRepository;
     private final ActivityLogRepository activityLogRepository;
+    private final StaffRegionAssignmentRepository staffRegionAssignmentRepository;
 
     public ReturnInspectionServiceImpl(
             RentalContractRepository rentalContractRepository,
@@ -47,21 +53,27 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             FacilityRepository facilityRepository,
             UserRepository userRepository,
             HandoverRecordRepository handoverRecordRepository,
+            PickupAppointmentRepository pickupAppointmentRepository,
             InspectionReportRepository inspectionReportRepository,
             UserFacilityAssignmentRepository userFacilityAssignmentRepository,
             InvoiceRepository invoiceRepository,
+            TerminationRequestRepository terminationRequestRepository,
             DepositRefundRepository depositRefundRepository,
-            ActivityLogRepository activityLogRepository) {
+            ActivityLogRepository activityLogRepository,
+            StaffRegionAssignmentRepository staffRegionAssignmentRepository) {
         this.depositRefundRepository = depositRefundRepository;
         this.activityLogRepository = activityLogRepository;
+        this.staffRegionAssignmentRepository = staffRegionAssignmentRepository;
         this.rentalContractRepository = rentalContractRepository;
         this.storageUnitRepository = storageUnitRepository;
         this.facilityRepository = facilityRepository;
         this.userRepository = userRepository;
         this.handoverRecordRepository = handoverRecordRepository;
+        this.pickupAppointmentRepository = pickupAppointmentRepository;
         this.inspectionReportRepository = inspectionReportRepository;
         this.userFacilityAssignmentRepository = userFacilityAssignmentRepository;
         this.invoiceRepository = invoiceRepository;
+        this.terminationRequestRepository = terminationRequestRepository;
     }
 
     @Override
@@ -91,10 +103,17 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             }
         }
 
+        // Serialize appointment creation for this contract before checking for an existing return.
+        contract = rentalContractRepository.lockById(contractId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng thuê"));
+
         if (!"ACTIVE".equalsIgnoreCase(contract.getStatus())) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
-                    "Chỉ hợp đồng đang hoạt động (ACTIVE) mới được đặt lịch trả kho. Trạng thái hiện tại: " + contract.getStatus());
+                    "Chỉ hợp đồng đang hoạt động mới được đặt lịch trả kho.");
         }
+
+        if (handoverRecordRepository.findFirstByContractIdAndHandoverTypeAndStatus(contractId, "RETURN", "COMPLETED").isPresent())
+            throw new BusinessException(HttpStatus.CONFLICT, "Kho đã hoàn tất trả và không thể đặt lịch lại.");
 
         // BR16.2: Mỗi hợp đồng chỉ có một lịch trả còn hiệu lực
         Optional<HandoverRecord> existingScheduled = handoverRecordRepository
@@ -113,9 +132,15 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Giờ hẹn trả kho không được ở trong quá khứ");
         }
 
-        // BR16.1, BR16.2: Sprint 2 xử lý trả đúng hạn vào ngày kết thúc hợp đồng
+        // UC19 adds an explicit early-return request; the existing UC16 appointment owns scheduling.
         LocalDate scheduledDate = scheduledAt.toLocalDate();
-        if (!scheduledDate.equals(contract.getEndDate())) {
+        boolean approvedEarlyDate = !scheduledDate.equals(contract.getEndDate())
+                && terminationRequestRepository.findFirstByContractIdAndTypeAndStatusIn(
+                        contractId, "EARLY_RETURN", List.of("REQUESTED", "SETTLEMENT_APPROVED"))
+                        .map(t -> scheduledAt.equals(t.scheduledReturnAt)).orElse(false);
+        boolean lateReturn = contract.getEndDate().isBefore(now.toLocalDate())
+                && !scheduledDate.isBefore(now.toLocalDate());
+        if (!scheduledDate.equals(contract.getEndDate()) && !approvedEarlyDate && !lateReturn) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
                     "Vui lòng chọn ngày hẹn trả kho vào ngày kết thúc hợp đồng ("
                             + contract.getEndDate().format(DATE_FORMATTER)
@@ -128,27 +153,17 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         Facility facility = facilityRepository.findById(unit.getFacilityId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin cơ sở"));
 
-        // BR16.2: Trong khung giờ tiếp nhận của cơ sở
+        // Physical return appointments occupy a 30-minute slot in Vietnam local time.
         LocalTime apptTime = scheduledAt.toLocalTime();
-        if (facility.getOpeningTime() != null && apptTime.isBefore(facility.getOpeningTime())) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST,
-                    "Giờ hẹn (" + apptTime.format(TIME_FORMATTER) + ") sớm hơn giờ mở cửa của cơ sở ("
-                            + facility.getOpeningTime().format(TIME_FORMATTER) + ")");
-        }
-        if (facility.getClosingTime() != null && apptTime.isAfter(facility.getClosingTime())) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST,
-                    "Giờ hẹn (" + apptTime.format(TIME_FORMATTER) + ") muộn hơn giờ đóng cửa của cơ sở ("
-                            + facility.getClosingTime().format(TIME_FORMATTER) + ")");
-        }
+        if (apptTime.isBefore(APPOINTMENT_OPEN) || !apptTime.isBefore(APPOINTMENT_CLOSE)
+                || apptTime.plusMinutes(30).isAfter(APPOINTMENT_CLOSE))
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Lịch trả kho cần nằm trọn trong khung 06:00–23:00.");
 
-        // Phân công nhân viên phụ trách tại cơ sở (BR16.3, BR13.2)
-        UUID assignedStaffId = resolveStaffForFacility(facility.getFacilityId());
-
-        // Tạo biên bản lịch trả kho (HANDOVER_RECORDS)
+        // Lịch chờ quản lý cơ sở phân công nhân viên phù hợp.
         HandoverRecord handoverRecord = new HandoverRecord();
         handoverRecord.setContractId(contract.getContractId());
         handoverRecord.setUnitId(unit.getUnitId());
-        handoverRecord.setStaffId(assignedStaffId);
+        handoverRecord.setStaffId(null);
         handoverRecord.setHandoverType("RETURN");
         handoverRecord.setScheduledAt(scheduledAt);
         handoverRecord.setNote(request.getNote());
@@ -157,6 +172,85 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         handoverRecord = handoverRecordRepository.save(handoverRecord);
 
         return mapToScheduleResponse(handoverRecord, contract, unit, facility);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReturnStaffOption> eligibleReturnStaff(UUID managerId, UUID handoverId) {
+        HandoverRecord record = handoverRecordRepository.findById(handoverId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy lịch trả kho"));
+        ReturnAssignmentContext context = requireManagerReturnContext(managerId, record);
+        return userFacilityAssignmentRepository.findActiveUserIdsByFacility(
+                        context.facility().getFacilityId(), LocalDate.now(VIETNAM_ZONE)).stream()
+                .distinct().map(userRepository::findById).flatMap(Optional::stream)
+                .filter(staff -> isEligibleReturnStaff(staff, context.facility(), record.getScheduledAt()))
+                .map(staff -> new ReturnStaffOption(staff.getUserId(), staff.getFullName()))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ReturnScheduleResponse assignReturnStaff(UUID managerId, UUID handoverId, UUID staffId) {
+        if (staffId == null) throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng chọn nhân viên phụ trách");
+        HandoverRecord record = handoverRecordRepository.lockById(handoverId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy lịch trả kho"));
+        ReturnAssignmentContext context = requireManagerReturnContext(managerId, record);
+        if (staffId.equals(record.getStaffId()))
+            return mapToScheduleResponse(record, context.contract(), context.unit(), context.facility());
+
+        // Lock the staff row so two return assignments for the same employee cannot
+        // both pass conflict checks before either one commits.
+        User staff = userRepository.lockById(staffId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
+        if (!isEligibleReturnStaff(staff, context.facility(), record.getScheduledAt()))
+            throw new BusinessException(HttpStatus.CONFLICT, "Nhân viên không đủ quyền hoặc trùng lịch hẹn");
+        record.setStaffId(staffId);
+        handoverRecordRepository.saveAndFlush(record);
+        activityLogRepository.save(new ActivityLog(managerId, "ASSIGN_RETURN_STAFF", "HANDOVER_RECORD",
+                record.getHandoverId(), "staffId=" + staffId, LocalDateTime.now(VIETNAM_ZONE)));
+        return mapToScheduleResponse(record, context.contract(), context.unit(), context.facility());
+    }
+
+    private record ReturnAssignmentContext(RentalContract contract, StorageUnit unit, Facility facility) {}
+
+    private ReturnAssignmentContext requireManagerReturnContext(UUID managerId, HandoverRecord record) {
+        if (managerId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại"));
+        if (!"ACTIVE".equals(manager.getStatus()) || manager.getRole() == null
+                || !"FACILITY_MANAGER".equals(manager.getRole().getRoleName()))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ quản lý cơ sở được phân công lịch trả kho");
+        if (!"RETURN".equals(record.getHandoverType()) || !"SCHEDULED".equals(record.getStatus())
+                || !record.getScheduledAt().isAfter(LocalDateTime.now(VIETNAM_ZONE)))
+            throw new BusinessException(HttpStatus.CONFLICT, "Lịch trả kho không còn chờ phân công");
+        RentalContract contract = rentalContractRepository.findByContractId(record.getContractId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
+        StorageUnit unit = storageUnitRepository.findById(contract.getUnitId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy ô kho"));
+        Facility facility = facilityRepository.findById(unit.getFacilityId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy cơ sở"));
+        if (!"ACTIVE".equals(contract.getStatus()) || !"OCCUPIED".equals(unit.getStatus()))
+            throw new BusinessException(HttpStatus.CONFLICT, "Hợp đồng hoặc ô kho không còn đủ điều kiện trả kho");
+        if (!userFacilityAssignmentRepository.isUserAssignedToFacility(
+                managerId, facility.getFacilityId(), LocalDate.now(VIETNAM_ZONE)))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không quản lý cơ sở của lịch trả kho này");
+        if (facility.getRegionCode() == null || facility.getRegionCode().isBlank())
+            throw new BusinessException(HttpStatus.CONFLICT, "Cơ sở chưa được cấu hình vùng hoạt động");
+        return new ReturnAssignmentContext(contract, unit, facility);
+    }
+
+    private boolean isEligibleReturnStaff(User staff, Facility facility, LocalDateTime scheduledAt) {
+        UUID staffId = staff.getUserId();
+        if (!"ACTIVE".equals(staff.getStatus()) || staff.getRole() == null
+                || !"FACILITY_STAFF".equals(staff.getRole().getRoleName())) return false;
+        if (!userFacilityAssignmentRepository.isUserAssignedToFacility(
+                staffId, facility.getFacilityId(), LocalDate.now(VIETNAM_ZONE))) return false;
+        if (staffRegionAssignmentRepository.findByUserIdAndStatus(staffId, "ACTIVE").stream()
+                .noneMatch(a -> facility.getRegionCode().equalsIgnoreCase(a.getRegionCode()))) return false;
+        return pickupAppointmentRepository.findStaffOverlapping(staffId,
+                scheduledAt.minusHours(1).plusNanos(1), scheduledAt.plusMinutes(30)).isEmpty()
+                && handoverRecordRepository.findScheduledReturnConflicts(staffId,
+                scheduledAt.minusMinutes(29), scheduledAt.plusMinutes(30)).isEmpty();
     }
 
     @Override
@@ -295,7 +389,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
         Facility facility = (unit != null) ? facilityRepository.findById(unit.getFacilityId()).orElse(null) : null;
         User customer = userRepository.findById(contract.getCustomerId()).orElse(null);
-        User inspector = userRepository.findById(handoverRecord.getStaffId()).orElse(null);
+        User inspector = handoverRecord.getStaffId() == null ? null
+                : userRepository.findById(handoverRecord.getStaffId()).orElse(null);
 
         InspectionReport report = inspectionReportRepository
                 .findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(contract.getContractId(), "RETURN_INSPECTION")
@@ -321,6 +416,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         if (!"RETURN".equals(handoverRecord.getHandoverType()))
             throw new BusinessException(HttpStatus.CONFLICT, "Biên bản không phải lịch trả kho");
 
+        if (handoverRecord.getStaffId() == null)
+            throw new BusinessException(HttpStatus.CONFLICT, "Lịch trả kho chưa được phân công nhân viên");
+
         RentalContract contract = rentalContractRepository.findByContractId(handoverRecord.getContractId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
 
@@ -335,8 +433,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
 
         // BR16.4: Chỉ STAFF được giao kiểm tra hoặc FACILITY_MANAGER tại đúng cơ sở được lập biên bản nhận lại
         validateStaffOrManagerPermission(staffUser, facility.getFacilityId());
-        if ("FACILITY_STAFF".equals(staffUser.getRole().getRoleName())
-                && !staffOrManagerId.equals(handoverRecord.getStaffId()))
+        if (!"FACILITY_STAFF".equals(staffUser.getRole().getRoleName())
+                || !staffOrManagerId.equals(handoverRecord.getStaffId()))
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn chưa được phân công lịch trả kho này");
 
         // BR16.8: Idempotency - Gọi lặp lại không tạo biên bản mới
@@ -372,6 +470,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         }
 
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
+        if (now.isBefore(handoverRecord.getScheduledAt()))
+            throw new BusinessException(HttpStatus.CONFLICT, "Chưa đến giờ trả kho theo lịch hẹn.");
         LocalDate today = now.toLocalDate();
 
         // 1. Cập nhật HANDOVER_RECORDS
@@ -408,7 +508,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         report.setEvidenceUrls(request.getEvidenceUrls());
         report = inspectionReportRepository.save(report);
 
-        // BR16.7: Nếu kho đủ điều kiện sử dụng -> AVAILABLE. Nếu cần sửa chữa -> MAINTENANCE.
+        // Returning possession does not itself verify readiness for the next tenant.
         boolean isDamaged = "DAMAGED".equalsIgnoreCase(conditionStatus)
                 || repairCost.compareTo(BigDecimal.ZERO) > 0
                 || "MAINTENANCE".equalsIgnoreCase(request.getUnitNextStatus());
@@ -416,8 +516,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         if (isDamaged) {
             unit.setStatus("MAINTENANCE");
         } else {
-            unit.setStatus("AVAILABLE");
+            unit.setStatus("INACTIVE");
         }
+        unit.setReadinessVerified(false);
         storageUnitRepository.save(unit);
 
         // BR16.8, BR16.9, BR16.10: Cập nhật hợp đồng sang RETURNED (tách biệt khỏi CLOSED)
@@ -432,17 +533,6 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
     // =========================================================================
     // HELPER METHODS
     // =========================================================================
-
-    private UUID resolveStaffForFacility(UUID facilityId) {
-        LocalDate today = LocalDate.now(VIETNAM_ZONE);
-        return userFacilityAssignmentRepository.findActiveUserIdsByFacility(facilityId, today).stream()
-                .map(userRepository::findById).flatMap(Optional::stream)
-                .filter(u -> "ACTIVE".equals(u.getStatus()) && u.getRole() != null
-                        && "FACILITY_STAFF".equals(u.getRole().getRoleName()))
-                .map(User::getUserId).findFirst()
-                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT,
-                        "Cơ sở chưa có nhân viên đủ điều kiện xử lý lịch trả kho"));
-    }
 
     private void validateAccessToContract(UUID currentUserId, RentalContract contract) {
         if (contract.getCustomerId().equals(currentUserId)) {
@@ -510,8 +600,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 (facility != null) ? facility.getName() : "SafeBox Facility",
                 (facility != null) ? facility.getAddress() : "",
                 (facility != null) ? facility.getPhone() : "",
-                (facility != null && facility.getOpeningTime() != null) ? facility.getOpeningTime().format(TIME_FORMATTER) : "07:00",
-                (facility != null && facility.getClosingTime() != null) ? facility.getClosingTime().format(TIME_FORMATTER) : "21:00",
+                APPOINTMENT_OPEN.format(TIME_FORMATTER),
+                APPOINTMENT_CLOSE.format(TIME_FORMATTER),
                 record.getScheduledAt(),
                 record.getStatus(),
                 ReturnScheduleResponse.getStatusLabel(record.getStatus()),
@@ -571,9 +661,9 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 .count();
 
         // BR16.9, BR16.10: Sprint 2 lưu khoản chưa tất toán để theo dõi, không tự ý hoàn cọc hay phạt
-        String financialNotes = "Hợp đồng đã nhận lại kho vật lý (RETURNED). Tiền cọc ("
+        String financialNotes = "Trạng thái hợp đồng: " + contract.getStatus() + ". Tiền cọc theo hợp đồng ("
                 + String.format("%,.0f", contract.getDepositAmount())
-                + " VNĐ) đã được lập hồ sơ quyết toán và chuyển giao cho Bộ phận Kế toán - Tài chính xử lý hoàn tiền về tài khoản của khách hàng theo quy định hợp đồng.";
+                + " VNĐ). Xem kết quả quyết toán và hoàn cọc trong hồ sơ trả trước hạn.";
 
         return new ReturnInspectionDetailResponse(
                 handoverRecord.getHandoverId(),
@@ -608,7 +698,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
                 handoverRecord.getCustomerSignature(),
                 handoverRecord.getStaffSignature(),
                 handoverRecord.getStaffId(),
-                (inspector != null) ? inspector.getFullName() : "Nhân viên kiểm tra",
+                (inspector != null) ? inspector.getFullName() : "Chưa phân công",
                 contract.getDepositAmount(),
                 unpaidInvoices,
                 "COMPLETED".equalsIgnoreCase(contract.getStatus()),
@@ -727,7 +817,7 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         Optional<InspectionReport> returnReportOpt = inspectionReportRepository
                 .findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(contractId, "RETURN_INSPECTION");
 
-        if (!"RETURNED".equalsIgnoreCase(contract.getStatus()) && returnReportOpt.isEmpty()) {
+        if (!"RETURNED".equalsIgnoreCase(contract.getStatus()) || returnReportOpt.isEmpty()) {
             throw new BusinessException(HttpStatus.CONFLICT,
                     "Hợp đồng chưa hoàn tất bước kiểm tra nhận lại kho (trạng thái hiện tại: "
                             + contract.getStatus() + "). Vui lòng thực hiện kiểm tra trả kho trước khi đóng hợp đồng.");
@@ -750,6 +840,11 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
             throw new BusinessException(HttpStatus.CONFLICT,
                     "Hợp đồng đang có yêu cầu hoàn cọc đang chờ duyệt hoặc chi trả. Cần hoàn tất quyết toán hoàn cọc trước khi đóng hợp đồng.");
         }
+        if (terminationRequestRepository.existsByContractIdAndTypeAndStatusIn(
+                contractId, "EARLY_RETURN", List.of("REQUESTED", "SETTLEMENT_APPROVED"))) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Yêu cầu trả kho sớm cần hoàn tất quyết toán và hoàn cọc trước khi đóng hợp đồng.");
+        }
 
         // BR20.3: Không chuyển unit sang AVAILABLE nếu chưa kiểm tra tình trạng hoặc cần bảo trì
         boolean isDamaged = false;
@@ -771,8 +866,8 @@ public class ReturnInspectionServiceImpl implements ReturnInspectionService {
         // Cập nhật trạng thái ô kho
         if (isDamaged) {
             unit.setStatus("MAINTENANCE");
-        } else {
-            unit.setStatus("AVAILABLE");
+        } else if (!"AVAILABLE".equals(unit.getStatus())) {
+            unit.setStatus("INACTIVE");
         }
         storageUnitRepository.save(unit);
 

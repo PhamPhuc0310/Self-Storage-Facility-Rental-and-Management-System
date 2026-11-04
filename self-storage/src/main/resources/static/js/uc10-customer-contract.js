@@ -152,8 +152,10 @@ function renderContractDetail(contract) {
     // Ô kho vật lý
     setText('unit-number-display', contract.unitNumber || 'Kho');
     setText('unit-location-display', [contract.floor, contract.zone].filter(Boolean).join(', ') || 'Chưa cập nhật');
-    setText('unit-type-display', contract.typeName || 'Kho tự quản');
-    setText('unit-size-display', (contract.sizeName || '') + (contract.area ? ' (' + contract.area + ' m²)' : ''));
+    setText('unit-type-display', String(contract.typeName || 'Kho tự quản')
+      .replace(/\s*\d+(?:[.,]\d+)?\s*m(?:2|²)/gi, '').trim().replace(/^Standard$/i, 'Kho tiêu chuẩn'));
+    setText('unit-size-display', contract.volumeM3 != null
+      ? Number(contract.volumeM3).toLocaleString('vi-VN') + ' m³' : 'Thể tích chưa xác minh');
     setText('unit-mode-display', contract.storageMode || 'STANDARD');
 
     // Thời gian thuê & Tài chính

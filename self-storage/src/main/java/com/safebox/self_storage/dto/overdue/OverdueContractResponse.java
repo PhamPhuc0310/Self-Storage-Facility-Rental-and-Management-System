@@ -23,13 +23,14 @@ public record OverdueContractResponse(
         BigDecimal monthlyRentalFee,
         BigDecimal dailyRent,
         int overdueDays,
-        int graceDays,
-        int billableDays,
+        Integer graceDays,
+        Integer billableDays,
         boolean isOverdue,
         boolean hasActiveRenewal,
         boolean hasCompletedReturn,
         BigDecimal totalPenaltyDebt,
         BigDecimal totalPenaltyPaid,
         String status,
-        List<PenaltyDetailResponse> penalties
+        List<PenaltyDetailResponse> penalties,
+        boolean requiresRecovery
 ) {}

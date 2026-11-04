@@ -123,4 +123,18 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             + "AND r.status = 'CONFIRMED' AND r.startDate < :endDate AND r.endDate > :startDate")
     long countConfirmedOverlapping(@Param("facilityId") UUID facilityId, @Param("typeId") Integer typeId,
                                    @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.facilityId=:facilityId AND r.typeId=:typeId "
+            + "AND r.status='PENDING' AND r.startDate<:endDate AND r.endDate>:startDate "
+            + "AND (r.holdExpiresAt IS NULL OR r.holdExpiresAt>:now)")
+    long countActivePendingOverlapping(@Param("facilityId") UUID facilityId,@Param("typeId") Integer typeId,
+            @Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate,
+            @Param("now") java.time.LocalDateTime now);
+
+    @Query("SELECT r FROM Reservation r WHERE r.customerId=:customerId AND r.facilityId=:facilityId "
+            + "AND r.typeId=:typeId AND r.startDate=:startDate AND r.endDate=:endDate "
+            + "AND r.status IN ('PENDING','CONFIRMED') ORDER BY r.createdAt DESC")
+    List<Reservation> findActiveExactRequest(@Param("customerId") UUID customerId,
+            @Param("facilityId") UUID facilityId, @Param("typeId") Integer typeId,
+            @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

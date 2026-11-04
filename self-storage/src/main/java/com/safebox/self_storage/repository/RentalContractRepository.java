@@ -22,6 +22,8 @@ import java.util.UUID;
  */
 @Repository
 public interface RentalContractRepository extends JpaRepository<RentalContract, UUID> {
+    boolean existsByUnitId(UUID unitId);
+    boolean existsByUnitIdAndStatusIn(UUID unitId, Collection<String> statuses);
 
     List<RentalContract> findByCustomerIdOrderByStartDateDesc(UUID customerId);
 

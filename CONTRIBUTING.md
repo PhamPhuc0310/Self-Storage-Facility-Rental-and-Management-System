@@ -39,6 +39,6 @@ dự án đó; không coi Maven CI là kiểm tra được mọi ngôn ngữ.
 
 Workflow `CI` chạy Java 21 và Maven Wrapper trong `self-storage/`, bằng lệnh
 `verify` để chạy test và đóng gói ứng dụng. Check bắt buộc dự kiến: `build-test`.
-Các test hiện tại dùng mock cho repository/service và không cần SQL Server thật.
+Bộ test mặc định dùng mock và H2; SQL Server integration test chỉ chạy khi bật biến môi trường riêng.
 CI này chưa xác nhận kết nối SQL Server hoặc các luồng end-to-end trên giao diện.
 Khi thêm integration test cần DB thật, bổ sung môi trường DB riêng cho CI.

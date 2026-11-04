@@ -37,7 +37,9 @@ public class RenewalServiceImpl implements RenewalService {
     private final InvoiceRepository invoiceRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final HandoverRecordRepository handoverRecordRepository;
+    private final TerminationRequestRepository terminationRequestRepository;
     private final UserFacilityAssignmentRepository userFacilityAssignmentRepository;
+    private final ActivityLogRepository activityLogRepository;
 
     public RenewalServiceImpl(
             RenewalRepository renewalRepository,
@@ -50,7 +52,9 @@ public class RenewalServiceImpl implements RenewalService {
             InvoiceRepository invoiceRepository,
             PaymentTransactionRepository paymentTransactionRepository,
             HandoverRecordRepository handoverRecordRepository,
-            UserFacilityAssignmentRepository userFacilityAssignmentRepository) {
+            TerminationRequestRepository terminationRequestRepository,
+            UserFacilityAssignmentRepository userFacilityAssignmentRepository,
+            ActivityLogRepository activityLogRepository) {
         this.renewalRepository = renewalRepository;
         this.rentalContractRepository = rentalContractRepository;
         this.storageUnitRepository = storageUnitRepository;
@@ -61,7 +65,9 @@ public class RenewalServiceImpl implements RenewalService {
         this.invoiceRepository = invoiceRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.handoverRecordRepository = handoverRecordRepository;
+        this.terminationRequestRepository = terminationRequestRepository;
         this.userFacilityAssignmentRepository = userFacilityAssignmentRepository;
+        this.activityLogRepository = activityLogRepository;
     }
 
     @Override
@@ -88,7 +94,7 @@ public class RenewalServiceImpl implements RenewalService {
 
         if (!"ACTIVE".equalsIgnoreCase(contract.getStatus())) {
             canRenew = false;
-            warningMessage = "Chỉ hợp đồng đang hoạt động (ACTIVE) mới được yêu cầu gia hạn. Trạng thái hiện tại: " + contract.getStatus();
+            warningMessage = "Chỉ hợp đồng đang hoạt động mới được yêu cầu gia hạn.";
         }
 
         // BR17.3: Kiểm tra yêu cầu trả kho đang mở
@@ -97,6 +103,10 @@ public class RenewalServiceImpl implements RenewalService {
         if (openReturn.isPresent()) {
             canRenew = false;
             warningMessage = "Hợp đồng đang có lịch hẹn trả kho. Vui lòng hủy lịch trả kho trước khi yêu cầu gia hạn.";
+        }
+        if (hasOpenEarlyReturn(contractId)) {
+            canRenew = false;
+            warningMessage = "Hợp đồng đang có yêu cầu trả kho sớm. Vui lòng xử lý yêu cầu này trước khi gia hạn.";
         }
 
         // BR17.5: Kiểm tra yêu cầu gia hạn đang chờ xử lý
@@ -176,7 +186,7 @@ public class RenewalServiceImpl implements RenewalService {
         }
         if (!"ACTIVE".equalsIgnoreCase(contract.getStatus())) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
-                    "Chỉ hợp đồng đang hoạt động (ACTIVE) mới được yêu cầu gia hạn. Trạng thái hiện tại: " + contract.getStatus());
+                    "Chỉ hợp đồng đang hoạt động mới được yêu cầu gia hạn.");
         }
 
         // BR17.5 & Rule: Retry không tạo gia hạn trùng / chỉ 1 yêu cầu gia hạn đang mở
@@ -192,6 +202,10 @@ public class RenewalServiceImpl implements RenewalService {
         if (openReturn.isPresent()) {
             throw new BusinessException(HttpStatus.CONFLICT,
                     "Hợp đồng đang có lịch hẹn trả kho. Vui lòng hủy lịch trả kho trước khi yêu cầu gia hạn.");
+        }
+        if (hasOpenEarlyReturn(contractId)) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Hợp đồng đang có yêu cầu trả kho sớm. Vui lòng xử lý yêu cầu này trước khi gia hạn.");
         }
 
         // BR17.2: Ngày bắt đầu kỳ gia hạn nối tiếp ngày kết thúc hiện tại; không ghi đè lịch sử kỳ cũ
@@ -304,7 +318,7 @@ public class RenewalServiceImpl implements RenewalService {
 
             Optional<HandoverRecord> openReturn = handoverRecordRepository
                     .findFirstByContractIdAndHandoverTypeAndStatus(contract.getContractId(), "RETURN", "SCHEDULED");
-            if (openReturn.isPresent()) {
+            if (openReturn.isPresent() || hasOpenEarlyReturn(contract.getContractId())) {
                 throw new BusinessException(HttpStatus.CONFLICT,
                         "Không thể duyệt gia hạn do hợp đồng đang có yêu cầu trả kho đang mở/chờ xử lý");
             }
@@ -368,38 +382,41 @@ public class RenewalServiceImpl implements RenewalService {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Mã idempotency key không được để trống");
         }
 
-        // BR17.5: Retry không tạo gia hạn và giao dịch trùng
-        Optional<PaymentTransaction> prevTx = paymentTransactionRepository
-                .findByCreatedByAndIdempotencyKey(customerId, request.getIdempotencyKey());
-        if (prevTx.isPresent()) {
-            PaymentTransaction tx = prevTx.get();
-            Renewal renewal = renewalRepository.findById(renewalId).orElse(null);
-            RentalContract contract = (renewal != null) ? rentalContractRepository.findByContractId(renewal.getContractId()).orElse(null) : null;
-            LocalDate contractEndDate = (contract != null) ? contract.getEndDate() : null;
-
-            return new RenewalPaymentResponse(
-                    tx.getTransactionId(),
-                    renewalId,
-                    (contract != null) ? contract.getContractId() : null,
-                    tx.getReferenceCode(),
-                    tx.getAmount(),
-                    tx.getPaymentMethod(),
-                    tx.getStatus(),
-                    tx.getTransactionDate(),
-                    contractEndDate,
-                    "Giao dịch đã được ghi nhận trước đó (Idempotent response)."
-            );
-        }
-
         Renewal renewal = renewalRepository.findById(renewalId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu gia hạn"));
 
-        RentalContract contract = rentalContractRepository.findByContractId(renewal.getContractId())
+        RentalContract contract = rentalContractRepository.lockById(renewal.getContractId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng thuê liên quan"));
 
         // BR17.1: Chỉ CUSTOMER sở hữu hợp đồng mới được thanh toán
         if (!contract.getCustomerId().equals(customerId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thanh toán yêu cầu gia hạn này");
+        }
+
+        String method = request.getPaymentMethod() == null ? "" : request.getPaymentMethod().toUpperCase(Locale.ROOT);
+        if (!Set.of("CASH", "BANK_TRANSFER").contains(method)) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Phương thức thanh toán gia hạn chưa được hỗ trợ.");
+        }
+        if (request.getIdempotencyKey().length() > 100) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Mã yêu cầu thanh toán không hợp lệ.");
+        }
+
+        Invoice invoice = invoiceRepository.findFirstByRenewalId(renewalId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hóa đơn gia hạn liên kết"));
+        if (!contract.getContractId().equals(invoice.getContractId()) || !"RENEWAL".equals(invoice.getInvoiceType())) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Hóa đơn gia hạn không hợp lệ.");
+        }
+
+        Optional<PaymentTransaction> prevTx = paymentTransactionRepository
+                .findByCreatedByAndIdempotencyKey(customerId, request.getIdempotencyKey());
+        if (prevTx.isPresent()) {
+            PaymentTransaction tx = prevTx.get();
+            if (!invoice.getInvoiceId().equals(tx.getInvoiceId()) || !contract.getContractId().equals(tx.getContractId())
+                    || !"RENEWAL".equals(tx.getPaymentType()) || !method.equals(tx.getPaymentMethod())
+                    || tx.getAmount().compareTo(request.getAmount()) != 0) {
+                throw new BusinessException(HttpStatus.CONFLICT, "Mã yêu cầu đã dùng cho khoản thanh toán khác.");
+            }
+            return renewalPaymentResponse(tx, renewal, contract, "Yêu cầu thanh toán đã được ghi nhận trước đó.");
         }
 
         if ("COMPLETED".equalsIgnoreCase(renewal.getStatus())) {
@@ -428,56 +445,183 @@ public class RenewalServiceImpl implements RenewalService {
                     "Số tiền thanh toán (" + request.getAmount() + " VND) không khớp với số tiền cần thanh toán (" + renewal.getRenewalAmount() + " VND).");
         }
 
-        // Tìm hóa đơn gia hạn
-        Invoice invoice = invoiceRepository.findFirstByRenewalId(renewalId)
-                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hóa đơn gia hạn liên kết"));
+        if (!"ACTIVE".equals(contract.getStatus()) || !renewal.getOldEndDate().equals(contract.getEndDate())
+                || !"UNPAID".equals(invoice.getStatus()) || invoice.getPaidAmount().signum() != 0
+                || invoice.getTotalAmount().compareTo(renewal.getRenewalAmount()) != 0) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Hợp đồng hoặc hóa đơn gia hạn đã thay đổi.");
+        }
+        if (paymentTransactionRepository.findByInvoiceId(invoice.getInvoiceId()).stream()
+                .anyMatch(tx -> "PENDING".equals(tx.getStatus()) || "SUCCESS".equals(tx.getStatus()))) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Đã có yêu cầu thanh toán gia hạn đang chờ xác nhận.");
+        }
 
-        // Thực hiện giao dịch thanh toán qua cơ chế hiện có (PaymentTransaction)
+        // Reuse the existing payment transaction and invoice lifecycle. Customer input is only a request.
         PaymentTransaction tx = new PaymentTransaction();
         tx.setContractId(contract.getContractId());
         tx.setInvoiceId(invoice.getInvoiceId());
         tx.setTransactionType("RENEWAL");
         tx.setPaymentType("RENEWAL");
-        tx.setPaymentMethod(request.getPaymentMethod().toUpperCase());
+        tx.setPaymentMethod(method);
         tx.setAmount(request.getAmount());
         tx.setTransactionDate(now);
         tx.setCreatedAt(now);
         tx.setUpdatedAt(now);
         tx.setCreatedBy(customerId);
         tx.setIdempotencyKey(request.getIdempotencyKey());
-        tx.setStatus("SUCCESS");
+        tx.setStatus("PENDING");
 
         PaymentTransaction savedTx = paymentTransactionRepository.saveAndFlush(tx);
         savedTx.setReferenceCode("PAY-RNW-" + now.format(DateTimeFormatter.BASIC_ISO_DATE) + "-"
                 + savedTx.getTransactionId().toString().replace("-", "").substring(0, 8).toUpperCase());
         paymentTransactionRepository.save(savedTx);
 
-        // Cập nhật hóa đơn
-        invoice.setPaidAmount(invoice.getPaidAmount().add(request.getAmount()));
+        return renewalPaymentResponse(savedTx, renewal, contract,
+                "Yêu cầu thanh toán đang chờ Quản lý cơ sở xác nhận sau khi nhận tiền.");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RenewalPaymentResponse> pendingRenewalPayments(UUID managerId) {
+        requireManagerRole(managerId);
+        List<UUID> facilities = userFacilityAssignmentRepository.findActiveFacilityIds(managerId, LocalDate.now(VIETNAM_ZONE));
+        if (facilities.isEmpty()) return List.of();
+        return paymentTransactionRepository.pendingForFacilities(facilities).stream()
+                .filter(p -> "RENEWAL".equals(p.getPaymentType()))
+                .map(p -> {
+                    Invoice invoice = invoiceRepository.findById(p.getInvoiceId()).orElse(null);
+                    if (invoice == null || invoice.getRenewalId() == null || !"RENEWAL".equals(invoice.getInvoiceType())) return null;
+                    Renewal renewal = renewalRepository.findById(invoice.getRenewalId()).orElse(null);
+                    RentalContract contract = rentalContractRepository.findByContractId(p.getContractId()).orElse(null);
+                    if (renewal == null || contract == null || !renewal.getContractId().equals(contract.getContractId())) return null;
+                    return renewalPaymentResponse(p, renewal, contract, "Chờ xác nhận thanh toán.");
+                })
+                .filter(Objects::nonNull).toList();
+    }
+
+    @Override
+    public RenewalPaymentResponse confirmRenewalPayment(UUID managerId, UUID renewalId, UUID paymentId,
+                                                       ConfirmRenewalPaymentRequest request) {
+        requireManagerRole(managerId);
+        Renewal renewal = renewalRepository.findById(renewalId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu gia hạn"));
+        RentalContract contract = rentalContractRepository.lockById(renewal.getContractId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng thuê"));
+        requireManagerFacility(managerId, contract);
+        Invoice invoice = invoiceRepository.findFirstByRenewalId(renewalId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Không tìm thấy hóa đơn gia hạn"));
+        PaymentTransaction payment = paymentTransactionRepository.findById(paymentId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch"));
+        validateRenewalPaymentLinks(renewal, contract, invoice, payment);
+
+        if ("SUCCESS".equals(payment.getStatus())) {
+            if (!"COMPLETED".equals(renewal.getStatus()) || !"PAID".equals(invoice.getStatus())
+                    || !renewal.getNewEndDate().equals(contract.getEndDate())) {
+                throw new BusinessException(HttpStatus.CONFLICT, "Trạng thái thanh toán gia hạn không nhất quán.");
+            }
+            return renewalPaymentResponse(payment, renewal, contract, "Khoản thanh toán đã được xác nhận trước đó.");
+        }
+        if (!"PENDING".equals(payment.getStatus()) || !"APPROVED".equals(renewal.getStatus())
+                || !"ACTIVE".equals(contract.getStatus()) || !renewal.getOldEndDate().equals(contract.getEndDate())
+                || !"UNPAID".equals(invoice.getStatus()) || invoice.getPaidAmount() == null
+                || invoice.getPaidAmount().signum() != 0 || invoice.getTotalAmount().compareTo(payment.getAmount()) != 0
+                || renewal.getRenewalAmount().compareTo(payment.getAmount()) != 0) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Khoản thanh toán gia hạn không còn hợp lệ để xác nhận.");
+        }
+        if ("BANK_TRANSFER".equals(payment.getPaymentMethod())) {
+            String evidence = request == null ? null : request.verificationReference();
+            if (evidence == null || evidence.isBlank() || evidence.trim().length() > 100) {
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Cần mã đối soát ngân hàng đã được kiểm chứng độc lập.");
+            }
+            payment.setReferenceCode(evidence.trim());
+        } else if (!"CASH".equals(payment.getPaymentMethod())) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Phương thức thanh toán gia hạn không hợp lệ.");
+        }
+
+        LocalDateTime confirmedAt = LocalDateTime.now(VIETNAM_ZONE);
+        payment.setStatus("SUCCESS");
+        payment.confirmedBy = managerId;
+        payment.confirmedAt = confirmedAt;
+        payment.setUpdatedAt(confirmedAt);
+        invoice.setPaidAmount(payment.getAmount());
         invoice.setStatus("PAID");
-        invoiceRepository.save(invoice);
-
-        // Cập nhật trạng thái yêu cầu gia hạn
         renewal.setStatus("COMPLETED");
-        renewalRepository.save(renewal);
-
-        // BR17.5: CHỈ GIA HẠN HIỆU LỰC SAU KHI KHOẢN THANH TOÁN ĐƯỢC XÁC NHẬN
-        // Cập nhật ngày kết thúc mới cho hợp đồng
         contract.setEndDate(renewal.getNewEndDate());
+        paymentTransactionRepository.save(payment);
+        invoiceRepository.save(invoice);
+        renewalRepository.save(renewal);
         rentalContractRepository.save(contract);
+        activityLogRepository.saveAndFlush(new ActivityLog(managerId, "CONFIRM_RENEWAL_PAYMENT", "PAYMENT_TRANSACTION",
+                payment.getTransactionId(), "role=FACILITY_MANAGER;result=SUCCESS;paymentType=RENEWAL;method="
+                        + payment.getPaymentMethod() + ";invoiceId=" + invoice.getInvoiceId()
+                        + ";invoiceNumber=" + invoice.getInvoiceNumber() + ";renewalId=" + renewalId
+                        + ";paymentReference=" + payment.getReferenceCode(), confirmedAt));
+        return renewalPaymentResponse(payment, renewal, contract,
+                "Đã xác nhận thanh toán. Hợp đồng được gia hạn đến " + contract.getEndDate().format(DATE_FORMATTER));
+    }
 
-        return new RenewalPaymentResponse(
-                savedTx.getTransactionId(),
-                renewal.getRenewalId(),
-                contract.getContractId(),
-                savedTx.getReferenceCode(),
-                savedTx.getAmount(),
-                savedTx.getPaymentMethod(),
-                savedTx.getStatus(),
-                savedTx.getTransactionDate(),
-                contract.getEndDate(),
-                "Thanh toán phí gia hạn thành công. Hợp đồng đã được gia hạn đến ngày " + contract.getEndDate().format(DATE_FORMATTER)
-        );
+    @Override
+    public RenewalPaymentResponse rejectRenewalPayment(UUID managerId, UUID renewalId, UUID paymentId, String reason) {
+        requireManagerRole(managerId);
+        Renewal renewal = renewalRepository.findById(renewalId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu gia hạn"));
+        RentalContract contract = rentalContractRepository.lockById(renewal.getContractId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng thuê"));
+        requireManagerFacility(managerId, contract);
+        Invoice invoice = invoiceRepository.findFirstByRenewalId(renewalId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Không tìm thấy hóa đơn gia hạn"));
+        PaymentTransaction payment = paymentTransactionRepository.findById(paymentId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch"));
+        validateRenewalPaymentLinks(renewal, contract, invoice, payment);
+        if (!"PENDING".equals(payment.getStatus()) || !"APPROVED".equals(renewal.getStatus())
+                || !"UNPAID".equals(invoice.getStatus())) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Khoản thanh toán đã được xử lý.");
+        }
+        if (reason == null || reason.isBlank() || reason.length() > 500) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cần lý do từ chối thanh toán.");
+        }
+        payment.setStatus("FAILED");
+        payment.setFailureReason(reason.trim());
+        payment.setUpdatedAt(LocalDateTime.now(VIETNAM_ZONE));
+        paymentTransactionRepository.save(payment);
+        activityLogRepository.saveAndFlush(new ActivityLog(managerId, "REJECT_RENEWAL_PAYMENT", "PAYMENT_TRANSACTION",
+                paymentId, "role=FACILITY_MANAGER;result=FAILED;invoiceId=" + invoice.getInvoiceId()
+                        + ";renewalId=" + renewalId, payment.getUpdatedAt()));
+        return renewalPaymentResponse(payment, renewal, contract, "Yêu cầu thanh toán đã bị từ chối.");
+    }
+
+    private void requireManagerRole(UUID managerId) {
+        User actor = managerId == null ? null : userRepository.findById(managerId).orElse(null);
+        if (actor == null || actor.getRole() == null
+                || !"FACILITY_MANAGER".equals(actor.getRole().getRoleName())) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ Quản lý cơ sở được xác nhận thanh toán gia hạn.");
+        }
+    }
+
+    private void requireManagerFacility(UUID managerId, RentalContract contract) {
+        StorageUnit unit = storageUnitRepository.findById(contract.getUnitId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Không tìm thấy kho của hợp đồng."));
+        if (!userFacilityAssignmentRepository.findActiveFacilityIds(managerId, LocalDate.now(VIETNAM_ZONE))
+                .contains(unit.getFacilityId())) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không quản lý cơ sở của hợp đồng này.");
+        }
+    }
+
+    private void validateRenewalPaymentLinks(Renewal renewal, RentalContract contract, Invoice invoice,
+                                             PaymentTransaction payment) {
+        if (!"RENEWAL".equals(invoice.getInvoiceType()) || !renewal.getRenewalId().equals(invoice.getRenewalId())
+                || !contract.getContractId().equals(invoice.getContractId())
+                || !invoice.getInvoiceId().equals(payment.getInvoiceId())
+                || !contract.getContractId().equals(payment.getContractId())
+                || !"RENEWAL".equals(payment.getPaymentType()) || !"RENEWAL".equals(payment.getTransactionType())) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Giao dịch không thuộc hóa đơn gia hạn này.");
+        }
+    }
+
+    private RenewalPaymentResponse renewalPaymentResponse(PaymentTransaction payment, Renewal renewal,
+                                                          RentalContract contract, String message) {
+        return new RenewalPaymentResponse(payment.getTransactionId(), renewal.getRenewalId(), contract.getContractId(),
+                payment.getReferenceCode(), payment.getAmount(), payment.getPaymentMethod(), payment.getStatus(),
+                payment.getTransactionDate(), contract.getEndDate(), message);
     }
 
     @Override
@@ -502,6 +646,12 @@ public class RenewalServiceImpl implements RenewalService {
         if (!"PENDING".equalsIgnoreCase(renewal.getStatus()) && !"APPROVED".equalsIgnoreCase(renewal.getStatus())) {
             throw new BusinessException(HttpStatus.CONFLICT,
                     "Không thể hủy yêu cầu gia hạn ở trạng thái: " + renewal.getStatus());
+        }
+
+        Invoice pendingInvoice = invoiceRepository.findFirstByRenewalId(renewalId).orElse(null);
+        if (pendingInvoice != null && paymentTransactionRepository.findByInvoiceId(pendingInvoice.getInvoiceId()).stream()
+                .anyMatch(p -> "PENDING".equals(p.getStatus()))) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Không thể hủy gia hạn khi thanh toán đang chờ xác nhận.");
         }
 
         renewal.setStatus("CANCELLED");
@@ -664,6 +814,11 @@ public class RenewalServiceImpl implements RenewalService {
         return new PageImpl<>(items, pageable, page.getTotalElements());
     }
 
+    private boolean hasOpenEarlyReturn(UUID contractId) {
+        return terminationRequestRepository.existsByContractIdAndTypeAndStatusIn(
+                contractId, "EARLY_RETURN", List.of("REQUESTED", "SETTLEMENT_APPROVED", "REFUNDED"));
+    }
+
     private RenewalResponse mapToRenewalResponse(Renewal r, RentalContract contract, StorageUnit unit) {
         Facility facility = null;
         if (unit != null) {
@@ -674,12 +829,17 @@ public class RenewalServiceImpl implements RenewalService {
         User reviewer = (r.getApprovedBy() != null) ? userRepository.findById(r.getApprovedBy()).orElse(null) : null;
 
         Invoice invoice = invoiceRepository.findFirstByRenewalId(r.getRenewalId()).orElse(null);
+        boolean paymentPending = invoice != null && Optional.ofNullable(paymentTransactionRepository
+                .findByInvoiceId(invoice.getInvoiceId())).orElseGet(List::of).stream()
+                .anyMatch(p -> "PENDING".equals(p.getStatus()));
 
         boolean canPay = "APPROVED".equalsIgnoreCase(r.getStatus())
-                && (r.getPaymentDeadline() == null || !LocalDateTime.now(VIETNAM_ZONE).isAfter(r.getPaymentDeadline()));
+                && !paymentPending && (r.getPaymentDeadline() == null
+                || !LocalDateTime.now(VIETNAM_ZONE).isAfter(r.getPaymentDeadline()));
 
         boolean canCancel = "PENDING".equalsIgnoreCase(r.getStatus())
-                || ("APPROVED".equalsIgnoreCase(r.getStatus()) && (invoice == null || !"PAID".equalsIgnoreCase(invoice.getStatus())));
+                || ("APPROVED".equalsIgnoreCase(r.getStatus()) && !paymentPending
+                && (invoice == null || !"PAID".equalsIgnoreCase(invoice.getStatus())));
 
         return new RenewalResponse(
                 r.getRenewalId(),
@@ -704,7 +864,7 @@ public class RenewalServiceImpl implements RenewalService {
                 (reviewer != null) ? reviewer.getFullName() : null,
                 r.getPaymentDeadline(),
                 r.getStatus(),
-                RenewalResponse.getStatusLabel(r.getStatus()),
+                paymentPending ? "Chờ xác nhận thanh toán" : RenewalResponse.getStatusLabel(r.getStatus()),
                 r.getRejectionReason(),
                 (invoice != null) ? invoice.getInvoiceId() : null,
                 (invoice != null) ? invoice.getInvoiceNumber() : null,

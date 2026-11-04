@@ -19,8 +19,8 @@
   }
   function formatDateTimeVN(value) {
     if (!value) return '—';
-    const match = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})/.exec(String(value));
-    return match ? `${formatDateVN(match[1])} – ${match[2]}:${match[3]}` : '—';
+    const fields = appointmentLocalFields(String(value).replace(' ', 'T'));
+    return fields ? `${formatDateVN(fields.date)} ${fields.slot}` : '—';
   }
   function todayISODateVN() {
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
@@ -31,7 +31,7 @@
   function formatAppointmentTime(date, slot) {
     if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
         parseDateVN(formatDateVN(date)) !== date ||
-        typeof slot !== 'string' || !/^(?:08|09|10|11|13|14|15|16):00$/.test(slot)) {
+        typeof slot !== 'string' || !/^(?:0[6-9]|1[0-9]|2[0-2]):00$/.test(slot)) {
       throw new Error('Ngày hoặc khung giờ nhận kho không hợp lệ.');
     }
     // Form values are already Vietnam wall-clock time. Do not convert through Date/UTC.
@@ -43,6 +43,15 @@
     // AppointmentView currently returns LocalDateTime. Treat an offsetless value as Vietnam wall-clock time.
     return Date.parse(/[Zz]|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}+07:00`);
   }
+  function appointmentLocalFields(value) {
+    const instant = appointmentInstant(value);
+    if (!Number.isFinite(instant)) return null;
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+      timeZone:'Asia/Ho_Chi_Minh', year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+    }).formatToParts(new Date(instant)).filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+    return {date:`${parts.year}-${parts.month}-${parts.day}`, slot:`${parts.hour}:${parts.minute}`};
+  }
   function canEditAppointment(appointment, now = Date.now()) {
     return appointment?.status === 'SCHEDULED' && appointmentInstant(appointment.appointmentTime) > now;
   }
@@ -51,7 +60,7 @@
     return {canCancel, canChange: canCancel && !(termsVersion === 'v2' && depositRemainingAmount > 0)};
   }
 
-  const api = Object.freeze({formatDateVN, formatDateTimeVN, parseDateVN, toISODate, todayISODateVN, formatAppointmentTime, appointmentInstant, canEditAppointment, appointmentActions});
+  const api = Object.freeze({formatDateVN, formatDateTimeVN, parseDateVN, toISODate, todayISODateVN, formatAppointmentTime, appointmentInstant, appointmentLocalFields, canEditAppointment, appointmentActions});
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.SafeBoxUc12Time = api;
 })(typeof window === 'undefined' ? globalThis : window);

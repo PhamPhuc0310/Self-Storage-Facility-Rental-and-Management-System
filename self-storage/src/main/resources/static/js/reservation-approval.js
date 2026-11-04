@@ -33,7 +33,7 @@
     return body;
   }
   function showError(error) {
-    $('approval-error-status').textContent = error.status ? `${error.status} ${error.status === 409 ? 'CONFLICT' : 'ERROR'}` : 'LỖI KẾT NỐI';
+    $('approval-error-status').textContent = error.status === 409 ? 'Dữ liệu đã thay đổi' : error.status ? 'Không thể xử lý yêu cầu' : 'Không thể kết nối';
     $('approval-error-message').textContent = error.message;
     $('approval-error').hidden = false;
     $('approval-success').hidden = true;

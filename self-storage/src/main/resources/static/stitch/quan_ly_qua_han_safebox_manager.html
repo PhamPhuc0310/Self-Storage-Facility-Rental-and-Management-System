@@ -86,7 +86,7 @@
       }
     }
   </style>
-</head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
 <body class="bg-surface text-on-surface antialiased min-h-screen flex">
 
   <!-- Left Sidebar (SafeBox Manager Standard Layout) -->
@@ -96,7 +96,7 @@
       <div class="h-20 px-6 flex items-center gap-3 bg-primary/40">
         <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
         <div class="flex flex-col">
-          <span class="font-headline-sm text-headline-sm text-white tracking-tight font-semibold">SafeBox Admin</span>
+          <span class="font-headline-sm text-headline-sm text-white tracking-tight font-semibold">SafeBox</span>
           <span class="font-body-sm text-body-sm text-on-primary-container">Quản lý cơ sở kho</span>
         </div>
       </div>
@@ -132,13 +132,17 @@
         </a>
         <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" href="/stitch/quan_ly_gia_han_safebox_manager.html">
           <span class="material-symbols-outlined mr-3">autorenew</span>
-          <span class="font-label-button text-label-button">Xét duyệt gia hạn (UC17)</span>
+          <span class="font-label-button text-label-button">Xét duyệt gia hạn</span>
         </a>
         <!-- Active Tab: UC18 -->
         <a aria-current="page" class="flex items-center px-4 py-3 transition-colors bg-secondary-container text-on-secondary font-bold rounded-lg" href="/stitch/quan_ly_qua_han_safebox_manager.html">
           <span class="material-symbols-outlined mr-3">gavel</span>
           <span class="font-label-button text-label-button">Quản lý phí phạt &amp; quá hạn</span>
         </a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white" href="/stitch/early-return.html">Trả trước hạn</a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white" href="/stitch/ho_tro_safebox.html">Hỗ trợ</a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white" href="/management-policies.html">Chính sách</a>
+        <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white" href="/reports.html">Báo cáo</a>
       </nav>
     </div>
 
@@ -160,7 +164,7 @@
         <div>
           <h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold flex items-center gap-2">
             <span>Quản lý phí phạt &amp; quá hạn hợp đồng</span>
-            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">UC18</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">Quá hạn</span>
           </h2>
           <p class="font-body-sm text-body-sm text-on-surface-variant">Tự động tính phí theo ngày quá hạn, điều chỉnh miễn giảm có lưu vết &amp; duyệt thu tiền</p>
         </div>
@@ -170,7 +174,7 @@
           <div class="w-8 h-8 rounded-full bg-secondary-fixed text-primary flex items-center justify-center font-bold text-xs" id="user-avatar">QL</div>
           <div class="flex flex-col text-left">
             <span class="font-label-button text-label-button text-on-surface leading-tight font-semibold" id="user-fullname">Quản lý cơ sở</span>
-            <span class="font-body-sm text-body-sm text-secondary font-medium" id="user-role">FACILITY_MANAGER</span>
+            <span class="font-body-sm text-body-sm text-secondary font-medium" id="user-role">Quản lý cơ sở</span>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -256,7 +260,7 @@
             <span id="kpi-adjusted-count" class="text-2xl font-extrabold text-blue-600 font-mono">0</span>
             <span class="text-[11px] text-slate-400">lần điều chỉnh</span>
           </div>
-          <p class="text-[11px] text-slate-500 mt-1">Tuân thủ BR18.5 (có lưu vết)</p>
+          <p class="text-[11px] text-slate-500 mt-1">Mọi điều chỉnh đều được lưu vết</p>
         </div>
       </div>
 
@@ -293,8 +297,8 @@
               <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
                 <th class="p-4">HỢP ĐỒNG & KHÁCH HÀNG</th>
                 <th class="p-4">Ô KHO & CƠ SỞ</th>
-                <th class="p-4">THỜI HẠN & QUÁ HẠN (BR18.1)</th>
-                <th class="p-4 text-right">ĐƠN GIÁ & CÔNG THỨC (BR18.2)</th>
+                <th class="p-4">THỜI HẠN & QUÁ HẠN</th>
+                <th class="p-4 text-right">ĐƠN GIÁ & CÔNG THỨC</th>
                 <th class="p-4 text-right">CÔNG NỢ PHẠT</th>
                 <th class="p-4 text-center">TRẠNG THÁI</th>
                 <th class="p-4 text-right">THAO TÁC</th>
@@ -315,7 +319,7 @@
     </div>
   </main>
 
-  <!-- MODAL 1: CHI TIẾT HỢP ĐỒNG & LỊCH SỬ PHÍ PHẠT (BR18.3) -->
+  <!-- MODAL 1: CHI TIẾT HỢP ĐỒNG & LỊCH SỬ PHÍ PHẠT -->
   <div id="detail-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
@@ -324,7 +328,7 @@
             <span>Chi tiết quá hạn & Lịch sử phí phạt</span>
             <span id="modal-contract-number" class="font-mono text-primary bg-primary/10 px-2 py-0.5 rounded"></span>
           </h3>
-          <p class="text-xs text-slate-500">Xem giải thích cách tính theo từng kỳ (BR18.3) và lịch sử điều chỉnh nợ (BR18.5)</p>
+          <p class="text-xs text-slate-500">Xem giải thích cách tính theo từng kỳ và lịch sử điều chỉnh nợ</p>
         </div>
         <button onclick="closeModal('detail-modal')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
           <span class="material-symbols-outlined">close</span>
@@ -370,10 +374,21 @@
           </button>
         </div>
 
+        <form id="recovery-form" class="hidden p-4 rounded-xl border border-rose-200 space-y-2">
+          <h4 class="font-bold text-rose-800">Ghi nhận thu hồi kho</h4>
+          <p class="text-xs">Chỉ ghi nhận sau khi có căn cứ và biên bản hợp lệ. Kho sẽ tiếp tục ngừng cho thuê để kiểm tra sẵn sàng.</p>
+          <input id="recovery-reference" required maxlength="200" placeholder="Mã biên bản nhận lại / kiểm tra" class="border rounded p-2 w-full" />
+          <input id="recovery-authority" required maxlength="200" placeholder="Căn cứ xử lý đã được xác nhận" class="border rounded p-2 w-full" />
+          <label class="block text-xs">Thời điểm hoàn tất thực tế (giờ Việt Nam) <input id="recovery-time" type="datetime-local" required class="border rounded p-2" /></label>
+          <label class="block text-xs"><input id="recovery-possession" type="checkbox" required /> Đã nhận lại kho theo căn cứ và biên bản nêu trên.</label>
+          <label class="block text-xs"><input id="recovery-empty" type="checkbox" required /> Đã kiểm tra kho trống.</label>
+          <button class="rounded bg-rose-700 text-white px-3 py-2 font-bold" type="submit">Ghi nhận</button>
+        </form>
+
         <!-- PENALTY HISTORY LIST -->
         <div>
           <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center justify-between">
-            <span>Danh sách các kỳ phí phạt đã phát sinh (BR18.3)</span>
+            <span>Danh sách các kỳ phí phạt đã phát sinh</span>
           </h4>
           <div class="rounded-xl border border-slate-200 overflow-hidden">
             <table class="w-full text-left text-xs">
@@ -383,7 +398,7 @@
                   <th class="p-3">SỐ NGÀY PHẠT</th>
                   <th class="p-3 text-right">PHÍ PHÁT SINH</th>
                   <th class="p-3 text-right">CÒN NỢ</th>
-                  <th class="p-3">GIẢI THÍCH CÔNG THỨC (BR18.3)</th>
+                  <th class="p-3">GIẢI THÍCH CÔNG THỨC</th>
                   <th class="p-3 text-center">TRẠNG THÁI</th>
                   <th class="p-3 text-right">THAO TÁC</th>
                 </tr>
@@ -394,11 +409,11 @@
           </div>
         </div>
 
-        <!-- AUDIT LOG: ADJUSTMENTS (BR18.5) -->
+        <!-- AUDIT LOG: ADJUSTMENTS -->
         <div id="modal-adjustments-section" class="hidden">
           <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-blue-800">
             <span class="material-symbols-outlined text-sm">history_edu</span>
-            <span>Lịch sử lưu vết điều chỉnh / miễn giảm công nợ (BR18.5)</span>
+            <span>Lịch sử lưu vết điều chỉnh / miễn giảm công nợ</span>
           </h4>
           <div class="rounded-xl border border-blue-200 bg-blue-50/50 overflow-hidden p-3 space-y-2" id="modal-adjustments-list">
           </div>
@@ -418,13 +433,13 @@
     </div>
   </div>
 
-  <!-- MODAL 2: ĐIỀU CHỈNH CÔNG NỢ (BR18.5) -->
+  <!-- MODAL 2: ĐIỀU CHỈNH CÔNG NỢ -->
   <div id="adjust-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col">
       <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
         <div>
           <h3 class="font-bold text-slate-900 text-sm">Điều chỉnh công nợ phí phạt</h3>
-          <p class="text-[11px] text-slate-500">Tuân thủ BR18.5: Nghiệp vụ điều chỉnh có lưu vết, không xóa nợ gốc</p>
+          <p class="text-[11px] text-slate-500">Điều chỉnh có lưu vết và không xóa nợ gốc</p>
         </div>
         <button onclick="closeModal('adjust-modal')" class="p-1 text-slate-400 hover:text-slate-700">
           <span class="material-symbols-outlined">close</span>
@@ -453,7 +468,7 @@
 
         <div>
           <label class="block font-semibold text-slate-700 mb-1">
-            Lý do điều chỉnh <span class="text-rose-500">* (Bắt buộc theo BR18.5)</span>:
+            Lý do điều chỉnh <span class="text-rose-500">* (bắt buộc)</span>:
           </label>
           <textarea id="adjust-reason" rows="3" placeholder="Nhập lý do chi tiết (ví dụ: Khách hàng có văn bản xác nhận sự cố bất khả kháng, quản lý phê duyệt miễn giảm...)" class="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-secondary focus:outline-none"></textarea>
         </div>
@@ -544,7 +559,7 @@
       </div>
 
       <div class="mb-6">
-        <h4 class="font-bold text-xs uppercase mb-2 border-b pb-1">BẢNG KÊ CÔNG NỢ PHÍ PHẠT QUÁ HẠN (BR18.2, BR18.3)</h4>
+        <h4 class="font-bold text-xs uppercase mb-2 border-b pb-1">BẢNG KÊ CÔNG NỢ PHÍ PHẠT QUÁ HẠN</h4>
         <table class="w-full text-[11px] border-collapse border border-slate-300">
           <thead>
             <tr class="bg-slate-100">
@@ -569,8 +584,8 @@
 
       <div class="text-[11px] space-y-1 mb-8">
         <p><strong>Lưu ý:</strong></p>
-        <p>- Quý khách vui lòng liên hệ Ban quản lý cơ sở để thanh toán dứt điểm công nợ và hoàn tất thủ tục bàn giao trả kho (UC16) hoặc làm thủ tục gia hạn hợp đồng (UC17).</p>
-        <p>- Mọi thắc mắc về công thức tính phí hoặc đề nghị miễn giảm (BR18.5) xin vui lòng liên hệ trực tiếp Quản lý cơ sở để được hỗ trợ giải quyết theo đúng quy trình.</p>
+        <p>- Quý khách vui lòng liên hệ Ban quản lý cơ sở để thanh toán dứt điểm công nợ và hoàn tất thủ tục bàn giao trả kho hoặc làm thủ tục gia hạn hợp đồng.</p>
+        <p>- Mọi thắc mắc về công thức tính phí hoặc đề nghị miễn giảm xin vui lòng liên hệ trực tiếp Quản lý cơ sở để được hỗ trợ giải quyết theo đúng quy trình.</p>
       </div>
 
       <div class="grid grid-cols-2 text-center text-xs mt-8">
@@ -602,13 +617,13 @@
     let selectedPenalty = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const authorized = await SafeBoxAuth.requireRole('FACILITY_MANAGER', 'SYSTEM_ADMIN');
+      const authorized = await SafeBoxAuth.requireRole('FACILITY_MANAGER');
       if (!authorized) return;
 
       const user = SafeBoxAuth.getCurrentUser();
       if (user) {
         document.getElementById('user-fullname').textContent = user.fullName || user.email;
-        document.getElementById('user-role').textContent = user.role;
+        document.getElementById('user-role').textContent = 'Quản lý cơ sở';
         document.getElementById('user-avatar').textContent = (user.fullName || 'QL').substring(0, 2).toUpperCase();
       }
 
@@ -697,6 +712,12 @@
       document.getElementById('kpi-adjusted-count').textContent = adjCount;
     }
 
+    function publicUnitType(name) {
+      return /\b\d+(?:[.,]\d+)?\s*m(?:2|²)\b/i.test(name || '')
+        ? (name || '').replace(/\b\d+(?:[.,]\d+)?\s*m(?:2|²)\b/gi, 'thể tích chưa xác minh')
+        : (name || 'Loại kho chưa xác minh');
+    }
+
     function renderTable(items) {
       const tbody = document.getElementById('overdue-tbody');
       if (items.length === 0) {
@@ -735,14 +756,16 @@
             </td>
             <td class="p-4">
               <strong class="text-slate-800 block">${c.facilityName}</strong>
-              <span class="text-slate-500 text-[11px]">Kho: <strong>${c.unitNumber}</strong> (${c.unitTypeName})</span>
+              <span class="text-slate-500 text-[11px]">Kho: <strong>${c.unitNumber}</strong> (${publicUnitType(c.unitTypeName)})</span>
             </td>
             <td class="p-4">
               <div class="flex items-center gap-1 font-mono text-[11px]">
                 <span>Hết hạn: ${formatDate(c.endDate)}</span>
               </div>
               <strong class="text-rose-600 block font-mono text-xs">Quá hạn: +${c.overdueDays} ngày</strong>
-              <span class="text-[10px] text-slate-400 block">(Ân hạn: ${c.graceDays} ngày · Tính phí: ${c.billableDays} ngày)</span>
+              ${c.requiresRecovery ? '<span class="text-rose-800 font-bold">Cần xử lý thu hồi</span>' : ''}
+              ${!c.requiresRecovery && c.overdueDays >= 25 ? '<span class="text-amber-800 font-bold">Sắp đến mốc 30 ngày</span>' : ''}
+              <span class="text-[10px] text-slate-400 block">${c.graceDays == null ? 'Chưa có chính sách phí áp dụng' : `(Ân hạn: ${c.graceDays} ngày · Tính phí: ${c.billableDays} ngày)`}</span>
             </td>
             <td class="p-4 text-right">
               <strong class="font-mono text-slate-900 block">${formatMoney(c.monthlyRentalFee)}/tháng</strong>
@@ -804,21 +827,40 @@
       }
     }
 
-    // OPEN CONTRACT DETAIL MODAL (BR18.3, BR18.5)
+    // OPEN CONTRACT DETAIL MODAL
     async function openContractDetail(contractId) {
       try {
         const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/contracts/${contractId}`);
         if (!res.ok) throw new Error('Không thể tải chi tiết hợp đồng');
         const c = await res.json();
         selectedContract = c;
+        const recoveryForm = document.getElementById('recovery-form');
+        recoveryForm.reset();
+        recoveryForm.classList.toggle('hidden', !c.requiresRecovery);
+        recoveryForm.onsubmit = async event => {
+          event.preventDefault();
+          const result = await SafeBoxAuth.authFetch(`/api/manager/overdue/contracts/${c.contractId}/recovery-confirmation`, {
+            method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+              recoveryReference:document.getElementById('recovery-reference').value,
+              authorityReference:document.getElementById('recovery-authority').value,
+              completedAt:document.getElementById('recovery-time').value,
+              possessionConfirmed:document.getElementById('recovery-possession').checked,
+              emptyConfirmed:document.getElementById('recovery-empty').checked
+            })
+          });
+          if (!result.ok) { const body=await result.json().catch(()=>({})); showAlert(body.message || 'Không thể ghi nhận thu hồi.', 'error'); return; }
+          closeModal('detail-modal');
+          showAlert('Đã ghi nhận. Kho chờ kiểm tra sẵn sàng.', 'success');
+          window.location.reload();
+        };
 
         document.getElementById('modal-contract-number').textContent = c.contractNumber;
         document.getElementById('modal-customer-name').textContent = c.customerName || 'Khách hàng SafeBox';
         document.getElementById('modal-customer-phone').textContent = c.customerPhone ? 'SĐT: ' + c.customerPhone : '';
-        document.getElementById('modal-unit-info').textContent = `Kho ${c.unitNumber} (${c.unitTypeName})`;
+        document.getElementById('modal-unit-info').textContent = `Kho ${c.unitNumber} (${publicUnitType(c.unitTypeName)})`;
         document.getElementById('modal-facility-info').textContent = c.facilityName;
         document.getElementById('modal-dates-range').textContent = `${formatDate(c.startDate)} → ${formatDate(c.endDate)}`;
-        document.getElementById('modal-overdue-days').textContent = `Quá hạn: ${c.overdueDays} ngày (Tính phí: ${c.billableDays} ngày)`;
+        document.getElementById('modal-overdue-days').textContent = `Quá hạn: ${c.overdueDays} ngày` + (c.billableDays == null ? ' · Chưa có chính sách phí áp dụng' : ` (Tính phí: ${c.billableDays} ngày)`);
         document.getElementById('modal-debt-amount').textContent = formatMoney(c.totalPenaltyDebt);
         document.getElementById('modal-paid-amount').textContent = `Đã thu: ${formatMoney(c.totalPenaltyPaid)}`;
 
@@ -874,7 +916,7 @@
             </button>
             <button onclick="openAdjustModal('${p.penaltyId}', ${p.penaltyAmount})" class="px-2 py-1 rounded bg-secondary hover:bg-secondary-container text-white font-bold text-[10px] inline-flex items-center gap-0.5 cursor-pointer">
               <span class="material-symbols-outlined text-xs">edit_note</span>
-              <span>Miễn/Giảm (BR18.5)</span>
+              <span>Miễn/Giảm</span>
             </button>
           `;
         }
@@ -906,7 +948,7 @@
         const res = await SafeBoxAuth.authFetch(`/api/manager/overdue/penalties/${penaltyId}/approve-payment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ approved: approved, note: approved ? 'Quản lý duyệt tiền đã vào tài khoản cơ sở' : 'Từ chối thanh toán' })
+          body: JSON.stringify({ approved: approved, note: approved ? 'Quản lý xác nhận khoản thanh toán theo quy trình nội bộ' : 'Từ chối thanh toán' })
         });
 
         if (!res.ok) {
@@ -946,7 +988,7 @@
             <strong class="text-blue-900 font-bold">${a.adjustmentType === 'WAIVER' ? 'Miễn giảm 100%' : 'Giảm trừ nợ'}: Giảm ${formatMoney(a.discountAmount)} (Nợ mới: ${formatMoney(a.adjustedAmount)})</strong>
             <span class="text-slate-400 text-[11px] font-mono">${new Date(a.adjustedAt).toLocaleString('vi-VN')}</span>
           </div>
-          <p class="text-slate-700"><strong>Lý do điều chỉnh (BR18.5):</strong> ${a.reason}</p>
+          <p class="text-slate-700"><strong>Lý do điều chỉnh:</strong> ${a.reason}</p>
           <p class="text-slate-500 text-[11px]">Người thực hiện: <strong>${a.adjustedByName || 'Quản lý cơ sở'}</strong> ${a.note ? '· Ghi chú: ' + a.note : ''}</p>
         </div>
       `).join('');
@@ -968,7 +1010,7 @@
       }
     }
 
-    // ADJUSTMENT MODAL (BR18.5)
+    // ADJUSTMENT MODAL
     let adjustingPenaltyId = null;
     let adjustingOriginalAmount = 0;
 
@@ -998,7 +1040,7 @@
     async function executePenaltyAdjustment() {
       const reason = document.getElementById('adjust-reason').value.trim();
       if (!reason) {
-        alert('Vui lòng nhập lý do điều chỉnh nợ! Quy tắc BR18.5 bắt buộc phải lưu vết lý do.');
+        alert('Vui lòng nhập lý do điều chỉnh nợ! Vui lòng ghi rõ lý do để lưu vết điều chỉnh.');
         return;
       }
 
@@ -1032,7 +1074,7 @@
           throw new Error(err.message || 'Lỗi điều chỉnh nợ');
         }
 
-        showAlert('Đã điều chỉnh công nợ thành công và lưu vết kiểm toán (BR18.5).', 'success');
+        showAlert('Đã điều chỉnh công nợ thành công và lưu vết kiểm toán.', 'success');
         closeModal('adjust-modal');
         if (selectedContract) {
           await openContractDetail(selectedContract.contractId);

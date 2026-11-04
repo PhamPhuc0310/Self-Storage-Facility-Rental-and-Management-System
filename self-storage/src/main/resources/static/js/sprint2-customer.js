@@ -12,10 +12,10 @@
   });
   document.querySelectorAll('footer span.cursor-pointer').forEach(item => item.classList.remove('cursor-pointer'));
   const money = value => new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(value || 0);
-  const {formatDateVN, formatDateTimeVN, toISODate, todayISODateVN, formatAppointmentTime, appointmentActions} = SafeBoxUc12Time;
+  const {formatDateVN, formatDateTimeVN, toISODate, todayISODateVN, formatAppointmentTime, appointmentLocalFields, appointmentActions} = SafeBoxUc12Time;
   const labels = {DEPOSIT:'Tiền cọc', INITIAL_RENT:'Tiền thuê ban đầu', REMAINING_RENT:'Phần tiền thuê còn lại', SUCCESS:'Đã thanh toán', FAILED:'Thanh toán thất bại', PENDING:'Chờ xác nhận', SCHEDULED:'Đã đặt lịch', COMPLETED:'Hoàn thành', CANCELLED:'Đã hủy', REQUESTED:'Đã gửi yêu cầu', UNDER_REVIEW:'Đang xét duyệt', APPROVED:'Đã duyệt, chờ hoàn tiền', REJECTED:'Từ chối', CASH:'Tiền mặt', BANK_TRANSFER:'Chuyển khoản ngân hàng', DEMO_ONLINE_PAYMENT:'Thanh toán trực tuyến'};
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let reservations = [], selected = null, summary = null, appointment = null, busy = false;
+  let reservations = [], selected = null, summary = null, appointment = null, busy = false, transferDetails = null, paymentInvoices = {};
   async function api(path, options) {
     const response = await SafeBoxAuth.authFetch(path, options);
     const result = await response.json().catch(() => null);
@@ -79,7 +79,7 @@
   }
   function component(name, value, type, available = true) {
     return `<div class="bg-surface-container-low rounded-xl p-5 space-y-2"><h3 class="font-headline-sm text-headline-sm">${name}</h3><p>Phải trả: <strong>${money(value.amountDue)}</strong></p><p>Đã thanh toán: <strong>${money(value.paidAmount)}</strong></p><p>Còn lại: <strong>${money(value.remainingAmount)}</strong></p><span class="px-3 py-1 rounded-full bg-surface-container-high text-secondary">${value.remainingAmount <= 0 ? 'Đã thanh toán' : value.paidAmount > 0 ? 'Thanh toán một phần' : 'Chưa thanh toán'}</span>
-      <div>${type === 'DEPOSIT' ? `<button class="pay-button px-4 py-2 rounded-lg bg-secondary text-white disabled:opacity-50" data-type="${type}" ${value.remainingAmount <= 0 ? 'disabled' : ''}>${value.remainingAmount <= 0 ? 'Đã thanh toán' : 'Thanh toán tiền cọc'}</button>` : `<span class="text-on-surface-variant">${available ? 'Nhân viên được phân công sẽ xử lý khoản này vào ngày nhận kho.' : 'Chưa đến hạn thanh toán.'}</span>`}</div></div>`;
+      <div>${type === 'DEPOSIT' || type === 'REMAINING_RENT' && available ? `<button class="pay-button px-4 py-2 rounded-lg bg-secondary text-white disabled:opacity-50" data-type="${type}" ${value.remainingAmount <= 0 ? 'disabled' : ''}>${value.remainingAmount <= 0 ? 'Đã thanh toán' : type === 'DEPOSIT' ? 'Thanh toán tiền cọc' : 'Yêu cầu trả tiền mặt'}</button>` : `<span class="text-on-surface-variant">${available ? 'Nhân viên được phân công sẽ xử lý khoản này vào ngày nhận kho.' : 'Chưa đến hạn thanh toán.'}</span>`}</div></div>`;
   }
   async function detail() {
     $('detail-loading').hidden = false;
@@ -87,6 +87,11 @@
     const id = selected.contract.contractId, base = `/api/contracts/${id}`;
     const [s, history, a, refunds] = await Promise.all([api(base+'/payments/summary'), api(base+'/payments'), api(base+'/pickup-appointment', {cache:'no-store'}), api(base+'/deposit-refunds', {cache:'no-store'})]);
     summary = s; appointment = a;
+    paymentInvoices = {};
+    try {
+      const invoiceRows = await api(`/api/contracts/my/${id}/invoices`);
+      paymentInvoices = Object.fromEntries(invoiceRows.map(row => [row.invoiceType, row]));
+    } catch (_) { /* Summary remains authoritative if invoice history is temporarily unavailable. */ }
     $('contract-detail').hidden = false;
     $('detail-title').textContent = `Hợp đồng ${selected.contract.contractNumber} · ${selected.contract.facilityName}`;
     $('payment-components').innerHTML = component('Tiền cọc', s.deposit, 'DEPOSIT') + component(s.termsVersion === 'v2' ? 'Phần tiền thuê còn lại' : 'Tiền thuê ban đầu', s.initialRent, s.rentPaymentType, s.remainingPaymentAvailable);
@@ -95,7 +100,7 @@
     $('refund-history').innerHTML = refunds.length ? refunds.map(r => `<p class="bg-surface-container-low p-3 rounded-lg">${labels[r.status] || escape(r.status)} · Gửi ${formatDateTimeVN(r.createdAt)}${r.reviewerId ? ` · Xét duyệt ${formatDateTimeVN(r.updatedAt)}` : ''}${r.completedAt ? ` · Hoàn ${formatDateTimeVN(r.completedAt)}` : ''} · Đề nghị ${money(r.requestedAmount)}${r.approvedAmount ? ` · Duyệt ${money(r.approvedAmount)}` : ''} · ${escape(r.reason)}</p>`).join('') : '<p>Chưa có yêu cầu hoàn cọc.</p>';
     $('refund-form').hidden = s.deposit.paidAmount <= 0 || refunds.some(r => ['REQUESTED','UNDER_REVIEW','APPROVED'].includes(r.status));
     $('refund-amount').max = Math.max(0, s.deposit.paidAmount);
-    $('payment-history').innerHTML = history.length ? history.map(p => `<tr class="border-b border-outline-variant/30"><td class="p-3">${escape(p.transactionCode)}</td><td class="p-3">${labels[p.paymentType] || escape(p.paymentType)}</td><td class="p-3">${money(p.amount)}</td><td class="p-3">${labels[p.paymentMethod] || 'Chưa rõ phương thức (dữ liệu cũ)'}</td><td class="p-3">${labels[p.status] || escape(p.status)}${p.failureReason ? `<br><small>${escape(p.failureReason)}</small>` : ''}${p.status === 'FAILED' ? `<br><button class="retry text-secondary underline" data-type="${p.paymentType}" data-amount="${p.amount}">Thử lại bằng chuyển khoản</button>` : ''}</td><td class="p-3">${formatDateTimeVN(p.createdAt)}</td></tr>`).join('') : '<tr><td class="p-3" colspan="6">Chưa có giao dịch.</td></tr>';
+    $('payment-history').innerHTML = history.length ? history.map(p => `<tr class="border-b border-outline-variant/30"><td class="p-3">${escape(p.transactionCode)}${p.paymentMethod === 'BANK_TRANSFER' && p.status === 'PENDING' ? `<br><button type="button" class="copy-payment-ref text-secondary underline" data-ref="${escape(p.transactionCode)}">Sao chép nội dung chuyển khoản</button>` : ''}</td><td class="p-3">${labels[p.paymentType] || escape(p.paymentType)}</td><td class="p-3">${money(p.amount)}</td><td class="p-3">${labels[p.paymentMethod] || 'Chưa rõ phương thức (dữ liệu cũ)'}</td><td class="p-3">${labels[p.status] || escape(p.status)}${p.failureReason ? `<br><small>${escape(p.failureReason)}</small>` : ''}${p.status === 'FAILED' ? `<br><button class="retry text-secondary underline" data-type="${p.paymentType}" data-amount="${p.amount}">Thử lại</button>` : ''}</td><td class="p-3">${formatDateTimeVN(p.createdAt)}</td></tr>`).join('') : '<tr><td class="p-3" colspan="6">Chưa có giao dịch.</td></tr>';
     $('appointment-info').innerHTML = a ? `<p>Ngày giờ: <strong>${formatDateTimeVN(a.appointmentTime)}</strong></p><p>Trạng thái: ${labels[a.status]}</p><p>Cơ sở: ${escape(selected.contract.facilityName)}</p><p>Mã kho: ${escape(selected.contract.unitNumber)}</p>${a.assignedStaffName ? `<p>Nhân viên phụ trách: ${escape(a.assignedStaffName)}</p>` : ''}` : '<p>Chưa có lịch nhận kho.</p>';
     const actions = appointmentActions(a, s.termsVersion, s.deposit.remainingAmount);
     $('appointment-create').hidden = !!a && a.status === 'SCHEDULED';
@@ -105,14 +110,54 @@
     } finally { $('detail-loading').hidden = true; }
   }
   function openPayment(type, amount) {
-    if (type !== 'DEPOSIT') { message('Nhân viên được phân công sẽ xử lý khoản tiền thuê còn lại vào ngày nhận kho.', true); return; }
+    if (type !== 'DEPOSIT' && !(type === 'REMAINING_RENT' && summary.remainingPaymentAvailable && appointment?.status === 'SCHEDULED')) {
+      message('Phần tiền thuê còn lại chỉ được yêu cầu từ ngày nhận kho đã đặt lịch.', true); return;
+    }
     const remaining = summary[type === 'DEPOSIT' ? 'deposit' : 'initialRent'].remainingAmount;
     if (remaining <= 0) { message('Khoản này đã được thanh toán đủ.', true); return; }
     $('payment-type').value = type; $('payment-type-label').textContent = labels[type];
+    $('payment-dialog-title').textContent = `Yêu cầu thanh toán ${labels[type].toLowerCase()}`;
+    $('payment-cash-confirm-role').textContent = type === 'DEPOSIT' ? 'Quản lý cơ sở' : 'Nhân viên được phân công';
     $('payment-amount').max = remaining; $('payment-amount').value = Math.min(Number(amount) || remaining, remaining);
     $('payment-limit').textContent = `Còn thiếu: ${money(remaining)}`;
+    $('payment-invoice-number').textContent = paymentInvoices[type]?.invoiceNumber || 'Hóa đơn sẽ được tạo khi gửi yêu cầu';
+    $('payment-method').querySelector('[value="BANK_TRANSFER"]').disabled = type === 'REMAINING_RENT';
+    $('payment-method').value = type === 'REMAINING_RENT' ? 'CASH' : 'BANK_TRANSFER';
+    $('payment-facility-name').textContent = selected.contract.facilityName;
+    updatePaymentInstructions();
     $('payment-dialog').showModal();
   }
+  async function updatePaymentInstructions() {
+    const bank = $('payment-method').value === 'BANK_TRANSFER';
+    $('payment-bank-instructions').hidden = !bank;
+    $('payment-cash-instructions').hidden = bank;
+    if (!bank) return;
+    $('payment-submit').disabled = true;
+    if (!transferDetails) {
+      try { transferDetails = await api('/api/payment/demo-transfer-details'); }
+      catch (error) { $('payment-bank-status').textContent = error.message; return; }
+    }
+    if (!transferDetails.enabled) {
+      $('payment-bank-status').textContent = 'Thông tin chuyển khoản chưa được cấu hình. Vui lòng chọn tiền mặt tại cơ sở.';
+      $('payment-submit').disabled = true;
+      return;
+    }
+    $('payment-submit').disabled = false;
+    $('payment-bank-status').textContent = 'Tài khoản dùng cho buổi trình diễn. Vui lòng đối chiếu trước khi chuyển tiền.';
+    $('payment-bank-qr').src = transferDetails.qrPath;
+    $('payment-bank-open').href = transferDetails.qrPath;
+    $('payment-bank-qr').hidden = false;
+    $('payment-bank-details').textContent = `${transferDetails.bank} · ${transferDetails.accountHolder} · ${transferDetails.accountNumber}`;
+    $('payment-copy-account').hidden = false;
+  }
+  $('payment-method').addEventListener('change', () => {
+    $('payment-submit').disabled = $('payment-method').value === 'BANK_TRANSFER';
+    updatePaymentInstructions();
+  });
+  $('payment-copy-account').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(transferDetails.accountNumber); message('Đã sao chép số tài khoản.'); }
+    catch (_) { message('Không thể sao chép tự động. Vui lòng chọn và sao chép số tài khoản.', true); }
+  });
   function openAppointment() {
     if (summary?.termsVersion === 'v2' && summary.deposit.remainingAmount > 0) {
       message('Vui lòng thanh toán đủ tiền cọc trước khi đặt hoặc đổi lịch. Lịch hiện có vẫn được giữ nguyên.', true);
@@ -120,10 +165,16 @@
     }
     $('appointment-dialog-title').textContent = appointment?.status === 'SCHEDULED' ? 'Đổi lịch nhận kho' : 'Đặt lịch nhận kho';
     $('appointment-context').textContent = `${selected.contract.facilityName} · ${selected.contract.unitNumber} · Thuê từ ${formatDateVN(selected.contract.startDate)} đến ${formatDateVN(selected.contract.endDate)}`;
+    const saved = appointment?.status === 'SCHEDULED' ? appointmentLocalFields(appointment.appointmentTime) : null;
+    if (appointment?.status === 'SCHEDULED' && (!saved || ![...$('appointment-slot').options].some(option => option.value === saved.slot))) {
+      message('Không đọc được khung giờ đã lưu. Vui lòng tải lại trang trước khi đổi lịch.', true);
+      return;
+    }
     const today = todayISODateVN();
     $('appointment-date').dataset.min = selected.contract.startDate > today ? selected.contract.startDate : today;
     $('appointment-date').dataset.max = selected.contract.endDate;
-    $('appointment-date').value = formatDateVN(appointment?.status === 'SCHEDULED' ? appointment.appointmentTime.slice(0,10) : $('appointment-date').dataset.min);
+    $('appointment-date').value = formatDateVN(saved?.date || $('appointment-date').dataset.min);
+    $('appointment-slot').value = saved?.slot || '06:00';
     $('appointment-dialog').showModal();
   }
   document.addEventListener('click', async event => {
@@ -131,6 +182,11 @@
     if (open) { selected = reservations.find(r => r.reservationId === open.dataset.id); try { await detail(); $('contract-detail').scrollIntoView({behavior:'smooth'}); } catch (e) { message(e.message,true); } }
     const pay = event.target.closest('.pay-button'); if (pay) openPayment(pay.dataset.type);
     const retry = event.target.closest('.retry'); if (retry) openPayment(retry.dataset.type, retry.dataset.amount);
+    const reference = event.target.closest('.copy-payment-ref');
+    if (reference) {
+      try { await navigator.clipboard.writeText(reference.dataset.ref); message('Đã sao chép nội dung chuyển khoản.'); }
+      catch (_) { message('Không thể sao chép tự động. Vui lòng chọn và sao chép mã giao dịch.', true); }
+    }
     const cancel = event.target.closest('.cancel-reservation');
     if (cancel && confirm('Bạn có chắc muốn hủy yêu cầu thuê kho này?')) {
       try { await api(`/api/reservations/my/${cancel.dataset.id}/cancel`, {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); message('Đã hủy yêu cầu.'); await load(); }
@@ -144,7 +200,7 @@
     const button = $('payment-submit'); button.disabled = true;
     try {
       const p = await api(`/api/contracts/${selected.contract.contractId}/payments`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({paymentType:$('payment-type').value, amount:$('payment-amount').value, paymentMethod:$('payment-method').value, idempotencyKey:crypto.randomUUID()})});
-      $('payment-dialog').close(); message(p.status === 'SUCCESS' ? 'Đã ghi nhận thanh toán tiền cọc.' : p.status === 'FAILED' ? `Thanh toán thất bại. ${p.failureReason || ''}` : 'Giao dịch đang chờ xác nhận.'); await detail();
+      $('payment-dialog').close(); message(p.status === 'SUCCESS' ? 'Đã ghi nhận thanh toán.' : p.status === 'FAILED' ? `Thanh toán thất bại. ${p.failureReason || ''}` : `Yêu cầu ${p.transactionCode} · ${money(p.amount)} đang chờ xác nhận. ${p.paymentMethod === 'BANK_TRANSFER' ? 'Dùng mã giao dịch này làm nội dung chuyển khoản.' : 'Thanh toán tại ' + selected.contract.facilityName + '.'}`); await detail();
     } catch (e) { message(e.message,true); } finally { busy = false; button.disabled = false; }
   });
   $('appointment-create').addEventListener('click', openAppointment);

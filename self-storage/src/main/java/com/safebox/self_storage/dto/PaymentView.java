@@ -7,9 +7,9 @@ import java.util.UUID;
 
 public record PaymentView(UUID id, String transactionCode, UUID contractId, String paymentType,
                           BigDecimal amount, String paymentMethod, String status,
-                          String failureReason, LocalDateTime createdAt) {
+                          String failureReason, LocalDateTime createdAt, UUID confirmedBy, LocalDateTime confirmedAt) {
     public static PaymentView from(PaymentTransaction p) {
         return new PaymentView(p.transactionId, p.referenceCode, p.contractId, p.paymentType, p.amount,
-                p.paymentMethod, p.status, p.failureReason, p.createdAt);
+                p.paymentMethod, p.status, p.failureReason, p.createdAt, p.confirmedBy, p.confirmedAt);
     }
 }

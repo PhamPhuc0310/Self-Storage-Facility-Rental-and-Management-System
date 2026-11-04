@@ -26,17 +26,17 @@ public class PricingPolicy {
     @Column(name = "monthly_price", nullable = false, precision = 18, scale = 2)
     private BigDecimal monthlyPrice;
     
-    @Column(name = "deposit_amount", nullable = false, precision = 18, scale = 2)
+    @Column(name = "deposit_amount", precision = 18, scale = 2)
     private BigDecimal depositAmount;
 
-    @Column(name = "daily_overdue_rate", nullable = false, precision = 18, scale = 2)
+    @Column(name = "daily_overdue_rate", precision = 18, scale = 2)
     private BigDecimal dailyOverdueRate;
-    @Column(name = "late_payment_rate", nullable = false, precision = 18, scale = 2)
+    @Column(name = "late_payment_rate", precision = 18, scale = 2)
     private BigDecimal latePaymentRate;
-    @Column(name = "early_termination_fee", nullable = false, precision = 18, scale = 2)
+    @Column(name = "early_termination_fee", precision = 18, scale = 2)
     private BigDecimal earlyTerminationFee;
-    @Column(name = "fee_waiver_allowed", nullable = false)
-    private boolean feeWaiverAllowed;
+    @Column(name = "fee_waiver_allowed")
+    private Boolean feeWaiverAllowed;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
@@ -65,8 +65,8 @@ public class PricingPolicy {
     public void setLatePaymentRate(BigDecimal value) { this.latePaymentRate = value; }
     public BigDecimal getEarlyTerminationFee() { return earlyTerminationFee; }
     public void setEarlyTerminationFee(BigDecimal value) { this.earlyTerminationFee = value; }
-    public boolean isFeeWaiverAllowed() { return feeWaiverAllowed; }
-    public void setFeeWaiverAllowed(boolean value) { this.feeWaiverAllowed = value; }
+    public Boolean getFeeWaiverAllowed() { return feeWaiverAllowed; }
+    public void setFeeWaiverAllowed(Boolean value) { this.feeWaiverAllowed = value; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public LocalDate getEffectiveFrom() { return effectiveFrom; }

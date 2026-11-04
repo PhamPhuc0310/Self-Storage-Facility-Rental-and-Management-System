@@ -11,6 +11,8 @@
   const {formatDateVN, toISODate, todayISODateVN} = SafeBoxUc12Time;
   const validId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const modeLabel = mode => ({STANDARD:'Kho thường', COOL:'Kho mát', COLD:'Kho đông lạnh'}[mode] || 'Loại kho');
+  const publicType = value => String(value || 'Kho lưu trữ').replace(/\s*\d+(?:[.,]\d+)?\s*m(?:2|²)/gi, '').trim()
+    .replace(/^Standard$/i, 'Kho tiêu chuẩn') || 'Kho lưu trữ';
   const money = value => {
     const n = Number(value);
     if (!Number.isFinite(n) || n <= 0) throw new Error('Giá không hợp lệ');
@@ -27,6 +29,8 @@
   let checkingAuth = false;
   let submitting = false;
   let estimateRequest = 0;
+  let inventoryRequest = 0;
+  let eligibleCount = 0;
 
   function showError(message, retry) {
     status.hidden = false;
@@ -46,16 +50,16 @@
 
   function renderType(type) {
     selectedType = type;
-    const title = `${modeLabel(type.storageMode)} · ${type.area} m²`;
+    const title = `${modeLabel(type.storageMode)} · ${publicType(type.typeName)}`;
     put('detail-title', title);
     put('detail-breadcrumb-type', title);
     document.title = `${title} | SafeBox Storage`;
     put('detail-type', modeLabel(type.storageMode));
-    put('detail-area', `${type.area} m²`);
-    put('detail-dimensions', `${type.width} × ${type.length} × ${type.height} m`);
+    put('detail-area', 'Đang kiểm tra...');
+    put('detail-dimensions', 'Thể tích được xác minh theo từng ô kho.');
     put('detail-monthly-price', type.monthlyPrice > 0 ? monthly(type.monthlyPrice) : 'Giá đang cập nhật');
-    put('detail-available-count', String(type.availableUnits || 0));
-    put('detail-availability', `Kho sẵn sàng hiện tại: ${type.availableUnits || 0}`);
+    put('detail-available-count', 'Đang kiểm tra...');
+    put('detail-availability', 'Đang kiểm tra kho có thể đặt...');
     putManagedText('detail-intro', type.demoIntro);
     putManagedText('detail-goods', type.demoGoods);
     putManagedText('detail-conditions', type.demoConditions);
@@ -71,7 +75,32 @@
     url.searchParams.delete('payment');
     url.searchParams.delete('reservation');
     history.replaceState(null, '', url.pathname + url.search);
-    estimate();
+    refreshInventory();
+  }
+
+  async function refreshInventory() {
+    const request = ++inventoryRequest;
+    const type = selectedType;
+    eligibleCount = 0;
+    reservationButton.disabled = true;
+    try {
+      const query = new URLSearchParams({facilityId, typeId:String(type.typeId), startDate:todayISODateVN(), months:duration.value});
+      const response = await fetch(`/api/discovery/units?${query}`);
+      if (!response.ok) throw new Error('Không tải được tình trạng kho');
+      const units = await response.json();
+      if (request !== inventoryRequest) return;
+      const volumes = units.map(unit => Number(unit.volumeM3)).filter(volume => Number.isFinite(volume) && volume > 0);
+      put('detail-area', volumes.length ? `${Math.min(...volumes).toLocaleString('vi-VN')}${Math.min(...volumes) === Math.max(...volumes) ? '' : `–${Math.max(...volumes).toLocaleString('vi-VN')}`} m³` : 'Chưa có thể tích xác minh');
+      eligibleCount = units.filter(unit => unit.bookable).length;
+      put('detail-available-count', String(eligibleCount));
+      put('detail-availability', eligibleCount ? `${eligibleCount} ô có thể đặt cho kỳ thuê đã chọn` : 'Chưa có ô kho có thể đặt cho kỳ thuê đã chọn');
+      estimate();
+    } catch (_) {
+      if (request !== inventoryRequest) return;
+      put('detail-area', 'Chưa kiểm tra được');
+      put('detail-available-count', '—');
+      showError('Không kiểm tra được kho trống. Vui lòng thử lại.', refreshInventory);
+    }
   }
 
   async function estimate() {
@@ -92,7 +121,7 @@
       if (request !== estimateRequest) return;
       put('detail-price-per-month', monthly(estimateQuote.monthlyPrice));
       put('total-price-display', money(estimateQuote.estimatedTotal));
-      if (!selectedType.availableUnits) throw new Error('Không còn kho trống');
+      if (!eligibleCount) throw new Error('Không còn kho trống');
       quote = estimateQuote;
       reservationButton.disabled = false;
       status.hidden = true;
@@ -140,7 +169,7 @@
       start.dataset.min = today;
       try { if (toISODate(start.value) < today) start.value = formatDateVN(today); }
       catch (_) { start.value = formatDateVN(today); }
-      document.getElementById('reservation-summary').textContent = `${facility.name} · ${modeLabel(selectedType.storageMode)} · ${selectedType.area} m² · ${duration.value} tháng · Tổng dự kiến ${money(quote.estimatedTotal)}`;
+      document.getElementById('reservation-summary').textContent = `${facility.name} · ${publicType(selectedType.typeName)} · ${duration.value} tháng · Tổng dự kiến ${money(quote.estimatedTotal)}`;
       reservationError.hidden = true;
       dialog.showModal();
       start.focus();
@@ -205,13 +234,13 @@
       const facilityLink = document.getElementById('detail-facility-link');
       facilityLink.textContent = facility.name;
       facilityLink.href = `/stitch/t_m_kho_l_u_tr_safebox_storage.html?${new URLSearchParams({search:facility.name})}`;
-      types.forEach(type => typeChoice.add(new Option(`${modeLabel(type.storageMode)} · ${type.area} m²`, String(type.typeId))));
+      types.forEach(type => typeChoice.add(new Option(`${modeLabel(type.storageMode)} · ${publicType(type.typeName)}`, String(type.typeId))));
       const initial = types.find(type => type.typeId === initialTypeId) || types[0];
       typeChoice.value = String(initial.typeId);
       if (['1','2','3','6','12'].includes(params.get('months'))) duration.value = params.get('months');
       renderType(initial);
       typeChoice.addEventListener('change', () => renderType(types.find(type => String(type.typeId) === typeChoice.value)));
-      duration.addEventListener('change', () => { const url = new URL(location.href); url.searchParams.set('months', duration.value); history.replaceState(null,'',url.pathname+url.search); estimate(); });
+      duration.addEventListener('change', () => { const url = new URL(location.href); url.searchParams.set('months', duration.value); history.replaceState(null,'',url.pathname+url.search); refreshInventory(); });
       if (params.get('reservation') === '1') {
         await new Promise(resolve => {
           const timer = setInterval(() => { if (!reservationButton.disabled || status.classList.contains('text-error')) { clearInterval(timer); resolve(); } }, 50);

@@ -17,10 +17,10 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
     List<PaymentTransaction> findByContractIdOrderByCreatedAtDesc(UUID contractId);
     Optional<PaymentTransaction> findByCreatedByAndIdempotencyKey(UUID createdBy, String idempotencyKey);
 
-    @Query("select p from PaymentTransaction p where p.contractId = :id and p.paymentType = :type and p.status = 'SUCCESS'")
+    @Query("select p from PaymentTransaction p where p.contractId = :id and p.paymentType = :type and p.status = 'SUCCESS' and p.transactionType <> 'REFUND'")
     List<PaymentTransaction> successful(@Param("id") UUID id, @Param("type") String type);
 
-    @Query("select p.contractId, p.paymentType, sum(p.amount) from PaymentTransaction p where p.contractId in :ids and p.status = 'SUCCESS' group by p.contractId, p.paymentType")
+    @Query("select p.contractId, p.paymentType, sum(p.amount) from PaymentTransaction p where p.contractId in :ids and p.status = 'SUCCESS' and p.transactionType <> 'REFUND' group by p.contractId, p.paymentType")
     List<Object[]> successfulTotals(@Param("ids") Collection<UUID> ids);
 
     List<PaymentTransaction> findByContractId(UUID contractId);
@@ -32,6 +32,9 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
     List<PaymentTransaction> findByInvoiceIdIn(Collection<UUID> invoiceIds);
 
     List<PaymentTransaction> findByContractIdAndStatus(UUID contractId, String status);
+
+    @Query("select p from PaymentTransaction p, RentalContract c, StorageUnit u where p.contractId = c.contractId and c.unitId = u.unitId and u.facilityId in :facilityIds and p.status = 'PENDING' and p.paymentMethod in ('CASH', 'BANK_TRANSFER') order by p.createdAt desc")
+    List<PaymentTransaction> pendingForFacilities(@Param("facilityIds") Collection<UUID> facilityIds);
 
     Optional<PaymentTransaction> findByReferenceCode(String referenceCode);
 }

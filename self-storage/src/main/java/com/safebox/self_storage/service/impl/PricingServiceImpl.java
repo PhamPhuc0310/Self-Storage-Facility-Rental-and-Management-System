@@ -42,7 +42,7 @@ public class PricingServiceImpl implements PricingService {
         
         // Lấy bảng giá hiện tại (BR04.2)
         List<PricingPolicy> policies = pricingPolicyRepository.findByFacilityIdAndStatus(facilityId, "ACTIVE");
-        PricingPolicy policy = CurrentPricing.forType(policies, typeId, LocalDate.now())
+        PricingPolicy policy = CurrentPricing.forType(policies, typeId, LocalDate.now(com.safebox.self_storage.service.Sprint2Access.ZONE))
             .orElseThrow(() -> new NoSuchElementException("Cơ sở chưa có bảng giá đang hiệu lực cho loại kho này"));
             
         BigDecimal monthlyPrice = policy.getMonthlyPrice();

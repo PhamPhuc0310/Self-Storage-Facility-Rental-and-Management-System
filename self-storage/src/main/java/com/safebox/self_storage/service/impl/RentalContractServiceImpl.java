@@ -193,13 +193,13 @@ public class RentalContractServiceImpl implements RentalContractService {
             unitType = storageUnitTypeRepository.findById(unit.getTypeId()).orElse(null);
         }
 
-        // Kích thước và diện tích
-        BigDecimal length = (unitType != null) ? unitType.getLength() : BigDecimal.ZERO;
-        BigDecimal width = (unitType != null) ? unitType.getWidth() : BigDecimal.ZERO;
-        BigDecimal height = (unitType != null) ? unitType.getHeight() : BigDecimal.ZERO;
-        BigDecimal area = length.multiply(width);
-        BigDecimal volume = area.multiply(height);
-        String dimensions = String.format("%.1fm x %.1fm x %.1fm", length, width, height);
+        // Physical measurements are only shown after verification on the assigned unit.
+        BigDecimal volume = unit == null ? null : unit.getVolumeM3();
+        BigDecimal length = volume == null ? null : unit.getLengthM();
+        BigDecimal width = volume == null ? null : unit.getWidthM();
+        BigDecimal height = volume == null ? null : unit.getHeightM();
+        BigDecimal area = volume == null ? null : length.multiply(width);
+        String dimensions = volume == null ? null : String.format("%s m × %s m × %s m", length, width, height);
 
         // Chuỗi khoảng thời gian thuê
         String rentalPeriod = "";
@@ -215,7 +215,8 @@ public class RentalContractServiceImpl implements RentalContractService {
 
         if (contract.getEndDate() != null) {
             long diff = ChronoUnit.DAYS.between(today, contract.getEndDate());
-            boolean isStillActive = "ACTIVE".equalsIgnoreCase(contract.getStatus()) || "CONFIRMED".equalsIgnoreCase(contract.getStatus());
+            boolean isStillActive = ("ACTIVE".equalsIgnoreCase(contract.getStatus()) || "OVERDUE".equalsIgnoreCase(contract.getStatus()))
+                    && handoverRecordRepository.findFirstByContractIdAndHandoverTypeAndStatus(contract.getContractId(), "RETURN", "COMPLETED").isEmpty();
             if (diff < 0) {
                 if (isStillActive) {
                     isOverdue = true;

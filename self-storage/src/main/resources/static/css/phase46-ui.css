@@ -1,0 +1,88 @@
+:root {
+  color-scheme: light;
+  --safebox-brand: #123b58;
+  --safebox-action: #0051d5;
+  --safebox-border: #d8e2ea;
+  --safebox-surface: #f4f7fb;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { min-width: 320px; line-height: 1.55; background: #faf8ff; color: #131b2e; }
+main, section, article { min-width: 0; }
+img { max-width: 100%; height: auto; }
+:where(input, select, textarea, button) { font: inherit; }
+:where(input, select, textarea) { max-width: 100%; }
+:where(a, button) { touch-action: manipulation; }
+:where(button, [type="button"], [type="submit"]) { min-height: 40px; }
+:where(button, [type="button"], [type="submit"]):disabled { cursor: not-allowed; }
+:where([role="status"], [role="alert"]) { overflow-wrap: anywhere; }
+:where(table) { border-collapse: collapse; }
+:where(th, td) { overflow-wrap: anywhere; vertical-align: top; }
+:where(th) { text-align: left; }
+:where(.overflow-x-auto, .scroll-table) { scrollbar-width: thin; }
+:where(.bg-white.rounded-xl, .sb-card) { border: 1px solid var(--safebox-border); }
+:where(.sb-hero) { background: linear-gradient(120deg, var(--safebox-brand), #176b9b); }
+.sb-management-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; padding: .75rem clamp(1rem, 3vw, 2.5rem); }
+.sb-management-header, .sb-header {
+  background: #faf8ff !important;
+  color: #001229 !important;
+  box-shadow: 0 1px 8px rgb(0 0 0 / 8%);
+  min-height: 80px;
+}
+.sb-management-header > a, .sb-header a { color: #001229 !important; font-weight: 700; white-space: nowrap; }
+.sb-role-nav { display: flex; flex-wrap: wrap; gap: .2rem; margin-left: auto; font-size: .875rem; }
+.sb-management-header .sb-brand { display: inline-flex; align-items: center; min-height: 44px; font-size: 1.1rem; letter-spacing: -.02em; text-decoration: none; }
+.sb-management-header + main { width: min(100%, 1240px); margin-inline: auto; }
+.sb-operations-header { background: #faf8ff; color: #001229; border-bottom: 1px solid var(--safebox-border); min-height: 80px; }
+.sb-operations-header a { color: #44474d; text-decoration: none; font-weight: 600; }
+.sb-operations-header a:hover { color: #0051d5; }
+.sb-operations-header #logout { color: #0051d5; font-weight: 700; }
+.sb-role-nav a, .sb-header .sb-nav a { color: #44474d !important; text-decoration: none; padding: .4rem .55rem; border-radius: .5rem; }
+.sb-role-nav a:hover, .sb-role-nav a[aria-current="page"], .sb-header .sb-nav a:hover, .sb-header .sb-nav a[aria-current="page"] { background: #e2e7ff; color: #001229 !important; }
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #f59e0b !important;
+  outline-offset: 3px;
+}
+button:disabled { cursor: not-allowed; opacity: .6; }
+dialog { max-width: calc(100vw - 1rem); max-height: min(90vh, 900px); overflow-y: auto; border: 1px solid var(--safebox-border); }
+dialog::backdrop { background: rgb(7 24 45 / 65%); }
+@media (max-width: 1024px) {
+  body:has(> aside.fixed) { flex-direction: column !important; }
+  body:has(> aside.fixed) > aside.fixed { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; z-index: 10 !important; }
+  body:has(> aside.fixed) > .pl-72 { width: 100%; min-width: 0; flex: none; }
+  body:has(> aside.fixed) > aside.fixed > div:first-child { min-width: 0; }
+  body:has(> aside.fixed) > aside.fixed nav { display: flex !important; overflow-x: auto; gap: .25rem; padding: .5rem !important; white-space: nowrap; scrollbar-width: thin; }
+  body:has(> aside.fixed) > aside.fixed nav a { flex: none; padding: .65rem .8rem !important; }
+  body:has(> aside.fixed) > aside.fixed nav a .material-symbols-outlined { display: none; }
+  body:has(> aside.fixed) > aside.fixed > div:last-child { display: none; }
+  body:has(> aside.fixed) > .pl-72 { padding-left: 0 !important; }
+  body:has(> aside.fixed) header.fixed { position: relative !important; inset: auto !important; width: 100%; height: auto !important; min-height: 64px; padding: .75rem 1rem !important; }
+  body:has(> aside.fixed) header.fixed { flex-wrap: wrap; gap: .5rem; }
+  body:has(> aside.fixed) > .pl-72 > header.sticky { height: auto !important; min-height: 64px; padding: .75rem 1rem !important; flex-wrap: wrap; gap: .5rem; }
+  body:has(> aside.fixed) > .pl-72 > header.sticky > div { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  body:has(> aside.fixed) header.fixed > div { min-width: 0; max-width: 100%; }
+  body:has(> aside.fixed) header.fixed > div:first-child { flex: 1 1 220px; }
+  body:has(> aside.fixed) header.fixed .flex-col { min-width: 0; overflow-wrap: anywhere; }
+  body:has(> aside.fixed) main { padding: 1rem !important; }
+  header.sticky > div.max-w-7xl.flex { height: auto !important; min-height: 64px; flex-wrap: wrap; gap: .5rem; padding-top: .5rem; padding-bottom: .5rem; }
+  header.sticky > div.max-w-7xl.flex > div { min-width: 0; flex-wrap: wrap; }
+}
+@media (max-width: 640px) {
+  header nav { min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
+  header:has(nav) { flex-wrap: wrap; }
+  header.sticky > div.h-16 { height: auto !important; min-height: 64px; padding-top: .75rem; padding-bottom: .75rem; flex-wrap: wrap; gap: .5rem; }
+  header.sticky > div.h-16 > div { min-width: 0; flex-wrap: wrap; }
+  body:has(> aside.fixed) .absolute.-right-16 { display: none; }
+  div:has(> #facility-filter) { flex-wrap: wrap; width: 100%; min-width: 0; }
+  div:has(> #facility-filter) > .w-64 { width: min(100%, 16rem); }
+  div:has(> .status-tab) { flex-wrap: wrap; }
+  .sb-header { align-items: flex-start; flex-direction: column; }
+  .sb-nav { width: 100%; flex-wrap: nowrap; white-space: nowrap; }
+  .sb-management-header .sb-role-nav { display: flex; flex-wrap: wrap; width: 100%; white-space: normal; overflow: visible; gap: .35rem; margin-left: 0; }
+  .sb-management-header .sb-role-nav a { white-space: normal; }
+  :where(main) { max-width: 100%; }
+  dialog { width: calc(100vw - 1rem); padding: 1rem !important; }
+  table { font-size: .875rem; }
+}

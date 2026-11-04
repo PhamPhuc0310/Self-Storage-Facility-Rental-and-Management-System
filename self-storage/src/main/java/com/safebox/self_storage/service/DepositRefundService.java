@@ -16,9 +16,16 @@ public class DepositRefundService {
     private final DepositRefundRepository refunds;
     private final PaymentTransactionRepository payments;
     private final InvoiceRepository invoices;
+    private final TerminationRequestRepository terminations;
     public DepositRefundService(Sprint2Access access, DepositRefundRepository refunds, PaymentTransactionRepository payments,
-                                InvoiceRepository invoices) {
+                                InvoiceRepository invoices, TerminationRequestRepository terminations) {
         this.access = access; this.refunds = refunds; this.payments = payments; this.invoices = invoices;
+        this.terminations = terminations;
+    }
+    private void noActiveEarlyReturn(UUID contractId) {
+        if (terminations.existsByContractIdAndTypeAndStatusIn(contractId, "EARLY_RETURN",
+                List.of("REQUESTED", "SETTLEMENT_APPROVED", "REFUNDED")))
+            throw new BusinessException(HttpStatus.CONFLICT, "Early return refunds must use the inspected UC19 settlement.");
     }
     @Transactional(readOnly = true)
     public List<DepositRefund> mine(UUID contractId) {
@@ -31,6 +38,7 @@ public class DepositRefundService {
     public DepositRefund request(UUID contractId, RefundRequest request) {
         RentalContract c = access.contract(contractId, true);
         if (!"CUSTOMER".equals(access.role())) throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ khách hàng được yêu cầu hoàn cọc.");
+        noActiveEarlyReturn(contractId);
         if (request == null || request.amount() == null || request.amount().signum() <= 0 || request.reason() == null || request.reason().isBlank())
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Số tiền và lý do hoàn cọc không hợp lệ.");
         if (request.amount().stripTrailingZeros().scale() > 0)
@@ -66,6 +74,7 @@ public class DepositRefundService {
     @Transactional
     public DepositRefund review(UUID id, RefundReview request) {
         DepositRefund row = managerRow(id);
+        noActiveEarlyReturn(row.contractId);
         if (request == null || request.decision() == null || !Set.of("UNDER_REVIEW", "APPROVED", "REJECTED", "FAILED").contains(request.decision()))
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Quyết định không hợp lệ.");
         if (!Set.of("REQUESTED", "UNDER_REVIEW").contains(row.status)
@@ -89,6 +98,7 @@ public class DepositRefundService {
     @Transactional
     public DepositRefund complete(UUID id, RefundCompletion request) {
         DepositRefund row = managerRow(id);
+        noActiveEarlyReturn(row.contractId);
         if (!"APPROVED".equals(row.status)) throw new BusinessException(HttpStatus.CONFLICT, "Yêu cầu chưa được duyệt để ghi nhận hoàn tiền.");
         if (request == null || request.transactionReference() == null || request.transactionReference().isBlank())
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Cần mã tham chiếu giao dịch hoàn tiền đã thực hiện.");

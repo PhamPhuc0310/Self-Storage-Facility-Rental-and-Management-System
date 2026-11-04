@@ -50,6 +50,8 @@ class UC20ReturnCompletionTest {
     @Mock
     private DepositRefundRepository depositRefundRepository;
     @Mock
+    private TerminationRequestRepository terminationRequestRepository;
+    @Mock
     private ActivityLogRepository activityLogRepository;
 
     @InjectMocks
@@ -236,6 +238,29 @@ class UC20ReturnCompletionTest {
     }
 
     @Test
+    void earlyReturnSettlementMustFinishBeforeContractClosure() {
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(unit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(userRepository.findById(managerId)).thenReturn(Optional.of(managerUser));
+        when(userFacilityAssignmentRepository.findActiveFacilityIds(eq(managerId), any(LocalDate.class)))
+                .thenReturn(List.of(facilityId));
+        InspectionReport report = new InspectionReport();
+        report.setConditionStatus("GOOD");
+        when(inspectionReportRepository.findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(contractId, "RETURN_INSPECTION"))
+                .thenReturn(Optional.of(report));
+        when(invoiceRepository.findByContractId(contractId)).thenReturn(List.of());
+        when(terminationRequestRepository.existsByContractIdAndTypeAndStatusIn(eq(contractId), eq("EARLY_RETURN"), any()))
+                .thenReturn(true);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                returnInspectionService.completeContractAndFinalizeUnit(managerId, contractId, new CompleteContractRequest()));
+        assertEquals(HttpStatus.CONFLICT, ex.status());
+        verify(rentalContractRepository, never()).save(any());
+        verify(storageUnitRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("BR20.3 & BR20.4: Hoàn tất đóng hợp đồng thành công khi kho tốt -> unit AVAILABLE, contract COMPLETED, audit log được ghi")
     void testCompleteContract_Success_UnitAvailable() {
         when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
@@ -261,10 +286,10 @@ class UC20ReturnCompletionTest {
 
         assertNotNull(res);
         assertEquals("COMPLETED", res.contractStatus());
-        assertEquals("AVAILABLE", res.unitStatus());
+        assertEquals("INACTIVE", res.unitStatus());
         assertEquals(contractId, res.contractId());
 
-        verify(storageUnitRepository).save(argThat(u -> "AVAILABLE".equals(u.getStatus())));
+        verify(storageUnitRepository).save(argThat(u -> "INACTIVE".equals(u.getStatus())));
         verify(rentalContractRepository).save(argThat(c -> "COMPLETED".equals(c.getStatus()) && c.getActualEndDate() != null));
         verify(activityLogRepository).save(any(ActivityLog.class));
     }

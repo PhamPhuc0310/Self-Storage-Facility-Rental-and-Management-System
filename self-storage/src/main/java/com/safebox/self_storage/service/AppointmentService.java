@@ -16,6 +16,8 @@ import jakarta.persistence.PersistenceContext;
 @Service
 public class AppointmentService {
     private static final Duration TASK_DURATION = Duration.ofMinutes(60);
+    private static final LocalTime PICKUP_OPEN = LocalTime.of(6, 0);
+    private static final LocalTime PICKUP_CLOSE = LocalTime.of(23, 0);
     public record StaffOption(UUID id, String name) {}
     public record DailyTask(String taskType, UUID contractId, UUID facilityId, String contractCode, String customerName,
                             String storageUnitCode, LocalDateTime appointmentTime, UUID assignedStaffId,
@@ -23,6 +25,7 @@ public class AppointmentService {
                             BigDecimal depositPaidAmount, BigDecimal depositRemainingAmount, BigDecimal remainingRentAmount) {}
     private final Sprint2Access access;
     private final PickupAppointmentRepository appointments;
+    private final HandoverRecordRepository handovers;
     private final RentalContractRepository contracts;
     private final FacilityRepository facilities;
     private final StorageUnitRepository units;
@@ -32,9 +35,9 @@ public class AppointmentService {
     private final PaymentService payments;
     @PersistenceContext
     private EntityManager entityManager;
-    public AppointmentService(Sprint2Access access, PickupAppointmentRepository appointments, RentalContractRepository contracts, FacilityRepository facilities, StorageUnitRepository units,
+    public AppointmentService(Sprint2Access access, PickupAppointmentRepository appointments, HandoverRecordRepository handovers, RentalContractRepository contracts, FacilityRepository facilities, StorageUnitRepository units,
                               UserRepository users, UserFacilityAssignmentRepository assignments, InvoiceRepository invoices, PaymentService payments) {
-        this.access = access; this.appointments = appointments; this.contracts = contracts; this.facilities = facilities; this.units = units;
+        this.access = access; this.appointments = appointments; this.handovers = handovers; this.contracts = contracts; this.facilities = facilities; this.units = units;
         this.users = users; this.assignments = assignments; this.invoices = invoices; this.payments = payments;
     }
     @Transactional(readOnly = true)
@@ -58,14 +61,11 @@ public class AppointmentService {
         if (!when.isAfter(access.now())) throw new BusinessException(HttpStatus.BAD_REQUEST, "Không thể đặt lịch trong quá khứ.");
         if (when.toLocalDate().isBefore(r.startDate) || when.toLocalDate().isAfter(r.endDate))
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Lịch nhận kho phải nằm trong thời hạn thuê.");
-        if (when.getMinute() != 0 || when.getSecond() != 0 || when.getNano() != 0 ||
-                !Set.of(8, 9, 10, 11, 13, 14, 15, 16).contains(when.getHour()))
+        if (when.getMinute() != 0 || when.getSecond() != 0 || when.getNano() != 0)
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng chọn khung giờ nhận kho hợp lệ.");
-        Facility facility = facilities.findById(access.facilityId(r)).orElseThrow();
-        LocalTime opening = facility.getOpeningTime() == null ? LocalTime.of(8, 0) : facility.getOpeningTime();
-        LocalTime closing = facility.getClosingTime() == null ? LocalTime.of(17, 0) : facility.getClosingTime();
-        if (when.toLocalTime().isBefore(opening) || !when.toLocalTime().isBefore(closing))
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cơ sở không hoạt động vào khung giờ đã chọn.");
+        if (when.toLocalTime().isBefore(PICKUP_OPEN) || !when.toLocalTime().isBefore(PICKUP_CLOSE)
+                || when.toLocalTime().plus(TASK_DURATION).isAfter(PICKUP_CLOSE))
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Lịch nhận kho cần nằm trọn trong khung 06:00–23:00.");
         return when;
     }
     @Transactional
@@ -109,8 +109,14 @@ public class AppointmentService {
         a.status = "CANCELLED"; a.assignedStaffId = null; a.updatedAt = access.now(); return appointments.save(a);
     }
     private void requireDepositForScheduling(RentalContract contract) {
-        if ("v2".equals(contract.termsVersion) && payments.calculate(contract).deposit().remainingAmount().signum() > 0)
-            throw new BusinessException(HttpStatus.CONFLICT, "Vui lòng thanh toán đủ tiền cọc trước khi đặt hoặc đổi lịch.");
+        if ("v2".equals(contract.termsVersion)) {
+            boolean paid = invoices.findFirstByContractIdAndInvoiceType(contract.contractId, "DEPOSIT")
+                    .filter(invoice -> "PAID".equals(invoice.status) && invoice.paidAmount != null
+                            && invoice.totalAmount != null && invoice.paidAmount.compareTo(invoice.totalAmount) >= 0)
+                    .isPresent();
+            if (!paid || payments.calculate(contract).deposit().remainingAmount().signum() > 0)
+                throw new BusinessException(HttpStatus.CONFLICT, "Vui lòng thanh toán đủ tiền cọc trước khi đặt hoặc đổi lịch.");
+        }
     }
     private void updateRemainingDueDate(RentalContract contract, LocalDateTime appointmentTime) {
         if (!"v2".equals(contract.termsVersion)) return;
@@ -222,7 +228,8 @@ public class AppointmentService {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Nhân viên không thuộc cơ sở này.");
         LocalDateTime windowEnd = a.appointmentTime.plus(TASK_DURATION);
         boolean conflict = appointments.findStaffOverlapping(staffId, a.appointmentTime, windowEnd).stream()
-                .anyMatch(other -> !Objects.equals(other.id, a.id));
+                .anyMatch(other -> !Objects.equals(other.id, a.id))
+                || !handovers.findScheduledReturnConflicts(staffId, a.appointmentTime.minusMinutes(29), windowEnd).isEmpty();
         if (conflict)
             throw new BusinessException(HttpStatus.CONFLICT, "Nhân viên đã có công việc bị trùng thời gian xử lý.");
         UUID previousStaffId = a.assignedStaffId;

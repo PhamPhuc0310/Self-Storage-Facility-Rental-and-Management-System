@@ -82,7 +82,7 @@
       }
     }
   </style>
-</head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
 <body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
 
   <!-- Header standard SafeBox -->
@@ -128,7 +128,7 @@
           <span>/</span>
           <a href="/stitch/kho_dang_thue_safebox_storage.html" class="hover:underline">Kho đang thuê</a>
           <span>/</span>
-          <span class="text-primary font-semibold">Gia hạn hợp đồng (UC17)</span>
+          <span class="text-primary font-semibold">Gia hạn hợp đồng</span>
         </div>
         <h1 class="text-2xl font-extrabold text-primary flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary text-2xl">autorenew</span>
@@ -153,7 +153,7 @@
       </div>
     </div>
 
-    <!-- TAB 1: TẠO YÊU CẦU GIA HẠN MỚI (BR17.1, BR17.2, BR17.4) -->
+    <!-- TAB 1: TẠO YÊU CẦU GIA HẠN MỚI -->
     <section id="tab-section-request" class="space-y-6">
       
       <!-- Selection of Contract if multiple -->
@@ -162,9 +162,9 @@
           <div>
             <h2 class="text-base font-bold text-primary flex items-center gap-2">
               <span class="material-symbols-outlined text-secondary text-base">description</span>
-              <span>1. Chọn hợp đồng thuê cần gia hạn (BR17.1)</span>
+              <span>1. Chọn hợp đồng thuê cần gia hạn</span>
             </h2>
-            <p class="text-xs text-on-surface-variant">Chỉ những hợp đồng đang có hiệu lực (ACTIVE) và không có lịch trả kho mở mới đủ điều kiện gia hạn</p>
+            <p class="text-xs text-on-surface-variant">Chỉ hợp đồng đang hoạt động và không có yêu cầu hoặc lịch trả kho đang mở mới đủ điều kiện gia hạn.</p>
           </div>
           <div class="w-full sm:w-80">
             <select id="select-active-contract" onchange="onContractSelectionChange(this.value)" class="w-full text-xs font-medium rounded-xl border border-slate-200 px-3 py-2.5 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20">
@@ -211,7 +211,7 @@
               <span>2. Chọn thời hạn gia hạn</span>
             </h2>
             <p class="text-xs text-on-surface-variant">
-              Kỳ hạn mới sẽ bắt đầu nối tiếp ngay sau ngày kết thúc hiện tại, bảo lưu toàn bộ lịch sử (BR17.2).
+              Kỳ hạn mới sẽ bắt đầu nối tiếp ngay sau ngày kết thúc hiện tại, bảo lưu toàn bộ lịch sử.
             </p>
           </div>
 
@@ -273,12 +273,12 @@
           </div>
         </div>
 
-        <!-- Right Column: Financial Snapshot Breakdown (BR17.4) (5 cols) -->
+        <!-- Right Column: Financial Snapshot Breakdown (5 cols) -->
         <div class="lg:col-span-5 bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-slate-100 space-y-6">
           <div>
             <h2 class="text-base font-bold text-primary flex items-center gap-2 mb-1">
               <span class="material-symbols-outlined text-secondary text-base">receipt_long</span>
-              <span>3. Báo giá dự kiến (Snapshot BR17.4)</span>
+              <span>3. Báo giá dự kiến (giá đã chốt)</span>
             </h2>
             <p class="text-xs text-on-surface-variant">
               Giá thuê, thuế VAT và các ưu đãi sẽ được chốt cố định theo chính sách tại thời điểm gia hạn.
@@ -317,7 +317,7 @@
           <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] leading-relaxed flex items-start gap-2">
             <span class="material-symbols-outlined text-blue-600 text-sm mt-0.5">info</span>
             <div>
-              <strong>Quy trình thực hiện:</strong> Yêu cầu sẽ được gửi tới Ban Quản lý cơ sở để xét duyệt khả dụng (BR17.3). Sau khi duyệt, quý khách sẽ có 24 giờ để hoàn tất thanh toán để kỳ hạn mới chính thức có hiệu lực (BR17.5).
+              <strong>Quy trình thực hiện:</strong> Yêu cầu sẽ được gửi tới Ban Quản lý cơ sở để xét duyệt khả dụng. Sau khi duyệt, quý khách sẽ có 24 giờ để hoàn tất thanh toán để kỳ hạn mới chính thức có hiệu lực.
             </div>
           </div>
 
@@ -438,7 +438,7 @@
 
         <!-- Financial Breakdown in Modal -->
         <div class="border border-slate-200 rounded-xl p-4 space-y-2">
-          <h4 class="font-bold text-primary text-xs mb-2">Thông tin tài chính (Snapshot BR17.4)</h4>
+          <h4 class="font-bold text-primary text-xs mb-2">Thông tin tài chính (giá đã chốt)</h4>
           <div class="flex justify-between text-slate-600">
             <span>Đơn giá tháng:</span>
             <span id="detail-monthly-price" class="font-mono">-- đ</span>
@@ -484,7 +484,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: THANH TOÁN PHÍ GIA HẠN (BR17.5) -->
+  <!-- MODAL 2: THANH TOÁN PHÍ GIA HẠN -->
   <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden">
     <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
       
@@ -512,14 +512,9 @@
 
         <div class="space-y-2">
           <label class="font-bold text-slate-700 block">Chọn phương thức thanh toán:</label>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="p-3 rounded-xl border border-secondary bg-secondary/5 flex flex-col items-center justify-center gap-1 cursor-pointer">
-              <input type="radio" name="payMethod" value="VNPAY" checked class="hidden"/>
-              <span class="material-symbols-outlined text-secondary text-xl">qr_code_scanner</span>
-              <span class="font-bold text-secondary text-[11px]">VNPAY-QR</span>
-            </label>
+          <div class="grid grid-cols-2 gap-2">
             <label class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer">
-              <input type="radio" name="payMethod" value="BANK_TRANSFER" class="hidden"/>
+              <input type="radio" name="payMethod" value="BANK_TRANSFER" checked class="hidden"/>
               <span class="material-symbols-outlined text-slate-600 text-xl">account_balance</span>
               <span class="font-bold text-slate-700 text-[11px]">Chuyển khoản</span>
             </label>
@@ -533,17 +528,14 @@
 
         <!-- Simulated QR payment container -->
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
-          <div class="w-32 h-32 mx-auto bg-white p-2 rounded-lg border border-slate-200 shadow-inner flex items-center justify-center">
-            <span class="material-symbols-outlined text-6xl text-slate-700">qr_code_2</span>
-          </div>
-          <p class="text-[11px] text-slate-500">Quét mã QR bằng App Ngân hàng hoặc Ví VNPAY để thanh toán</p>
+          <p class="text-sm text-slate-700">Trang này chưa cung cấp mã QR xác thực cho phí gia hạn. Vui lòng kiểm tra hướng dẫn thanh toán chính thức trước khi chuyển tiền.</p>
           <div class="text-[11px] font-mono text-slate-600 bg-slate-100 py-1 px-2 rounded">
             Nội dung: <strong id="pay-reference-code">SB RENEWAL</strong>
           </div>
         </div>
 
         <p class="text-[11px] text-slate-400 italic">
-          * Đảm bảo tính Idempotency (BR17.5): Mỗi giao dịch được bảo vệ bằng mã định danh bất biến, ngăn chặn trừ tiền 2 lần khi thử lại.
+          Mỗi yêu cầu có mã riêng để tránh ghi nhận trùng. Khoản chuyển ngân hàng cần được đối soát riêng.
         </p>
       </div>
 
@@ -553,7 +545,7 @@
         </button>
         <button id="btn-confirm-pay" onclick="executeRenewalPayment()" class="px-5 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">check_circle</span>
-          <span>Xác nhận đã thanh toán</span>
+          <span>Gửi thông tin thanh toán</span>
         </button>
       </div>
 
@@ -603,15 +595,15 @@
       <!-- Các điều khoản gia hạn -->
       <div class="text-xs space-y-4 text-justify mb-8">
         <div>
-          <h4 class="font-bold text-sm mb-1">ĐIỀU 1: ĐIỀU CHỈNH THỜI HẠN THUÊ KHO (BR17.2)</h4>
+          <h4 class="font-bold text-sm mb-1">ĐIỀU 1: ĐIỀU CHỈNH THỜI HẠN THUÊ KHO</h4>
           <p>1.1. Hai bên thống nhất gia hạn thêm <strong id="print-months">--</strong> tháng thuê cho Hợp đồng trên.</p>
           <p>1.2. Thời hạn thuê trước khi gia hạn: đến hết ngày <strong id="print-old-end-date" class="font-mono">--/--/----</strong>.</p>
           <p>1.3. Thời hạn thuê mới có hiệu lực liên tục đến hết ngày: <strong id="print-new-end-date" class="font-mono font-bold text-emerald-800">--/--/----</strong>.</p>
         </div>
 
         <div>
-          <h4 class="font-bold text-sm mb-1">ĐIỀU 2: GIÁ THUÊ VÀ NGHĨA VỤ THANH TOÁN (BR17.4, BR17.5)</h4>
-          <p>2.1. Đơn giá thuê tháng chốt snapshot: <strong id="print-monthly-fee" class="font-mono">-- đ</strong>/tháng.</p>
+          <h4 class="font-bold text-sm mb-1">ĐIỀU 2: GIÁ THUÊ VÀ NGHĨA VỤ THANH TOÁN</h4>
+          <p>2.1. Đơn giá thuê tháng chốt theo hợp đồng: <strong id="print-monthly-fee" class="font-mono">-- đ</strong>/tháng.</p>
           <p>2.2. Thuế GTGT (VAT 10%): <strong id="print-vat" class="font-mono">-- đ</strong>.</p>
           <p>2.3. Tổng số tiền gia hạn đã thanh toán: <strong id="print-total-amount" class="font-mono font-bold">-- đ</strong> (Bằng chữ: <span id="print-amount-words" class="italic">--</span>).</p>
           <p>2.4. Trạng thái thanh toán: <strong class="text-emerald-700">ĐÃ HOÀN TẤT THANH TOÁN (HÓA ĐƠN HỢP LỆ)</strong>.</p>
@@ -642,9 +634,9 @@
   <!-- Standard Footer -->
   <footer class="bg-surface-container-low border-t border-slate-200 py-6 text-center text-xs text-on-surface-variant no-print">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <p>© 2026 SafeBox Storage Vietnam Corporation. Use Case UC17 - Contract Renewal Management.</p>
+      <p>© 2026 SafeBox Storage Vietnam Corporation. Quản lý gia hạn hợp đồng.</p>
       <div class="flex items-center gap-4">
-        <span>Hotline: 1900 8868</span>
+        <span>Hotline: <span data-support-phone></span></span>
         <span>•</span>
         <a href="/stitch/kho_dang_thue_safebox_storage.html" class="hover:underline text-secondary">Kho của tôi</a>
       </div>
@@ -652,7 +644,7 @@
   </footer>
 
   <!-- SCRIPT LOGIC (BR17.1 - BR17.5) -->
-  <script src="/auth.js"></script>
+  <script src="/auth.js"></script><script src="/js/stitch-public-nav.js"></script>
   <script>
     // State management
     let activeContracts = [];
@@ -841,7 +833,7 @@
       }
     }
 
-    // API: Fetch Renewal Preview (BR17.2, BR17.4)
+    // API: Fetch Renewal Preview
     async function fetchRenewalPreview(contractId, months) {
       const submitBtn = document.getElementById('btn-submit-renewal');
       const warningNotice = document.getElementById('contract-warning-notice');
@@ -873,7 +865,7 @@
         // Check if renewal is prohibited by BR rules
         if (!preview.canRenew) {
           warningNotice.classList.remove('hidden');
-          warningText.textContent = preview.warningMessage || 'Hợp đồng không đủ điều kiện gia hạn vào thời điểm này.';
+          warningText.textContent = preview.message || 'Hợp đồng không đủ điều kiện gia hạn vào thời điểm này.';
           submitBtn.disabled = true;
           submitBtn.className = 'w-full py-3.5 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed';
         } else {
@@ -889,7 +881,7 @@
       }
     }
 
-    // API: Submit Renewal Request (BR17.1, BR17.2, BR17.4)
+    // API: Submit Renewal Request
     async function submitRenewalRequest() {
       if (!selectedContract) {
         showAlert('Vui lòng chọn một hợp đồng hợp lệ.', 'error');
@@ -965,7 +957,9 @@
         }
 
         tbody.innerHTML = items.map(r => {
-          const statusBadge = getStatusBadge(r.status);
+          const statusBadge = r.statusLabel === 'Chờ xác nhận thanh toán'
+            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Chờ xác nhận thanh toán</span>'
+            : getStatusBadge(r.status);
           
           let actionButtons = `
             <button onclick="openRenewalDetail('${r.renewalId}')" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] inline-flex items-center gap-1">
@@ -1163,7 +1157,7 @@
       confirmBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span> Đang ghi nhận...';
 
       // Pick method
-      const method = document.querySelector('input[name="payMethod"]:checked')?.value || 'VNPAY';
+      const method = document.querySelector('input[name="payMethod"]:checked')?.value || 'BANK_TRANSFER';
       // Generate immutable idempotency key
       const idempotencyKey = 'IDEM-' + payingRenewalId + '-' + Date.now();
 
@@ -1172,7 +1166,7 @@
           paymentMethod: method,
           amount: payingAmount,
           idempotencyKey: idempotencyKey,
-          referenceCode: 'TX-' + Date.now()
+          referenceCode: document.getElementById('pay-reference-code').textContent.trim()
         };
 
         const res = await SafeBoxAuth.authFetch(`/api/customer/renewals/${payingRenewalId}/pay`, {
@@ -1188,20 +1182,15 @@
 
         const data = await res.json();
         closeModal('payment-modal');
-        showAlert(`Thanh toán thành công! Hợp đồng đã chính thức được gia hạn đến ngày: ${formatDate(data.contractNewEndDate)}.`, 'success');
+        showAlert('Đã gửi yêu cầu thanh toán. Hóa đơn và kỳ hạn hợp đồng chỉ cập nhật sau khi Quản lý cơ sở xác nhận đã nhận tiền.', 'info');
 
         loadCustomerRenewals();
-
-        // Offer to print contract addendum immediately
-        if (confirm('Thanh toán thành công! Bạn có muốn in Phụ lục gia hạn hợp đồng ngay bây giờ không?')) {
-          printAddendum(payingRenewalId);
-        }
 
       } catch (err) {
         showAlert('Lỗi thanh toán: ' + err.message, 'error');
       } finally {
         confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<span class="material-symbols-outlined text-sm">check_circle</span> Xác nhận đã thanh toán';
+        confirmBtn.innerHTML = '<span class="material-symbols-outlined text-sm">check_circle</span> Gửi thông tin thanh toán';
       }
     }
 

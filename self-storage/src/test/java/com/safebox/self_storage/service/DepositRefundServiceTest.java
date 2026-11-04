@@ -21,9 +21,19 @@ class DepositRefundServiceTest {
     @Mock DepositRefundRepository refunds;
     @Mock PaymentTransactionRepository payments;
     @Mock InvoiceRepository invoices;
+    @Mock TerminationRequestRepository terminations;
     UUID contractId = UUID.randomUUID(), customerId = UUID.randomUUID(), facilityId = UUID.randomUUID();
-    DepositRefundService service() { return new DepositRefundService(access, refunds, payments, invoices); }
+    DepositRefundService service() { return new DepositRefundService(access, refunds, payments, invoices, terminations); }
     RentalContract contract() { RentalContract c = new RentalContract(); c.contractId = contractId; c.customerId = customerId; return c; }
+    @Test void activeEarlyReturnCannotUseLegacyRefundPath() {
+        when(access.contract(contractId,true)).thenReturn(contract());
+        when(access.role()).thenReturn("CUSTOMER");
+        when(terminations.existsByContractIdAndTypeAndStatusIn(eq(contractId),eq("EARLY_RETURN"),any()))
+                .thenReturn(true);
+        assertEquals(409, assertThrows(BusinessException.class, () -> service().request(contractId,
+                new RefundRequest(new BigDecimal("100000"),"Early return"))).status().value());
+        verifyNoInteractions(payments);
+    }
     @Test void requestCannotExceedNetReceivedDeposit() {
         when(access.contract(contractId,true)).thenReturn(contract());
         when(access.role()).thenReturn("CUSTOMER");

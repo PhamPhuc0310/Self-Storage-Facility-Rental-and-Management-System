@@ -42,7 +42,9 @@ class RenewalServiceTest {
     @Mock private InvoiceRepository invoiceRepository;
     @Mock private PaymentTransactionRepository paymentTransactionRepository;
     @Mock private HandoverRecordRepository handoverRecordRepository;
+    @Mock private TerminationRequestRepository terminationRequestRepository;
     @Mock private UserFacilityAssignmentRepository userFacilityAssignmentRepository;
+    @Mock private ActivityLogRepository activityLogRepository;
 
     @InjectMocks
     private RenewalServiceImpl renewalService;
@@ -154,7 +156,7 @@ class RenewalServiceTest {
                 renewalService.requestRenewal(customerId, contractId, request));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.status());
-        assertTrue(ex.getMessage().contains("ACTIVE"));
+        assertTrue(ex.getMessage().contains("đang hoạt động"));
     }
 
     @Test
@@ -195,6 +197,22 @@ class RenewalServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, ex.status());
         assertTrue(ex.getMessage().contains("lịch hẹn trả kho"));
+    }
+
+    @Test
+    void testRequestRenewal_ConflictWhenEarlyReturnRequested() {
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(renewalRepository.findByContractIdAndStatusIn(eq(contractId), anyCollection()))
+                .thenReturn(Collections.emptyList());
+        when(terminationRequestRepository.existsByContractIdAndTypeAndStatusIn(
+                eq(contractId), eq("EARLY_RETURN"), anyCollection())).thenReturn(true);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                renewalService.requestRenewal(customerId, contractId, new CreateRenewalRequest(1)));
+
+        assertEquals(HttpStatus.CONFLICT, ex.status());
+        assertTrue(ex.getMessage().contains("trả kho sớm"));
+        verify(renewalRepository, never()).save(any());
     }
 
     // =========================================================================
@@ -404,8 +422,8 @@ class RenewalServiceTest {
     // =========================================================================
 
     @Test
-    @DisplayName("BR17.5: Thanh toán phí gia hạn thành công, cập nhật ngày kết thúc mới cho hợp đồng")
-    void testPayRenewal_Success_ExtendsContractEndDate() {
+    @DisplayName("BR17.5: Khách hàng chỉ tạo yêu cầu PENDING; hóa đơn và kỳ hạn không đổi")
+    void testPayRenewal_Pending_DoesNotExtendContractEndDate() {
         Renewal renewal = new Renewal();
         renewal.setRenewalId(renewalId);
         renewal.setContractId(contractId);
@@ -419,6 +437,7 @@ class RenewalServiceTest {
         invoice.setInvoiceId(UUID.randomUUID());
         invoice.setRenewalId(renewalId);
         invoice.setContractId(contractId);
+        invoice.setInvoiceType("RENEWAL");
         invoice.setTotalAmount(new BigDecimal("1100000"));
         invoice.setPaidAmount(BigDecimal.ZERO);
         invoice.setStatus("UNPAID");
@@ -426,8 +445,9 @@ class RenewalServiceTest {
         when(paymentTransactionRepository.findByCreatedByAndIdempotencyKey(eq(customerId), eq("IDEM-001")))
                 .thenReturn(Optional.empty());
         when(renewalRepository.findById(renewalId)).thenReturn(Optional.of(renewal));
-        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(rentalContractRepository.lockById(contractId)).thenReturn(Optional.of(contract));
         when(invoiceRepository.findFirstByRenewalId(renewalId)).thenReturn(Optional.of(invoice));
+        when(paymentTransactionRepository.findByInvoiceId(invoice.getInvoiceId())).thenReturn(List.of());
 
         when(paymentTransactionRepository.saveAndFlush(any(PaymentTransaction.class))).thenAnswer(i -> {
             PaymentTransaction tx = i.getArgument(0);
@@ -441,21 +461,16 @@ class RenewalServiceTest {
         RenewalPaymentResponse paymentResponse = renewalService.payRenewal(customerId, renewalId, payRequest);
 
         assertNotNull(paymentResponse);
-        assertEquals("SUCCESS", paymentResponse.status());
-        assertEquals(LocalDate.of(2026, 12, 1), paymentResponse.contractNewEndDate());
+        assertEquals("PENDING", paymentResponse.status());
+        assertEquals(LocalDate.of(2026, 11, 1), paymentResponse.contractNewEndDate());
 
-        // BR17.5: Kiểm tra trạng thái hợp đồng và ngày kết thúc mới đã chính thức gia hạn
-        assertEquals(LocalDate.of(2026, 12, 1), contract.getEndDate());
-        verify(rentalContractRepository).save(contract);
-
-        // Kiểm tra hóa đơn chuyển sang PAID
-        assertEquals("PAID", invoice.getStatus());
-        assertEquals(new BigDecimal("1100000"), invoice.getPaidAmount());
-        verify(invoiceRepository).save(invoice);
-
-        // Kiểm tra yêu cầu gia hạn chuyển sang COMPLETED
-        assertEquals("COMPLETED", renewal.getStatus());
-        verify(renewalRepository).save(renewal);
+        assertEquals(LocalDate.of(2026, 11, 1), contract.getEndDate());
+        assertEquals("UNPAID", invoice.getStatus());
+        assertEquals(BigDecimal.ZERO, invoice.getPaidAmount());
+        assertEquals("APPROVED", renewal.getStatus());
+        verify(rentalContractRepository, never()).save(any());
+        verify(invoiceRepository, never()).save(any());
+        verify(renewalRepository, never()).save(any());
     }
 
     @Test
@@ -464,6 +479,9 @@ class RenewalServiceTest {
         PaymentTransaction existingTx = new PaymentTransaction();
         existingTx.setTransactionId(UUID.randomUUID());
         existingTx.setContractId(contractId);
+        UUID invoiceId = UUID.randomUUID();
+        existingTx.setInvoiceId(invoiceId);
+        existingTx.setPaymentType("RENEWAL");
         existingTx.setAmount(new BigDecimal("1100000"));
         existingTx.setPaymentMethod("BANK_TRANSFER");
         existingTx.setStatus("SUCCESS");
@@ -479,10 +497,16 @@ class RenewalServiceTest {
         renewal.setStatus("COMPLETED");
         renewal.setNewEndDate(LocalDate.of(2026, 12, 1));
         when(renewalRepository.findById(renewalId)).thenReturn(Optional.of(renewal));
+        Invoice invoice = new Invoice();
+        invoice.setInvoiceId(invoiceId);
+        invoice.setRenewalId(renewalId);
+        invoice.setContractId(contractId);
+        invoice.setInvoiceType("RENEWAL");
+        when(invoiceRepository.findFirstByRenewalId(renewalId)).thenReturn(Optional.of(invoice));
 
         // Hợp đồng đã có ngày kết thúc sau lần thanh toán đầu
         contract.setEndDate(LocalDate.of(2026, 12, 1));
-        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(rentalContractRepository.lockById(contractId)).thenReturn(Optional.of(contract));
 
         PayRenewalRequest payRequest = new PayRenewalRequest("BANK_TRANSFER", new BigDecimal("1100000"), "IDEM-SAME");
 
@@ -512,7 +536,12 @@ class RenewalServiceTest {
         when(paymentTransactionRepository.findByCreatedByAndIdempotencyKey(customerId, "IDEM-EXPIRED"))
                 .thenReturn(Optional.empty());
         when(renewalRepository.findById(renewalId)).thenReturn(Optional.of(renewal));
-        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(rentalContractRepository.lockById(contractId)).thenReturn(Optional.of(contract));
+        Invoice invoice = new Invoice();
+        invoice.setInvoiceId(UUID.randomUUID());
+        invoice.setContractId(contractId);
+        invoice.setInvoiceType("RENEWAL");
+        when(invoiceRepository.findFirstByRenewalId(renewalId)).thenReturn(Optional.of(invoice));
 
         PayRenewalRequest payRequest = new PayRenewalRequest("BANK_TRANSFER", new BigDecimal("1100000"), "IDEM-EXPIRED");
 
@@ -522,6 +551,89 @@ class RenewalServiceTest {
         assertEquals(HttpStatus.CONFLICT, ex.status());
         assertTrue(ex.getMessage().contains("hết hạn thanh toán"));
         assertEquals("EXPIRED", renewal.getStatus());
+    }
+
+    private PaymentTransaction pendingRenewalForConfirmation(String method) {
+        Renewal renewal = new Renewal();
+        renewal.setRenewalId(renewalId);
+        renewal.setContractId(contractId);
+        renewal.setStatus("APPROVED");
+        renewal.setOldEndDate(LocalDate.of(2026, 11, 1));
+        renewal.setNewEndDate(LocalDate.of(2026, 12, 1));
+        renewal.setRenewalAmount(new BigDecimal("1100000"));
+        Invoice invoice = new Invoice();
+        invoice.setInvoiceId(UUID.randomUUID());
+        invoice.setRenewalId(renewalId);
+        invoice.setContractId(contractId);
+        invoice.setInvoiceType("RENEWAL");
+        invoice.setInvoiceNumber("INV-RNW-TEST");
+        invoice.setTotalAmount(new BigDecimal("1100000"));
+        invoice.setPaidAmount(BigDecimal.ZERO);
+        invoice.setStatus("UNPAID");
+        PaymentTransaction payment = new PaymentTransaction();
+        payment.setTransactionId(UUID.randomUUID());
+        payment.setInvoiceId(invoice.getInvoiceId());
+        payment.setContractId(contractId);
+        payment.setTransactionType("RENEWAL");
+        payment.setPaymentType("RENEWAL");
+        payment.setPaymentMethod(method);
+        payment.setAmount(new BigDecimal("1100000"));
+        payment.setStatus("PENDING");
+        payment.setReferenceCode("PAY-RNW-TEST");
+        payment.setTransactionDate(LocalDateTime.now(VIETNAM_ZONE));
+        when(userRepository.findById(managerId)).thenReturn(Optional.of(managerUser));
+        when(renewalRepository.findById(renewalId)).thenReturn(Optional.of(renewal));
+        when(rentalContractRepository.lockById(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(userFacilityAssignmentRepository.findActiveFacilityIds(eq(managerId), any(LocalDate.class)))
+                .thenReturn(List.of(facilityId));
+        when(invoiceRepository.findFirstByRenewalId(renewalId)).thenReturn(Optional.of(invoice));
+        when(paymentTransactionRepository.findById(payment.getTransactionId())).thenReturn(Optional.of(payment));
+        return payment;
+    }
+
+    @Test
+    void cashConfirmationSettlesOnceAndAuditsOnce() {
+        PaymentTransaction payment = pendingRenewalForConfirmation("CASH");
+        RenewalPaymentResponse first = renewalService.confirmRenewalPayment(managerId, renewalId,
+                payment.getTransactionId(), new ConfirmRenewalPaymentRequest(null));
+        RenewalPaymentResponse retry = renewalService.confirmRenewalPayment(managerId, renewalId,
+                payment.getTransactionId(), new ConfirmRenewalPaymentRequest(null));
+        assertEquals("SUCCESS", first.status());
+        assertEquals(first.transactionId(), retry.transactionId());
+        assertEquals(LocalDate.of(2026, 12, 1), contract.getEndDate());
+        assertEquals(managerId, payment.confirmedBy);
+        assertNotNull(payment.confirmedAt);
+        verify(activityLogRepository, times(1)).saveAndFlush(argThat(log ->
+                "CONFIRM_RENEWAL_PAYMENT".equals(log.getActionType())
+                        && managerId.equals(log.getUserId())
+                        && payment.getTransactionId().equals(log.getEntityId())));
+        verify(rentalContractRepository, times(1)).save(contract);
+        verify(invoiceRepository, times(1)).save(argThat(i -> "PAID".equals(i.getStatus())
+                && i.getPaidAmount().compareTo(new BigDecimal("1100000")) == 0));
+    }
+
+    @Test
+    void bankConfirmationRequiresIndependentReference() {
+        PaymentTransaction payment = pendingRenewalForConfirmation("BANK_TRANSFER");
+        BusinessException error = assertThrows(BusinessException.class, () ->
+                renewalService.confirmRenewalPayment(managerId, renewalId, payment.getTransactionId(), null));
+        assertEquals(HttpStatus.BAD_REQUEST, error.status());
+        assertEquals("PENDING", payment.getStatus());
+        assertEquals(LocalDate.of(2026, 11, 1), contract.getEndDate());
+        verify(activityLogRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void rejectedPaymentCannotExtendContract() {
+        PaymentTransaction payment = pendingRenewalForConfirmation("BANK_TRANSFER");
+        RenewalPaymentResponse result = renewalService.rejectRenewalPayment(managerId, renewalId,
+                payment.getTransactionId(), "Không có bằng chứng nhận tiền");
+        assertEquals("FAILED", result.status());
+        assertEquals(LocalDate.of(2026, 11, 1), contract.getEndDate());
+        verify(rentalContractRepository, never()).save(any());
+        verify(activityLogRepository, never()).saveAndFlush(argThat(log ->
+                "CONFIRM_RENEWAL_PAYMENT".equals(log.getActionType())));
     }
 
     // =========================================================================
@@ -552,6 +664,20 @@ class RenewalServiceTest {
         assertEquals(new BigDecimal("600000"), preview.vatAmount());
         assertEquals(new BigDecimal("6600000"), preview.totalAmount());
         assertEquals(24, preview.paymentHours());
+    }
+
+    @Test
+    void testPreviewRenewal_DisabledWhenEarlyReturnRequested() {
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(terminationRequestRepository.existsByContractIdAndTypeAndStatusIn(
+                eq(contractId), eq("EARLY_RETURN"), anyCollection())).thenReturn(true);
+        when(renewalRepository.findByContractIdAndStatusIn(eq(contractId), anyCollection()))
+                .thenReturn(Collections.emptyList());
+
+        RenewalPreviewResponse preview = renewalService.previewRenewal(customerId, contractId, 1);
+
+        assertFalse(preview.canRenew());
+        assertTrue(preview.message().contains("trả kho sớm"));
     }
 
     @Test

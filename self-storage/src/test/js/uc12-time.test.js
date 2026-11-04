@@ -1,11 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {formatDateVN, formatDateTimeVN, parseDateVN, toISODate, formatAppointmentTime, appointmentInstant, canEditAppointment, appointmentActions} = require('../../main/resources/static/js/uc12-time.js');
+const {formatDateVN, formatDateTimeVN, parseDateVN, toISODate, formatAppointmentTime, appointmentInstant, appointmentLocalFields, canEditAppointment, appointmentActions} = require('../../main/resources/static/js/uc12-time.js');
 
 test('Vietnam date display preserves day and month order', () => {
   assert.equal(formatDateVN('2026-11-10'), '10/11/2026');
   assert.equal(formatDateVN('2026-11-25'), '25/11/2026');
-  assert.equal(formatDateTimeVN('2026-11-25T09:00:00'), '25/11/2026 – 09:00');
+  assert.equal(formatDateTimeVN('2026-11-25T09:00:00'), '25/11/2026 09:00');
 });
 
 test('Vietnam date input is parsed strictly before sending ISO to APIs', () => {
@@ -20,6 +20,17 @@ test('booking and rescheduling preserve Vietnam wall-clock time and +07:00 offse
   assert.equal(appointmentTime, '2026-11-25T09:00:00+07:00');
   assert.equal(JSON.stringify({appointmentTime}), '{"appointmentTime":"2026-11-25T09:00:00+07:00"}');
   assert.equal(formatAppointmentTime('2026-11-26', '16:00'), '2026-11-26T16:00:00+07:00');
+  for (const slot of ['06:00', '17:00', '22:00'])
+    assert.equal(formatAppointmentTime('2026-11-26', slot), `2026-11-26T${slot}:00+07:00`);
+  assert.throws(() => formatAppointmentTime('2026-11-26', '23:00'));
+});
+
+test('reschedule fields retain saved Vietnam date and time across offsets and dates', () => {
+  assert.deepEqual(appointmentLocalFields('2026-11-25T06:00:00'), {date:'2026-11-25',slot:'06:00'});
+  assert.deepEqual(appointmentLocalFields('2026-11-25T17:00:00+07:00'), {date:'2026-11-25',slot:'17:00'});
+  assert.deepEqual(appointmentLocalFields('2026-11-25T15:00:00Z'), {date:'2026-11-25',slot:'22:00'});
+  assert.deepEqual(appointmentLocalFields('2026-11-25T23:00:00Z'), {date:'2026-11-26',slot:'06:00'});
+  assert.equal(appointmentLocalFields('invalid'), null);
 });
 
 test('invalid form values cannot send an offsetless or UTC time', () => {
@@ -49,4 +60,12 @@ test('a scheduled appointment remains cancellable after refund while reschedulin
   assert.deepEqual(appointmentActions(appointment, 'v2', 1, now), {canCancel:true, canChange:false});
   assert.deepEqual(appointmentActions(appointment, 'v2', 0, now), {canCancel:true, canChange:true});
   assert.deepEqual(appointmentActions({...appointment, status:'CANCELLED'}, 'v2', 0, now), {canCancel:false, canChange:false});
+});
+
+test('date-time display converts instants to Vietnam and preserves local business time', () => {
+  assert.equal(formatDateTimeVN('2026-11-25T23:30:00Z'), '26/11/2026 06:30');
+  assert.equal(formatDateTimeVN('2026-11-26T06:30:00+07:00'), '26/11/2026 06:30');
+  assert.equal(formatDateTimeVN('2026-11-26T06:30:00'), '26/11/2026 06:30');
+  assert.equal(formatDateVN('2026-11-26'), '26/11/2026');
+  assert.equal(formatDateTimeVN('bad'), '—');
 });

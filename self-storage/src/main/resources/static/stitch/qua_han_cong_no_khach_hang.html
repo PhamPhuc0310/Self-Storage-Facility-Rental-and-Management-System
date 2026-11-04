@@ -76,7 +76,7 @@
       }
     }
   </style>
-</head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
 <body class="bg-background text-on-surface antialiased min-h-screen flex flex-col">
 
   <!-- TOP PUBLIC NAVBAR -->
@@ -93,10 +93,10 @@
       </div>
 
       <nav class="hidden md:flex items-center gap-1 text-xs font-semibold">
-        <a href="/safebox_storage_home/index.html" class="px-3 py-2 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-100 transition-colors">Trang chủ</a>
+        <a href="/stitch/trang_ch_safebox_storage.html" class="px-3 py-2 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-100 transition-colors">Trang chủ</a>
         <a href="/stitch/kho_dang_thue_safebox_storage.html" class="px-3 py-2 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-100 transition-colors">Kho đang thuê</a>
-        <a href="/stitch/gia_han_hop_dong_safebox_storage.html" class="px-3 py-2 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-100 transition-colors">Gia hạn hợp đồng (UC17)</a>
-        <a href="/stitch/qua_han_cong_no_khach_hang.html" class="px-3 py-2 rounded-lg bg-surface-container text-secondary font-bold">Quá hạn & Công nợ (UC18)</a>
+        <a href="/stitch/gia_han_hop_dong_safebox_storage.html" class="px-3 py-2 rounded-lg text-slate-600 hover:text-primary hover:bg-slate-100 transition-colors">Gia hạn hợp đồng</a>
+        <a href="/stitch/qua_han_cong_no_khach_hang.html" class="px-3 py-2 rounded-lg bg-surface-container text-secondary font-bold">Quá hạn & Công nợ</a>
       </nav>
 
       <div class="flex items-center gap-3">
@@ -124,7 +124,7 @@
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Quản lý Công nợ Quá hạn</h1>
         <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-          Theo quy định tại SafeBox, khi hợp đồng quá thời điểm kết thúc mà chưa hoàn tất trả kho hoặc chưa gia hạn, hệ thống sẽ tự động tính phí phát sinh theo chính sách đã ký kết (BR18.1, BR18.2).
+          Theo quy định tại SafeBox, khi hợp đồng quá thời điểm kết thúc mà chưa hoàn tất trả kho hoặc chưa gia hạn, hệ thống sẽ tự động tính phí phát sinh theo chính sách đã ký kết.
         </p>
       </div>
     </div>
@@ -141,7 +141,7 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>Hợp đồng quá hạn của tôi (BR18.4)</span>
+          <span>Hợp đồng quá hạn của tôi</span>
           <span id="badge-overdue-count" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">0</span>
         </h2>
         <button onclick="loadMyOverdueContracts()" class="text-xs text-secondary hover:underline font-semibold flex items-center gap-1">
@@ -161,7 +161,7 @@
 
   </main>
 
-  <!-- MODAL: CHI TIẾT CÔNG NỢ & CÔNG THỨC TÍNH (BR18.3) -->
+  <!-- MODAL: CHI TIẾT CÔNG NỢ & CÔNG THỨC TÍNH -->
   <div id="detail-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
@@ -170,7 +170,7 @@
             <span>Chi tiết phí phạt quá hạn</span>
             <span id="modal-contract-no" class="font-mono text-primary bg-primary/10 px-2 py-0.5 rounded text-xs font-bold"></span>
           </h3>
-          <p class="text-[11px] text-slate-500">Minh bạch công thức tính phí theo từng kỳ quy định (BR18.3)</p>
+          <p class="text-[11px] text-slate-500">Minh bạch công thức tính phí theo từng kỳ quy định</p>
         </div>
         <button onclick="closeModal('detail-modal')" class="p-1 text-slate-400 hover:text-slate-700">
           <span class="material-symbols-outlined">close</span>
@@ -210,7 +210,7 @@
                   <th class="p-3">KỲ NGÀY</th>
                   <th class="p-3 text-right">PHÍ PHÁT SINH</th>
                   <th class="p-3 text-right">CÒN NỢ</th>
-                  <th class="p-3">GIẢI THÍCH CÔNG THỨC (BR18.3)</th>
+                  <th class="p-3">GIẢI THÍCH CÔNG THỨC</th>
                   <th class="p-3 text-center">TRẠNG THÁI</th>
                   <th class="p-3 text-right">THAO TÁC</th>
                 </tr>
@@ -227,8 +227,8 @@
             <span class="material-symbols-outlined text-sm">help</span>
             <span>Hướng dẫn xử lý sau khi thanh toán:</span>
           </p>
-          <p>- Sau khi thanh toán phí phạt, quý khách có thể tiếp tục sử dụng kho bằng cách làm thủ tục <a href="/stitch/gia_han_hop_dong_safebox_storage.html" class="underline font-bold text-secondary">Gia hạn hợp đồng (UC17)</a>.</p>
-          <p>- Hoặc nếu không còn nhu cầu thuê, quý khách vui lòng liên hệ nhân viên cơ sở để hoàn tất thủ tục bàn giao trả kho (UC16).</p>
+          <p>- Sau khi thanh toán phí phạt, quý khách có thể tiếp tục sử dụng kho bằng cách làm thủ tục <a href="/stitch/gia_han_hop_dong_safebox_storage.html" class="underline font-bold text-secondary">Gia hạn hợp đồng</a>.</p>
+          <p>- Hoặc nếu không còn nhu cầu thuê, quý khách vui lòng liên hệ nhân viên cơ sở để hoàn tất thủ tục bàn giao trả kho.</p>
         </div>
       </div>
 
@@ -244,13 +244,13 @@
     </div>
   </div>
 
-  <!-- MODAL: THANH TOÁN PHÍ PHẠT TRỰC TUYẾN (BR18.3) -->
+  <!-- MODAL: THANH TOÁN PHÍ PHẠT TRỰC TUYẾN -->
   <div id="payment-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col">
       <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
         <div>
           <h3 class="font-bold text-slate-900 text-sm">Thanh toán phí phạt quá hạn</h3>
-          <p class="text-[11px] text-slate-500">Bảo vệ Idempotent (BR18.3) chống trùng lặp</p>
+          <p class="text-[11px] text-slate-500">Mỗi yêu cầu thanh toán có mã riêng để tránh ghi nhận trùng.</p>
         </div>
         <button onclick="closeModal('payment-modal')" class="p-1 text-slate-400 hover:text-slate-700">
           <span class="material-symbols-outlined">close</span>
@@ -269,7 +269,7 @@
             <label class="p-3 rounded-xl border border-secondary bg-secondary/5 flex flex-col items-center justify-center gap-1 cursor-pointer">
               <input type="radio" name="payMethod" value="VNPAY" checked class="hidden"/>
               <span class="material-symbols-outlined text-secondary text-2xl">qr_code_2</span>
-              <span class="font-bold text-secondary text-xs">Ví VNPAY / QR</span>
+              <span class="font-bold text-secondary text-xs">Ví VNPAY</span>
             </label>
             <label class="p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer">
               <input type="radio" name="payMethod" value="BANK_TRANSFER" class="hidden"/>
@@ -280,10 +280,7 @@
         </div>
 
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1">
-          <div class="w-28 h-28 mx-auto bg-white p-2 rounded-lg border border-slate-200 shadow-inner flex items-center justify-center">
-            <span class="material-symbols-outlined text-5xl text-slate-700">qr_code_2</span>
-          </div>
-          <p class="text-[10px] text-slate-500">Quét mã QR để hoàn tất thanh toán</p>
+          <p class="text-sm text-slate-700">Trang này chưa cung cấp mã QR xác thực cho công nợ quá hạn. Vui lòng kiểm tra hướng dẫn thanh toán chính thức trước khi chuyển tiền.</p>
           <div class="text-[11px] font-mono font-bold text-slate-700 bg-slate-100 py-1 px-2 rounded">
             Nội dung: <span id="pay-ref-text">SB PENALTY</span>
           </div>
@@ -296,7 +293,7 @@
         </button>
         <button id="btn-confirm-pay" onclick="executeOnlinePayment()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">check_circle</span>
-          <span>Xác nhận đã thanh toán</span>
+          <span>Gửi thông tin thanh toán</span>
         </button>
       </div>
     </div>
@@ -346,7 +343,7 @@
       </div>
 
       <div class="text-[11px] italic mb-8">
-        * Bảng kê được trích xuất tự động từ hệ thống SafeBox Storage. Phí phạt được tính toán theo đúng tỷ lệ trong chính sách thuê đã ký kết (BR18.2).
+        * Bảng kê được trích xuất tự động từ hệ thống SafeBox Storage. Phí phạt được tính toán theo đúng tỷ lệ trong chính sách thuê đã ký kết.
       </div>
 
       <div class="grid grid-cols-2 text-center text-xs mt-8">
@@ -364,7 +361,7 @@
     </div>
   </div>
 
-  <script src="/auth.js"></script>
+  <script src="/auth.js"></script><script src="/js/stitch-public-nav.js"></script>
   <script>
     let myContracts = [];
     let selectedContract = null;
@@ -372,13 +369,15 @@
     let payingAmount = 0;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const authorized = await SafeBoxAuth.requireRole('CUSTOMER', 'SYSTEM_ADMIN', 'FACILITY_MANAGER');
+      const authorized = await SafeBoxAuth.requireRole('CUSTOMER');
       if (!authorized) return;
 
       const user = SafeBoxAuth.getCurrentUser();
       if (user) {
-        document.getElementById('user-display-name').textContent = user.fullName || user.email;
-        document.getElementById('user-display-email').textContent = user.email;
+        const name = document.getElementById('user-display-name');
+        const email = document.getElementById('user-display-email');
+        if (name) name.textContent = user.fullName || user.email;
+        if (email) email.textContent = user.email;
       }
 
       await loadMyOverdueContracts();
@@ -402,6 +401,12 @@
 
     function hideAlert() {
       document.getElementById('alert-banner').classList.add('hidden');
+    }
+
+    function publicUnitType(name) {
+      return /\b\d+(?:[.,]\d+)?\s*m(?:2|²)\b/i.test(name || '')
+        ? (name || '').replace(/\b\d+(?:[.,]\d+)?\s*m(?:2|²)\b/gi, 'thể tích chưa xác minh')
+        : (name || 'Loại kho chưa xác minh');
     }
 
     async function loadMyOverdueContracts() {
@@ -457,7 +462,7 @@
                       </span>
                     ` : ''}
                   </div>
-                  <p class="text-xs text-slate-500 mt-0.5">${c.facilityName} · Kho <strong>${c.unitNumber}</strong> (${c.unitTypeName})</p>
+                  <p class="text-xs text-slate-500 mt-0.5">${c.facilityName} · Kho <strong>${c.unitNumber}</strong> (${publicUnitType(c.unitTypeName)})</p>
                 </div>
 
                 <div class="text-right">
@@ -468,6 +473,7 @@
                 </div>
               </div>
 
+              <p class="text-sm text-amber-800">Hợp đồng đã hết hạn. Vui lòng gia hạn hoặc đặt lịch trả kho để hoàn tất nghĩa vụ thuê.</p>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div>
                   <span class="text-slate-400 text-[11px] block">Ngày hết hạn cũ:</span>
@@ -475,7 +481,7 @@
                 </div>
                 <div>
                   <span class="text-slate-400 text-[11px] block">Ân hạn & Tính phí:</span>
-                  <span class="text-slate-700 font-medium">Ân hạn ${c.graceDays} ngày (Tính ${c.billableDays} ngày)</span>
+                  <span class="text-slate-700 font-medium">${c.graceDays == null ? 'Chưa có chính sách phí áp dụng' : `Ân hạn ${c.graceDays} ngày (Tính ${c.billableDays} ngày)`}</span>
                 </div>
                 <div>
                   <span class="text-slate-400 text-[11px] block">Đơn giá thuê:</span>
@@ -491,7 +497,7 @@
                 <div class="flex items-center gap-2">
                   <a href="/stitch/gia_han_hop_dong_safebox_storage.html" class="px-3.5 py-1.5 rounded-lg border border-secondary text-secondary hover:bg-secondary/5 font-semibold text-xs inline-flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">auto_renew</span>
-                    <span>Đăng ký gia hạn kho (UC17)</span>
+                    <span>Đăng ký gia hạn kho</span>
                   </a>
                 </div>
 
@@ -630,7 +636,7 @@
           throw new Error(err.message || 'Thanh toán phí phạt thất bại');
         }
 
-        showAlert('Đã gửi xác nhận thanh toán thành công! Yêu cầu đang được gửi tới Quản lý cơ sở để duyệt tiền vào tài khoản.', 'success');
+        showAlert('Đã gửi thông tin thanh toán để Quản lý cơ sở đối soát. Chuyển khoản chưa được xác nhận tại bước này.', 'success');
         closeModal('payment-modal');
         closeModal('detail-modal');
         await loadMyOverdueContracts();

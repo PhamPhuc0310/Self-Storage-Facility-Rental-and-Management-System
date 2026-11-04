@@ -20,4 +20,11 @@ public class ActivityLog {
         this.userId = userId; this.actionType = actionType; this.entityType = entityType; this.entityId = entityId;
         this.description = description; this.createdAt = createdAt;
     }
+    public UUID getId() { return id; }
+    public UUID getUserId() { return userId; }
+    public String getActionType() { return actionType; }
+    public String getEntityType() { return entityType; }
+    public UUID getEntityId() { return entityId; }
+    public String getDescription() { return description; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 }

@@ -7,6 +7,7 @@ import com.safebox.self_storage.dto.response.ContractCompletionResponse;
 import com.safebox.self_storage.dto.response.FacilityReturnTaskItemResponse;
 import com.safebox.self_storage.dto.response.ReturnInspectionDetailResponse;
 import com.safebox.self_storage.dto.response.ReturnScheduleResponse;
+import com.safebox.self_storage.dto.response.ReturnStaffOption;
 import com.safebox.self_storage.service.ReturnInspectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,8 @@ import java.util.UUID;
  */
 @RestController
 public class ReturnInspectionController {
+
+    public record AssignReturnStaffRequest(UUID staffId) {}
 
     private final ReturnInspectionService returnInspectionService;
 
@@ -110,6 +113,18 @@ public class ReturnInspectionController {
         ReturnInspectionDetailResponse detail = returnInspectionService.getReturnInspectionDetail(
                 staffOrManagerId, handoverId);
         return ResponseEntity.ok(detail);
+    }
+
+    @GetMapping("/api/manager/returns/{handoverId}/eligible-staff")
+    public List<ReturnStaffOption> eligibleReturnStaff(@PathVariable UUID handoverId) {
+        return returnInspectionService.eligibleReturnStaff(getCurrentUserId(), handoverId);
+    }
+
+    @PutMapping("/api/manager/returns/{handoverId}/assignment")
+    public ReturnScheduleResponse assignReturnStaff(@PathVariable UUID handoverId,
+                                                     @RequestBody AssignReturnStaffRequest request) {
+        return returnInspectionService.assignReturnStaff(getCurrentUserId(), handoverId,
+                request == null ? null : request.staffId());
     }
 
     /**

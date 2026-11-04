@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,18 +35,26 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Opt-in persistence regression against a disposable SQL Server database with the SafeBox schema.
- * Configure SAFEBOX_SQLSERVER_TEST_URL, SAFEBOX_SQLSERVER_TEST_USER,
- * SAFEBOX_SQLSERVER_TEST_PASSWORD, SAFEBOX_SQLSERVER_TEST_RESERVATION_ID and
- * SAFEBOX_SQLSERVER_TEST_MANAGER_ID. The reservation must be PENDING with an
- * AVAILABLE matching unit. The test transaction rolls back every write.
+ * Configure SAFEBOX_SQLSERVER_TEST_URL, SAFEBOX_SQLSERVER_TEST_USER, and
+ * SAFEBOX_SQLSERVER_TEST_PASSWORD. Each test creates its own PENDING reservation
+ * and AVAILABLE unit from the explicitly synthetic verified source. Every write
+ * rolls back with the test transaction; the database identity is checked first.
  */
 @SpringBootTest
 @Transactional
 @EnabledIfEnvironmentVariable(named = "SAFEBOX_SQLSERVER_TEST_URL", matches = "jdbc:sqlserver:.*")
 class ReservationApprovalSqlServerTest {
+    private static final UUID RESERVATION_ID = UUID.fromString("00000000-0000-4000-8000-00000000b301");
+    private static final UUID UNIT_ID = UUID.fromString("00000000-0000-4000-8000-00000000b302");
+    private static final UUID CUSTOMER_ID = UUID.fromString("374e5607-b0b4-f111-a965-932c2c6addb7");
+    private static final UUID MANAGER_ID = UUID.fromString("3b4e5607-b0b4-f111-a965-932c2c6addb7");
+    private static final UUID STAFF_ID = UUID.fromString("49a562b3-879b-420c-a6de-319f3fcca978");
+    private static final UUID SOURCE_UNIT_ID = UUID.fromString("fa88d008-0594-4ef0-911e-4348a976499c");
+    private static final UUID PRICING_ID = UUID.fromString("63292355-68be-f111-a965-932c2c6addb7");
     @DynamicPropertySource
     static void sqlServer(DynamicPropertyRegistry properties) {
         properties.add("spring.datasource.url", () -> System.getenv("SAFEBOX_SQLSERVER_TEST_URL"));
@@ -65,9 +74,35 @@ class ReservationApprovalSqlServerTest {
     @Autowired AppointmentService appointmentService;
     @MockBean Sprint2Access access;
 
+    @BeforeEach void createIsolatedFixture() {
+        assertEquals("SelfStorageFacilityDB_Test", jdbc.queryForObject("SELECT DB_NAME()", String.class));
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM dbo.STORAGE_UNITS WHERE unit_id = ? "
+                + "AND measurement_source = 'SYNTHETIC_DEMO' AND length_m = 2 AND width_m = 3 "
+                + "AND height_m = 4 AND readiness_verified = 1 AND dimensions_verified = 1",
+                Integer.class, SOURCE_UNIT_ID));
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM dbo.PRICING_POLICIES WHERE pricing_id = ? "
+                + "AND status = 'ACTIVE' AND monthly_price = 900000", Integer.class, PRICING_ID));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM dbo.RESERVATIONS WHERE reservation_id = ?",
+                Integer.class, RESERVATION_ID));
+        jdbc.update("INSERT INTO dbo.STORAGE_UNITS "
+                + "(unit_id, facility_id, type_id, unit_number, floor, zone, status, length_m, width_m, "
+                + "height_m, readiness_verified, dimensions_verified, measurement_source) "
+                + "SELECT ?, facility_id, type_id, 'SQL-APPROVAL-B302', floor, zone, 'AVAILABLE', "
+                + "length_m, width_m, height_m, readiness_verified, dimensions_verified, measurement_source "
+                + "FROM dbo.STORAGE_UNITS WHERE unit_id = ?", UNIT_ID, SOURCE_UNIT_ID);
+        LocalDate start = LocalDate.now(Sprint2Access.ZONE).plusDays(1);
+        jdbc.update("INSERT INTO dbo.RESERVATIONS "
+                + "(reservation_id, customer_id, facility_id, type_id, pricing_id, start_date, end_date, "
+                + "hold_expires_at, estimated_rental_amount, estimated_deposit_amount, status, "
+                + "quoted_monthly_price, pricing_version) "
+                + "SELECT ?, ?, facility_id, type_id, ?, ?, ?, DATEADD(day, 1, SYSDATETIME()), "
+                + "900000, 300000, 'PENDING', 900000, 'v2' FROM dbo.STORAGE_UNITS WHERE unit_id = ?",
+                RESERVATION_ID, CUSTOMER_ID, PRICING_ID, start, start.plusMonths(1), UNIT_ID);
+    }
+
     @Test void contractRowExistsBeforeBothInvoiceRowsAndDuplicateApprovalIsIdempotent() {
-        UUID reservationId = UUID.fromString(System.getenv("SAFEBOX_SQLSERVER_TEST_RESERVATION_ID"));
-        UUID managerId = UUID.fromString(System.getenv("SAFEBOX_SQLSERVER_TEST_MANAGER_ID"));
+        UUID reservationId = RESERVATION_ID;
+        UUID managerId = MANAGER_ID;
         Reservation reservation = reservations.findById(reservationId).orElseThrow();
         assertEquals("PENDING", reservation.getStatus());
         assertTrue(contracts.findByReservationId(reservationId).isEmpty());
@@ -112,8 +147,8 @@ class ReservationApprovalSqlServerTest {
     }
 
     @Test void newV2ApprovalSignatureAndFirstDepositPaymentHaveNoLegacyConflict() {
-        UUID reservationId = UUID.fromString(System.getenv("SAFEBOX_SQLSERVER_TEST_RESERVATION_ID"));
-        UUID managerId = UUID.fromString(System.getenv("SAFEBOX_SQLSERVER_TEST_MANAGER_ID"));
+        UUID reservationId = RESERVATION_ID;
+        UUID managerId = MANAGER_ID;
         Reservation reservation = reservations.findById(reservationId).orElseThrow();
         assertEquals("v2", reservation.getPricingVersion());
         assertEquals("PENDING", reservation.getStatus());
@@ -144,6 +179,7 @@ class ReservationApprovalSqlServerTest {
         when(access.currentId()).thenReturn(customerId);
         when(access.contract(id, true)).thenAnswer(call -> contracts.lockById(id).orElseThrow());
         when(access.contract(id, false)).thenAnswer(call -> contracts.findById(id).orElseThrow());
+        when(access.facilityId(any(RentalContract.class))).thenReturn(reservation.getFacilityId());
 
         LocalDate pickupDate = reservation.getStartDate().isAfter(now.toLocalDate())
                 ? reservation.getStartDate() : now.toLocalDate().plusDays(1);
@@ -154,6 +190,12 @@ class ReservationApprovalSqlServerTest {
         BigDecimal deposit = contracts.findById(id).orElseThrow().depositAmount;
         PaymentRequest request = new PaymentRequest("DEPOSIT", deposit, "BANK_TRANSFER", "sql-first-deposit");
         PaymentTransaction first = paymentService.pay(id, request);
+        assertEquals("PENDING", first.status);
+        when(access.role()).thenReturn("FACILITY_STAFF");
+        when(access.currentId()).thenReturn(STAFF_ID);
+        first = paymentService.confirmTransfer(id, first.transactionId);
+        when(access.role()).thenReturn("CUSTOMER");
+        when(access.currentId()).thenReturn(customerId);
         entityManager.flush(); entityManager.clear();
         assertEquals("SUCCESS", first.status);
         assertEquals(id, first.contractId);

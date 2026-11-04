@@ -14,4 +14,5 @@ public interface ManagerCatalogService {
     List<ManagedStorageUnitResponse> units(UUID managerId, UUID facilityId);
     ManagedStorageUnitResponse createUnit(UUID managerId, UUID facilityId, StorageUnitRequest request);
     ManagedStorageUnitResponse updateUnit(UUID managerId, UUID facilityId, UUID unitId, StorageUnitRequest request);
+    ManagedStorageUnitResponse verifyDimensions(UUID managerId, UUID facilityId, UUID unitId, DimensionVerificationRequest request);
 }

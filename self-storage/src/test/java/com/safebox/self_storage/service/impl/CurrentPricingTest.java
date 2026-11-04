@@ -16,6 +16,7 @@ class CurrentPricingTest {
         p.setEffectiveFrom(LocalDate.parse(start));
         p.setEffectiveTo(end == null ? null : LocalDate.parse(end));
         p.setMonthlyPrice(BigDecimal.valueOf(amount));
+        p.setStatus("ACTIVE");
         return p;
     }
 
@@ -29,5 +30,13 @@ class CurrentPricingTest {
             LocalDate.of(2026, 10, 2));
         assertEquals(current, result.orElseThrow());
         assertTrue(CurrentPricing.forType(List.of(old), 1, LocalDate.of(2026, 10, 2)).isEmpty());
+    }
+    @Test
+    void excludesDraftRetiredAndZeroPrices() {
+        var active=policy(1,"2026-10-01",null,200);
+        var draft=policy(1,"2026-10-02",null,300); draft.setStatus("DRAFT");
+        var retired=policy(1,"2026-10-03",null,400); retired.setStatus("RETIRED");
+        var free=policy(1,"2026-10-04",null,0);
+        assertEquals(active,CurrentPricing.forType(List.of(active,draft,retired,free),1,LocalDate.of(2026,10,5)).orElseThrow());
     }
 }

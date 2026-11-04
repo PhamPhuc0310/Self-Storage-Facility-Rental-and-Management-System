@@ -39,7 +39,32 @@ SET created_at = transaction_date, updated_at = transaction_date
 WHERE created_at IS NULL OR updated_at IS NULL;
 GO
 
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'dbo.PAYMENT_TRANSACTIONS') AND name = N'UX_PAYMENT_TRANSACTIONS_actor_idempotency')
+-- Existing databases can have the equivalent UX_PAYMENT_TRANSACTIONS_request index.
+-- Check keys, uniqueness and predicate before accepting either name; never drop a financial constraint.
+IF EXISTS (SELECT 1 FROM sys.indexes i WHERE i.object_id=OBJECT_ID(N'dbo.PAYMENT_TRANSACTIONS')
+           AND i.name IN (N'UX_PAYMENT_TRANSACTIONS_actor_idempotency',N'UX_PAYMENT_TRANSACTIONS_request'))
+   AND NOT EXISTS (
+       SELECT 1 FROM sys.indexes i WHERE i.object_id=OBJECT_ID(N'dbo.PAYMENT_TRANSACTIONS')
+         AND i.name IN (N'UX_PAYMENT_TRANSACTIONS_actor_idempotency',N'UX_PAYMENT_TRANSACTIONS_request')
+         AND i.is_unique=1 AND i.has_filter=1
+         AND LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(i.filter_definition,N'[',N''),N']',N''),N' ',N''),N'(',N''),N')',N''))
+             = N'created_byisnotnullandidempotency_keyisnotnull'
+         AND (SELECT COUNT(*) FROM sys.index_columns ic WHERE ic.object_id=i.object_id AND ic.index_id=i.index_id AND ic.key_ordinal>0)=2
+         AND EXISTS (SELECT 1 FROM sys.index_columns ic WHERE ic.object_id=i.object_id AND ic.index_id=i.index_id
+                     AND ic.key_ordinal=1 AND COL_NAME(ic.object_id,ic.column_id)=N'created_by')
+         AND EXISTS (SELECT 1 FROM sys.index_columns ic WHERE ic.object_id=i.object_id AND ic.index_id=i.index_id
+                     AND ic.key_ordinal=2 AND COL_NAME(ic.object_id,ic.column_id)=N'idempotency_key'))
+    THROW 51120, 'Payment idempotency index name exists with incompatible definition.', 1;
+IF NOT EXISTS (
+       SELECT 1 FROM sys.indexes i WHERE i.object_id=OBJECT_ID(N'dbo.PAYMENT_TRANSACTIONS')
+         AND i.is_unique=1 AND i.has_filter=1
+         AND LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(i.filter_definition,N'[',N''),N']',N''),N' ',N''),N'(',N''),N')',N''))
+             = N'created_byisnotnullandidempotency_keyisnotnull'
+         AND (SELECT COUNT(*) FROM sys.index_columns ic WHERE ic.object_id=i.object_id AND ic.index_id=i.index_id AND ic.key_ordinal>0)=2
+         AND EXISTS (SELECT 1 FROM sys.index_columns ic WHERE ic.object_id=i.object_id AND ic.index_id=i.index_id
+                     AND ic.key_ordinal=1 AND COL_NAME(ic.object_id,ic.column_id)=N'created_by')
+         AND EXISTS (SELECT 1 FROM sys.index_columns ic WHERE ic.object_id=i.object_id AND ic.index_id=i.index_id
+                     AND ic.key_ordinal=2 AND COL_NAME(ic.object_id,ic.column_id)=N'idempotency_key'))
     CREATE UNIQUE INDEX UX_PAYMENT_TRANSACTIONS_actor_idempotency
     ON dbo.PAYMENT_TRANSACTIONS(created_by, idempotency_key)
     WHERE created_by IS NOT NULL AND idempotency_key IS NOT NULL;

@@ -426,9 +426,23 @@ public class ContractServiceImpl implements ContractService {
         BigDecimal monthlyRentalFee = c.getMonthlyRentalFee();
         BigDecimal totalRentalAmount = monthlyRentalFee.multiply(BigDecimal.valueOf(months));
         BigDecimal depositAmount = c.getDepositAmount();
-        BigDecimal totalPayable = "v2".equals(c.getTermsVersion())
-                ? com.safebox.self_storage.service.ContractPricing.of(monthlyRentalFee, c.getStartDate(), c.getEndDate()).total()
-                : totalRentalAmount.add(depositAmount);
+        BigDecimal totalPayable;
+        if ("v2".equals(c.getTermsVersion())) {
+            try {
+                totalPayable = com.safebox.self_storage.service.ContractPricing.of(monthlyRentalFee, c.getStartDate(), c.getEndDate()).total();
+            } catch (IllegalArgumentException irregularCurrentDates) {
+                // Historical overdue/termination dates can truncate the current end date.
+                // The reservation quote is the signed financial snapshot; never reprice it from that shortened period.
+                totalPayable = res == null ? null : res.getEstimatedRentalAmount();
+                if (res != null && res.getStartDate() != null && res.getEndDate() != null) {
+                    int agreedMonths = (int) ChronoUnit.MONTHS.between(res.getStartDate(), res.getEndDate());
+                    if (agreedMonths > 0 && res.getStartDate().plusMonths(agreedMonths).equals(res.getEndDate())) {
+                        months = agreedMonths;
+                        totalRentalAmount = monthlyRentalFee.multiply(BigDecimal.valueOf(months));
+                    }
+                }
+            }
+        } else totalPayable = totalRentalAmount.add(depositAmount);
 
         BigDecimal area = null;
         if (unitType != null && unitType.getWidth() != null && unitType.getLength() != null) {
@@ -458,6 +472,7 @@ public class ContractServiceImpl implements ContractService {
                 unitType != null ? unitType.getTypeName() : null,
                 unitType != null ? unitType.getSizeName() : null,
                 area,
+                unit != null ? unit.getVolumeM3() : null,
                 unitType != null ? unitType.getStorageMode() : null,
                 c.getStartDate(),
                 c.getEndDate(),

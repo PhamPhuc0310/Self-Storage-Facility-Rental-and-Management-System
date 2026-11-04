@@ -51,9 +51,7 @@ public interface RenewalService {
     RenewalResponse reviewRenewal(UUID managerUserId, UUID renewalId, ReviewRenewalRequest request);
 
     /**
-     * Khách hàng thanh toán phí gia hạn hợp đồng (BR17.5).
-     * Khi thanh toán thành công, kỳ hạn hợp đồng mới chính thức có hiệu lực (cập nhật end_date).
-     * Áp dụng Idempotency để retry không tạo giao dịch hoặc gia hạn trùng.
+     * Khách hàng gửi yêu cầu thanh toán phí gia hạn (BR17.5). Giao dịch chờ xác nhận độc lập.
      *
      * @param customerId UUID khách hàng đăng nhập
      * @param renewalId  UUID yêu cầu gia hạn
@@ -61,6 +59,16 @@ public interface RenewalService {
      * @return Kết quả giao dịch thanh toán và ngày kết thúc mới của hợp đồng
      */
     RenewalPaymentResponse payRenewal(UUID customerId, UUID renewalId, PayRenewalRequest request);
+
+    /** Chỉ quản lý được phân công tại cơ sở mới có thể xác nhận sau khi nhận tiền. */
+    RenewalPaymentResponse confirmRenewalPayment(UUID managerId, UUID renewalId, UUID paymentId,
+                                                 ConfirmRenewalPaymentRequest request);
+
+    /** Từ chối một yêu cầu chưa xác minh; không thay đổi hóa đơn hoặc kỳ hạn. */
+    RenewalPaymentResponse rejectRenewalPayment(UUID managerId, UUID renewalId, UUID paymentId, String reason);
+
+    /** Hàng chờ thanh toán gia hạn thuộc các cơ sở do quản lý phụ trách. */
+    List<RenewalPaymentResponse> pendingRenewalPayments(UUID managerId);
 
     /**
      * Khách hàng tự hủy yêu cầu gia hạn khi còn ở trạng thái PENDING hoặc APPROVED chưa thanh toán.

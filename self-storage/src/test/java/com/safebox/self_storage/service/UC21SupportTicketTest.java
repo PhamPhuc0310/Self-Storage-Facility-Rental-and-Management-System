@@ -208,8 +208,9 @@ class UC21SupportTicketTest {
     }
 
     @Test
-    @DisplayName("BR21.1: Nhân viên cơ sở được xem ticket thuộc cơ sở mình quản lý")
+    @DisplayName("BR22.2: Nhân viên được phân công mới xem ticket trong cơ sở")
     void testGetTicketDetail_StaffAssignedFacilitySuccess() {
+        ticket.setAssignedTo(staffId);
         when(supportTicketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
         when(userRepository.findById(staffId)).thenReturn(Optional.of(staffUser));
         when(userFacilityAssignmentRepository.findActiveFacilityIds(eq(staffId), any(LocalDate.class)))
@@ -228,10 +229,24 @@ class UC21SupportTicketTest {
     }
 
     @Test
+    void unassignedFacilityStaffCannotReadOrReply() {
+        when(supportTicketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(staffId)).thenReturn(Optional.of(staffUser));
+        when(userFacilityAssignmentRepository.findActiveFacilityIds(eq(staffId), any(LocalDate.class)))
+                .thenReturn(List.of(facilityId));
+        assertEquals(HttpStatus.FORBIDDEN, assertThrows(BusinessException.class,
+                () -> supportTicketService.getTicketDetail(staffId, ticketId)).status());
+        assertEquals(HttpStatus.FORBIDDEN, assertThrows(BusinessException.class,
+                () -> supportTicketService.addReply(staffId, ticketId, new CreateTicketReplyRequest("reply"))).status());
+        verify(supportTicketReplyRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("BR21.5: Chặn không cho gửi phản hồi vào ticket đã CLOSED -> 409 Conflict")
     void testAddReply_ClosedTicket_Conflict() {
         ticket.setStatus("CLOSED");
         when(supportTicketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customerUser));
 
         CreateTicketReplyRequest request = new CreateTicketReplyRequest("Tôi vẫn cần hỗ trợ!");
 
@@ -268,6 +283,8 @@ class UC21SupportTicketTest {
     @Test
     @DisplayName("BR21.5: Đóng ticket thành công -> chuyển sang CLOSED, lưu vết ActivityLog")
     void testCloseTicket_Success() {
+        ticket.setStatus("RESOLVED");
+        ticket.setResolutionNote("Đã xử lý");
         when(supportTicketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
         when(supportTicketRepository.save(any(SupportTicket.class))).thenAnswer(inv -> inv.getArgument(0));
         when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
@@ -282,5 +299,14 @@ class UC21SupportTicketTest {
         assertNotNull(response);
         assertEquals("CLOSED", response.status());
         verify(activityLogRepository).save(any(ActivityLog.class));
+    }
+
+    @Test
+    void openTicketCannotBeClosedWithoutResolution() {
+        when(supportTicketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customerUser));
+        assertEquals(HttpStatus.CONFLICT, assertThrows(BusinessException.class,
+                () -> supportTicketService.closeTicket(customerId, ticketId, "close")).status());
+        verify(supportTicketRepository, never()).save(any());
     }
 }

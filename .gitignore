@@ -45,6 +45,22 @@ database/SafeBox_SeedData.sql
 # ==============================
 *.log
 logs/
+*.bak
+*.bak.*
+*.trn
+*.mdf
+*.ldf
+playwright-report/
+test-results/
+**/browser-output/
+**/screenshots-local/
+**/application-demo-local.yml
+**/application-demo-local.properties
+**/static/images/techcombank-demo-vietqr.jpg
+**/static/images/*personal*qr*
+docs/testing/evidence/phase46-live/246dd488-qr-image.png
+docs/testing/evidence/phase46-live/246dd488-customer-bank-qr.png
+docs/testing/evidence/phase46-live/246dd488-payment-run.json
 
 # ==============================
 # OS
@@ -59,3 +75,54 @@ Thumbs.db
 *.temp
 *.swp
 *~
+database/primary-execution-records/
+
+# Keep shareable environment templates version-controlled.
+!.env.example
+!.env.*.example
+!.env.sample
+!.env.*.sample
+
+# Only the two required academic deliverables belong in docs/.
+/docs/**
+!/docs/sprint.xlsx
+!/docs/stitch_safebox_storage_rental_platform.zip
+
+# Database: SQL at any depth plus explicitly verified ERD files only.
+/database/**
+!/database/**/
+!/database/**/*.sql
+!/database/ERD.drawio
+
+# Private seed, record-specific diagnostics and primary-only fixture scripts.
+/database/SafeBox_SeedData.sql
+/database/diagnose_*.sql
+/database/primary_preflight.sql
+/database/primary_*.sql
+/database/demo/primary_*.sql
+/database/primary-execution-records/**
+
+# Local relocated duplicates; preserve the already-staged database/demo/ paths.
+/database/rehearsal_reset_three_contracts.sql
+/database/rehearsal_return_scope.sql
+/database/rehearsal_three_contracts.sql
+/database/reset_three_contracts.sql
+/database/setup_three_contracts.sql
+/database/sprint3_test_inventory.sql
+/database/verify_three_contracts.sql
+
+# Private development settings, caches and secrets.
+/.codex/
+/.agents/
+AGENTS.md
+node_modules/
+.npm/
+*.swo
+application-private.properties
+application-private.yml
+application-private.yaml
+application-secret.yml
+application-secret.yaml
+*.p12
+*.pfx
+*.key

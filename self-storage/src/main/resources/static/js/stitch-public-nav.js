@@ -44,7 +44,7 @@
   const logout = header.querySelector('#btn-logout');
   const publicLinks = [
     ['Trang chủ','/stitch/trang_ch_safebox_storage.html'],
-    ['Tìm kho','/stitch/t_m_kho_l_u_tr_safebox_storage.html'],
+    ['Tìm kho','/storage.html'],
     ['Cơ sở','/stitch/trang_ch_safebox_storage.html#home-facilities']
   ];
   const customerLinks = [
@@ -53,13 +53,16 @@
     ['Kho đang thuê','/stitch/kho_dang_thue_safebox_storage.html'],
     ['Thanh toán và lịch nhận kho','/stitch/uc11-customer-payments-appointments.html'],
     ['Gia hạn hợp đồng','/stitch/gia_han_hop_dong_safebox_storage.html'],
-    ['Hỗ trợ kỹ thuật & Sự cố','/stitch/ho_tro_khach_hang_safebox_storage.html']
+    ['Trả trước hạn','/stitch/early-return.html'],
+    ['Hỗ trợ','/stitch/ho_tro_safebox.html']
   ];
   const managerLinks = [
     ['Tổng quan quản lý','/stitch/t_ng_quan_qu_n_l_safebox_manager.html'],
-    ['Duyệt yêu cầu','/stitch/x_l_y_u_c_u_t_kho_safebox_manager.html'],
+    ['Duyệt yêu cầu','/stitch/uc11-manager-approvals.html'],
+    ['Kho và số đo','/stitch/uc11-manager-catalog.html'],
     ['Vận hành và phân công','/stitch/uc12-manager-operations.html'],
     ['Tiếp nhận trả kho','/stitch/bien_ban_tra_kho_safebox_manager.html'],
+    ['Quyết toán trả trước hạn','/stitch/early-return.html'],
     ['Xét duyệt gia hạn','/stitch/quan_ly_gia_han_safebox_manager.html']
   ];
   function link(label, href) {
@@ -72,6 +75,7 @@
       count.id = 'nav-active-count-badge';
       count.style.marginLeft = '4px';
       count.textContent = '—';
+      a.appendChild(document.createTextNode(' '));
       a.appendChild(count);
     }
     if (location.pathname === new URL(href, location.origin).pathname) a.setAttribute('aria-current', 'page');
@@ -83,9 +87,9 @@
     const role = user?.role;
     let links = publicLinks;
     if (role === 'CUSTOMER') links = [...links, ...customerLinks];
-    else if (role === 'FACILITY_MANAGER') links = [...links, ...managerLinks];
-    else if (role === 'FACILITY_STAFF') links = [...links, ['Công việc của tôi','/staff-tasks.html'], ['Tiếp nhận trả kho','/stitch/bien_ban_tra_kho_safebox_manager.html']];
-    else if (role === 'SYSTEM_ADMIN' || role === 'BUSINESS_OPERATIONS_MANAGER') links = [...links, ['Cổng điều hướng','/role-home.html']];
+    else if (role === 'FACILITY_MANAGER') links = managerLinks;
+    else if (role === 'FACILITY_STAFF') links = [['Công việc','/staff-tasks.html'], ['Ghi nhận số đo','/staff-measurements.html'], ['Hỗ trợ','/stitch/ho_tro_safebox.html']];
+    else if (role === 'SYSTEM_ADMIN' || role === 'BUSINESS_OPERATIONS_MANAGER') links = [['Không gian làm việc','/role-home.html']];
     for (const [label, href] of links) {
       desktop.appendChild(link(label, href));
       mobile.appendChild(link(label, href));

@@ -54,6 +54,8 @@ test('403 denies access while retaining token; reload checks server role', async
 
   const denied = setup(async () => ({ status: 403 }));
   denied.auth.saveAuth('signed', { role: 'CUSTOMER' }, false);
-  await assert.rejects(denied.auth.authFetch('/api/role/manager'), /Forbidden/);
+  const response = await denied.auth.authFetch('/api/role/manager');
+  assert.equal(response.status, 403);
   assert.equal(denied.auth.getToken(), 'signed');
+  assert.equal(denied.document.body.innerHTML, '');
 });

@@ -1,6 +1,8 @@
 package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.dto.renewal.RenewalResponse;
+import com.safebox.self_storage.dto.renewal.RenewalPaymentResponse;
+import com.safebox.self_storage.dto.renewal.ConfirmRenewalPaymentRequest;
 import com.safebox.self_storage.dto.renewal.ReviewRenewalRequest;
 import com.safebox.self_storage.service.RenewalService;
 import jakarta.validation.Valid;
@@ -55,6 +57,27 @@ public class RenewalManagerController {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(50, size)));
         Page<RenewalResponse> response = renewalService.getFacilityRenewals(managerId, facilityId, status, pageable);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/payments/pending")
+    public ResponseEntity<java.util.List<RenewalPaymentResponse>> pendingPayments() {
+        return ResponseEntity.ok(renewalService.pendingRenewalPayments(getCurrentUserId()));
+    }
+
+    @PostMapping("/{renewalId}/payments/{paymentId}/confirm")
+    public ResponseEntity<RenewalPaymentResponse> confirmPayment(
+            @PathVariable UUID renewalId, @PathVariable UUID paymentId,
+            @RequestBody(required = false) ConfirmRenewalPaymentRequest request) {
+        return ResponseEntity.ok(renewalService.confirmRenewalPayment(
+                getCurrentUserId(), renewalId, paymentId, request));
+    }
+
+    @PostMapping("/{renewalId}/payments/{paymentId}/reject")
+    public ResponseEntity<RenewalPaymentResponse> rejectPayment(
+            @PathVariable UUID renewalId, @PathVariable UUID paymentId,
+            @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(renewalService.rejectRenewalPayment(
+                getCurrentUserId(), renewalId, paymentId, body == null ? null : body.get("reason")));
     }
 
     /**

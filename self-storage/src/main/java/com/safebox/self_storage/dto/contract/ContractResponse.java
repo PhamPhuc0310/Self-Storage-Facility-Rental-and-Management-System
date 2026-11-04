@@ -43,6 +43,7 @@ public record ContractResponse(
         String typeName,
         String sizeName,
         BigDecimal area,
+        BigDecimal volumeM3,
         String storageMode,
         LocalDate startDate,
         LocalDate endDate,
@@ -70,6 +71,8 @@ public record ContractResponse(
             case "PENDING_CONFIRMATION" -> "Chờ khách xác nhận";
             case "PENDING_HANDOVER" -> "Chờ bàn giao";
             case "ACTIVE" -> "Đang hiệu lực";
+            case "CONFIRMED" -> "Đã xác nhận, chờ bàn giao";
+            case "OVERDUE" -> "Đã quá hạn";
             case "CANCELLED" -> "Đã hủy";
             case "TERMINATED" -> "Đã thanh lý";
             case "EXPIRED" -> "Đã hết hạn";

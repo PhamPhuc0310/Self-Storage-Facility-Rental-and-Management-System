@@ -47,6 +47,8 @@ public class HandoverService {
         if (!payments.summary(contractId).readyForHandover())
             throw new BusinessException(HttpStatus.CONFLICT, "Chưa thu đủ tiền cọc và tiền thuê ban đầu.");
         LocalDateTime now = access.now();
+        if (now.isBefore(appointment.appointmentTime))
+            throw new BusinessException(HttpStatus.CONFLICT, "Chưa đến giờ nhận kho theo lịch hẹn.");
         if (now.toLocalDate().isBefore(contract.startDate) || now.toLocalDate().isAfter(contract.endDate))
             throw new BusinessException(HttpStatus.CONFLICT, "Thời điểm bàn giao không nằm trong thời hạn thuê.");
         StorageUnit unit = units.lockById(contract.unitId)

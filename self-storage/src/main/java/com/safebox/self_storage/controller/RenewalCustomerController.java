@@ -104,8 +104,8 @@ public class RenewalCustomerController {
     }
 
     /**
-     * UC17: Khách hàng thanh toán phí gia hạn hợp đồng (BR17.5).
-     * Chỉ gia hạn hiệu lực hợp đồng sau khi khoản thanh toán được xác nhận.
+     * UC17: Khách hàng gửi yêu cầu thanh toán phí gia hạn (BR17.5).
+     * Giao dịch chỉ ở trạng thái chờ; quản lý cơ sở phải xác nhận độc lập trước khi gia hạn.
      */
     @PostMapping({"/api/customer/renewals/{renewalId}/pay", "/api/contracts/my/renewals/{renewalId}/pay"})
     public ResponseEntity<RenewalPaymentResponse> payRenewal(
