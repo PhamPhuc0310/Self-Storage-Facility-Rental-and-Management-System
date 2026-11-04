@@ -59,6 +59,22 @@ public class RentalPolicy {
     @Column(name = "penalty_type", nullable = false, length = 50)
     private String penaltyType = "PERCENT_DAILY";
 
+    /** Explicit approval of the overdue formula; legacy defaults are not approvals. */
+    @Column(name = "overdue_approved_at")
+    private java.time.LocalDateTime overdueApprovedAt;
+
+    @Column(name = "overdue_approved_by")
+    private UUID overdueApprovedBy;
+
+    @Column(name = "overdue_version")
+    private Integer overdueVersion;
+    @Column(name = "overdue_source_policy_id")
+    private UUID overdueSourcePolicyId;
+    @Column(name = "overdue_proposal_id")
+    private UUID overdueProposalId;
+    @Column(name = "overdue_created_by")
+    private UUID overdueCreatedBy;
+
     /** Quy định và điều khoản hủy thuê */
     @Column(name = "cancellation_policy")
     private String cancellationPolicy;
@@ -161,6 +177,19 @@ public class RentalPolicy {
     public void setPenaltyType(String penaltyType) {
         this.penaltyType = penaltyType;
     }
+
+    public java.time.LocalDateTime getOverdueApprovedAt() { return overdueApprovedAt; }
+    public void setOverdueApprovedAt(java.time.LocalDateTime value) { overdueApprovedAt = value; }
+    public UUID getOverdueApprovedBy() { return overdueApprovedBy; }
+    public void setOverdueApprovedBy(UUID value) { overdueApprovedBy = value; }
+    public Integer getOverdueVersion() { return overdueVersion; }
+    public void setOverdueVersion(Integer value) { overdueVersion=value; }
+    public UUID getOverdueSourcePolicyId() { return overdueSourcePolicyId; }
+    public void setOverdueSourcePolicyId(UUID value) { overdueSourcePolicyId=value; }
+    public UUID getOverdueProposalId() { return overdueProposalId; }
+    public void setOverdueProposalId(UUID value) { overdueProposalId=value; }
+    public UUID getOverdueCreatedBy() { return overdueCreatedBy; }
+    public void setOverdueCreatedBy(UUID value) { overdueCreatedBy=value; }
 
     public String getCancellationPolicy() {
         return cancellationPolicy;

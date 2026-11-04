@@ -82,11 +82,36 @@ class ReportingServiceTest {
         assertEquals(new BigDecimal("50.00"),row.occupancyRate());
         assertThrows(BusinessException.class,() -> service.financial(new ReportingService.Filters(period.startDate(),period.endDate(),other)));
     }
-    @Test void emptyPeriodAndUnassignedOperationsManagerReturnZeros() {
+    @Test void businessOperationalCountsRespectScopeAndInclusivePeriodEnd() {
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");
+        UUID outsideUnit = UUID.randomUUID();
+        db.update("INSERT INTO dbo.STORAGE_UNITS VALUES (?,?,?)",UUID.randomUUID(),facility,"MAINTENANCE");
+        db.update("INSERT INTO dbo.STORAGE_UNITS VALUES (?,?,?)",outsideUnit,other,"MAINTENANCE");
+        db.update("INSERT INTO dbo.RENTAL_CONTRACTS VALUES (?,?,?,?)",UUID.randomUUID(),outsideUnit,"ACTIVE",java.sql.Date.valueOf("2026-11-15"));
+        db.update("INSERT INTO dbo.HANDOVER_RECORDS VALUES (?,?,?,?,?)",UUID.randomUUID(),unit,"SCHEDULED","RETURN",null);
+        db.update("INSERT INTO dbo.HANDOVER_RECORDS VALUES (?,?,?,?,?)",UUID.randomUUID(),unit,"COMPLETED","RETURN",java.sql.Timestamp.valueOf("2026-10-31 23:59:59"));
+        db.update("INSERT INTO dbo.HANDOVER_RECORDS VALUES (?,?,?,?,?)",UUID.randomUUID(),unit,"COMPLETED","RETURN",java.sql.Timestamp.valueOf("2026-11-01 00:00:00"));
+        db.update("INSERT INTO dbo.HANDOVER_RECORDS VALUES (?,?,?,?,?)",UUID.randomUUID(),outsideUnit,"COMPLETED","RETURN",java.sql.Timestamp.valueOf("2026-10-31 23:59:59"));
+        assertEquals(new ReportingService.OperationalSummary(1,1,0,1,1,1),service.operational(period));
+    }
+    @Test void unassignedOperationsManagerIsDeniedRatherThanShownFalseZeros() {
         when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");
         when(access.facilities()).thenReturn(List.of());
-        assertEquals(BigDecimal.ZERO,service.financial(period).rentalCollections());
-        assertTrue(service.performance(period).isEmpty());
-        assertEquals(0,service.operational(period).activeContracts());
+        assertThrows(BusinessException.class, () -> service.financial(period));
+        assertThrows(BusinessException.class, () -> service.performance(period));
+        assertThrows(BusinessException.class, () -> service.operational(period));
+    }
+    @Test void assignedOperationsManagerSeesOnlyGrantedFacilitiesAndConfirmedCollections() {
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");
+        when(access.facilities()).thenReturn(List.of(facility));
+        payment("INITIAL_RENT","INITIAL_PAYMENT",500,"SUCCESS","2026-10-01 00:00:00");
+        payment("INITIAL_RENT","INITIAL_PAYMENT",999,"PENDING","2026-10-02 00:00:00");
+        assertEquals(new BigDecimal("500.00"),service.financial(period).rentalCollections());
+        assertEquals(new BigDecimal("500.00"),service.financial(new ReportingService.Filters(
+                period.startDate(),period.endDate(),facility)).rentalCollections());
+        assertThrows(BusinessException.class, () -> service.financial(new ReportingService.Filters(
+                period.startDate(),period.endDate(),other)));
+        assertThrows(BusinessException.class, () -> service.financial(new ReportingService.Filters(
+                period.endDate(),period.startDate(),facility)));
     }
 }

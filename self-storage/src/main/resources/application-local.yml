@@ -2,3 +2,10 @@
 app:
   mail:
     demo-inbox: true
+  payment:
+    demo-transfer:
+      enabled: ${DEMO_TRANSFER_ENABLED:false}
+      bank: ${DEMO_TRANSFER_BANK:}
+      account-holder: ${DEMO_TRANSFER_ACCOUNT_HOLDER:}
+      account-number: ${DEMO_TRANSFER_ACCOUNT_NUMBER:}
+      qr-path: ${DEMO_TRANSFER_QR_PATH:}

@@ -36,6 +36,12 @@ public class Facility {
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
+    @Column(name = "facility_code", length = 30) private String facilityCode;
+    @Column(name = "region_code", length = 30) private String regionCode;
+    public String getFacilityCode() { return facilityCode; }
+    public void setFacilityCode(String value) { facilityCode = value; }
+    public String getRegionCode() { return regionCode; }
+    public void setRegionCode(String value) { regionCode = value; }
 
     @Column(name = "demo_intro") private String demoIntro;
     @Column(name = "demo_safety") private String demoSafety;

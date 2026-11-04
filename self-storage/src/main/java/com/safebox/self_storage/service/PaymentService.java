@@ -31,9 +31,12 @@ public class PaymentService {
     private final InvoiceRepository invoices;
     private final PickupAppointmentRepository appointments;
     private final DepositRefundRepository refunds;
+    private final ActivityLogRepository activityLogs;
     public PaymentService(Sprint2Access access, PaymentTransactionRepository payments, InvoiceRepository invoices,
-                          PickupAppointmentRepository appointments, DepositRefundRepository refunds) {
-        this.access = access; this.payments = payments; this.invoices = invoices; this.appointments = appointments; this.refunds = refunds;
+                          PickupAppointmentRepository appointments, DepositRefundRepository refunds,
+                          ActivityLogRepository activityLogs) {
+        this.access = access; this.payments = payments; this.invoices = invoices; this.appointments = appointments;
+        this.refunds = refunds; this.activityLogs = activityLogs;
     }
     @Transactional(readOnly = true)
     public Summary summary(UUID id) {
@@ -49,7 +52,8 @@ public class PaymentService {
         LocalDate dueDate = v2 ? appointments.findFirstByContractIdAndStatus(r.contractId, "SCHEDULED")
                 .map(a -> a.appointmentTime.toLocalDate()).orElse(null) : r.startDate;
         return new Summary(r.contractId, deposit, rent,
-                "CONFIRMED".equals(r.status) && deposit.remainingAmount().signum() == 0 && rent.remainingAmount().signum() == 0,
+                "CONFIRMED".equals(r.status) && deposit.remainingAmount().signum() == 0 && rent.remainingAmount().signum() == 0
+                        && (!v2 || (invoicePaid(r.contractId, "DEPOSIT") && invoicePaid(r.contractId, "REMAINING_RENT"))),
                 v2 ? "v2" : "v1", v2 ? "REMAINING_RENT" : "INITIAL_RENT",
                 v2 ? price.subtotal() : r.depositAmount.add(r.monthlyRentalFee),
                 v2 ? price.vatAmount() : BigDecimal.ZERO,
@@ -61,6 +65,11 @@ public class PaymentService {
         if ("DEPOSIT".equals(type)) paid = paid.subtract(Optional.ofNullable(refunds.completedTotal(id)).orElse(BigDecimal.ZERO));
         BigDecimal remaining = due.subtract(paid);
         return new Component(due, paid, remaining, remaining.signum() == 0 ? "PAID" : paid.signum() > 0 ? "PARTIAL" : "UNPAID");
+    }
+    private boolean invoicePaid(UUID contractId, String type) {
+        return invoices.findFirstByContractIdAndInvoiceType(contractId, type)
+                .filter(i -> "PAID".equals(i.status) && i.paidAmount != null && i.totalAmount != null
+                        && i.paidAmount.compareTo(i.totalAmount) >= 0).isPresent();
     }
     public Map<UUID, Boolean> readyForHandover(Collection<RentalContract> contracts) {
         Map<UUID, Boolean> ready = new HashMap<>();
@@ -84,7 +93,9 @@ public class PaymentService {
                     ? ContractPricing.of(c.monthlyRentalFee, c.startDate, c.endDate).remaining() : c.monthlyRentalFee;
             BigDecimal rentLeft = rentDue.subtract(byType.getOrDefault("v2".equals(c.termsVersion) ? "REMAINING_RENT" : "INITIAL_RENT", BigDecimal.ZERO));
             result.put(c.contractId, new Balance(depositPaid, depositLeft, rentLeft,
-                    "CONFIRMED".equals(c.status) && depositLeft.signum() <= 0 && rentLeft.signum() <= 0));
+                    "CONFIRMED".equals(c.status) && depositLeft.signum() <= 0 && rentLeft.signum() <= 0
+                            && (!"v2".equals(c.termsVersion) || (invoicePaid(c.contractId, "DEPOSIT")
+                                    && invoicePaid(c.contractId, "REMAINING_RENT")))));
         }
         return result;
     }
@@ -93,6 +104,23 @@ public class PaymentService {
         RentalContract r = access.contract(id, false);
         if ("FACILITY_STAFF".equals(access.role())) requireAssignedPickup(r, false);
         return payments.findByContractIdOrderByCreatedAtDesc(id);
+    }
+    @Transactional(readOnly = true)
+    public List<PaymentTransaction> pendingForEmployee() {
+        String role = access.role();
+        if (!Set.of("FACILITY_STAFF", "FACILITY_MANAGER").contains(role))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ nhân viên cơ sở được xem thanh toán chờ xác nhận.");
+        List<UUID> facilities = access.facilities();
+        if (facilities.isEmpty()) return List.of();
+        return payments.pendingForFacilities(facilities).stream().filter(p -> {
+            if ("CASH".equals(p.paymentMethod)) {
+                if ("DEPOSIT".equals(p.paymentType)) return "FACILITY_MANAGER".equals(role);
+                if ("FACILITY_STAFF".equals(role)) return appointments.findFirstByContractIdAndStatus(p.contractId, "SCHEDULED")
+                        .map(a -> access.currentId().equals(a.assignedStaffId)).orElse(false);
+                return false;
+            }
+            return "FACILITY_STAFF".equals(role);
+        }).toList();
     }
     @Transactional
     public PaymentTransaction pay(UUID id, PaymentRequest request) {
@@ -131,14 +159,24 @@ public class PaymentService {
         }
         boolean staff = "FACILITY_STAFF".equals(role);
         if (staff ? !rentType.equals(request.paymentType()) || !Set.of("CASH", "BANK_TRANSFER").contains(request.paymentMethod())
-                  : !"CUSTOMER".equals(role) || !"DEPOSIT".equals(request.paymentType()) || !"BANK_TRANSFER".equals(request.paymentMethod()))
+                  : !"CUSTOMER".equals(role) || !("DEPOSIT".equals(request.paymentType())
+                        || ("REMAINING_RENT".equals(request.paymentType()) && "CASH".equals(request.paymentMethod())))
+                        || !Set.of("CASH", "BANK_TRANSFER").contains(request.paymentMethod()))
             throw new BusinessException(HttpStatus.FORBIDDEN, "Phương thức thanh toán không được phép.");
         if (staff) requireAssignedPickup(r, true);
+        if (!staff && "REMAINING_RENT".equals(request.paymentType())
+                && appointments.findFirstByContractIdAndStatus(id, "SCHEDULED").isEmpty())
+            throw new BusinessException(HttpStatus.CONFLICT, "Cần có lịch nhận kho trước khi yêu cầu thanh toán tiền thuê còn lại.");
         Summary summary = calculate(r);
         if (rentType.equals(request.paymentType()) && !summary.remainingPaymentAvailable())
             throw new BusinessException(HttpStatus.CONFLICT, "Phần tiền còn lại chỉ được thanh toán từ ngày nhận kho theo lịch hiện hành.");
         BigDecimal remaining = "DEPOSIT".equals(request.paymentType()) ? summary.deposit.remainingAmount() : summary.initialRent.remainingAmount();
         if (request.amount().compareTo(remaining) > 0) throw new BusinessException(HttpStatus.BAD_REQUEST, "Số tiền vượt quá khoản còn thiếu.");
+        BigDecimal pending = payments.findByContractIdAndStatus(id, "PENDING").stream()
+                .filter(p -> request.paymentType().equals(p.paymentType))
+                .map(p -> p.amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (request.amount().add(pending).compareTo(remaining) > 0)
+            throw new BusinessException(HttpStatus.CONFLICT, "Đã có yêu cầu thanh toán đang chờ xác nhận cho khoản này.");
         Invoice invoice = invoices.findFirstByContractIdAndInvoiceType(id, request.paymentType())
                 .orElseGet(() -> createInvoice(r, request.paymentType(), "DEPOSIT".equals(request.paymentType()) ? summary.deposit.amountDue() : summary.initialRent.amountDue()));
         PaymentTransaction p = new PaymentTransaction();
@@ -150,9 +188,12 @@ public class PaymentService {
         PaymentTransaction saved = payments.saveAndFlush(p);
         saved.referenceCode = "PAY-" + access.today().format(DateTimeFormatter.BASIC_ISO_DATE) + "-"
                 + saved.transactionId.toString().replace("-", "").toUpperCase();
-        // The coursework backend processes customer deposits locally; no bank transfer is initiated.
-        // Staff cash is recorded only after the assigned staff member confirms receipt.
-        if (!staff || "CASH".equals(saved.paymentMethod)) saved.status = "SUCCESS";
+        // A staff member records cash only after physically receiving it.
+        if (staff && "CASH".equals(saved.paymentMethod)) {
+            saved.status = "SUCCESS";
+            saved.confirmedBy = actor;
+            saved.confirmedAt = access.now();
+        }
         saved.updatedAt = access.now();
         if ("SUCCESS".equals(saved.status)) updateInvoice(invoice, saved.amount);
         return payments.save(saved);
@@ -192,19 +233,79 @@ public class PaymentService {
         if (!"FACILITY_STAFF".equals(access.role())) throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ nhân viên cơ sở được xác nhận chuyển khoản.");
         access.confirmed(r);
         PaymentTransaction p = payments.findById(paymentId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch."));
-        if (!p.contractId.equals(id) || !"BANK_TRANSFER".equals(p.paymentMethod) || !"PENDING".equals(p.status))
+        if (!p.contractId.equals(id) || !"BANK_TRANSFER".equals(p.paymentMethod))
             throw new BusinessException(HttpStatus.CONFLICT, "Khoản thanh toán đã được xử lý.");
         String rentType = "v2".equals(r.termsVersion) ? "REMAINING_RENT" : "INITIAL_RENT";
-        if (!rentType.equals(p.paymentType))
-            throw new BusinessException(HttpStatus.FORBIDDEN, "Nhân viên chỉ được xác nhận phần tiền thuê còn lại.");
-        requireAssignedPickup(r, true);
+        if (!Set.of("DEPOSIT", rentType).contains(p.paymentType))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Khoản thu không thuộc hợp đồng hiện hành.");
+        if (!"DEPOSIT".equals(p.paymentType)) requireAssignedPickup(r, true);
+        if ("SUCCESS".equals(p.status)) return p;
+        if (!"PENDING".equals(p.status)) throw new BusinessException(HttpStatus.CONFLICT, "Khoản thanh toán đã được xử lý.");
+        Invoice invoice = pendingInvoice(id, p);
         Summary summary = calculate(r);
         if ("REMAINING_RENT".equals(p.paymentType) && !summary.remainingPaymentAvailable())
             throw new BusinessException(HttpStatus.CONFLICT, "Chưa đến hạn thanh toán phần tiền còn lại.");
         BigDecimal remaining = "DEPOSIT".equals(p.paymentType) ? summary.deposit.remainingAmount() : summary.initialRent.remainingAmount();
-        if (p.amount.compareTo(remaining) > 0) throw new BusinessException(HttpStatus.CONFLICT, "Số tiền còn thiếu đã thay đổi.");
-        p.status = "SUCCESS"; p.updatedAt = access.now();
-        updateInvoice(invoices.findById(p.invoiceId).orElseThrow(), p.amount);
+        if (p.amount == null || p.amount.signum() <= 0 || p.amount.compareTo(remaining) > 0
+                || p.amount.compareTo(invoice.totalAmount.subtract(invoice.paidAmount)) > 0)
+            throw new BusinessException(HttpStatus.CONFLICT, "Số tiền còn thiếu đã thay đổi.");
+        p.status = "SUCCESS"; p.updatedAt = access.now(); p.confirmedBy = access.currentId(); p.confirmedAt = p.updatedAt;
+        updateInvoice(invoice, p.amount);
         return payments.save(p);
+    }
+
+    @Transactional
+    public PaymentTransaction confirmCash(UUID id, UUID paymentId) {
+        RentalContract r = access.contract(id, true);
+        String role = access.role();
+        if (!Set.of("FACILITY_STAFF", "FACILITY_MANAGER").contains(role))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ nhân viên cơ sở được xác nhận tiền mặt.");
+        access.confirmed(r);
+        PaymentTransaction p = payments.findById(paymentId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy giao dịch."));
+        if (!id.equals(p.contractId) || !"CASH".equals(p.paymentMethod))
+            throw new BusinessException(HttpStatus.CONFLICT, "Khoản thanh toán đã được xử lý.");
+        String rentType = "v2".equals(r.termsVersion) ? "REMAINING_RENT" : "INITIAL_RENT";
+        if (!Set.of("DEPOSIT", rentType).contains(p.paymentType))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Khoản thu không thuộc hợp đồng hiện hành.");
+        if ("DEPOSIT".equals(p.paymentType)) {
+            if (!"FACILITY_MANAGER".equals(role))
+                throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ quản lý cơ sở được xác nhận tiền cọc tại cơ sở.");
+        } else {
+            if (!"FACILITY_STAFF".equals(role))
+                throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ nhân viên được phân công nhận kho được xác nhận tiền thuê còn lại.");
+            requireAssignedPickup(r, true);
+        }
+        if ("SUCCESS".equals(p.status)) return p;
+        if (!"PENDING".equals(p.status)) throw new BusinessException(HttpStatus.CONFLICT, "Khoản thanh toán đã được xử lý.");
+        Invoice invoice = pendingInvoice(id, p);
+        Summary summary = calculate(r);
+        if (!"DEPOSIT".equals(p.paymentType) && !summary.remainingPaymentAvailable())
+            throw new BusinessException(HttpStatus.CONFLICT, "Phần tiền thuê còn lại chưa đến hạn.");
+        BigDecimal remaining = "DEPOSIT".equals(p.paymentType) ? summary.deposit.remainingAmount() : summary.initialRent.remainingAmount();
+        if (p.amount == null || p.amount.signum() <= 0 || p.amount.compareTo(remaining) > 0
+                || p.amount.compareTo(invoice.totalAmount.subtract(invoice.paidAmount)) > 0)
+            throw new BusinessException(HttpStatus.CONFLICT, "Số tiền còn thiếu đã thay đổi.");
+        p.status = "SUCCESS"; p.updatedAt = access.now(); p.confirmedBy = access.currentId(); p.confirmedAt = p.updatedAt;
+        updateInvoice(invoice, p.amount);
+        PaymentTransaction confirmed = payments.save(p);
+        activityLogs.saveAndFlush(new ActivityLog(p.confirmedBy, "CONFIRM_CASH_PAYMENT", "PAYMENT_TRANSACTION",
+                p.transactionId, "role=" + role + ";result=SUCCESS;paymentType=" + p.paymentType
+                        + ";paymentReference=" + (p.referenceCode == null ? p.transactionId : p.referenceCode)
+                        + ";invoiceId=" + invoice.invoiceId + ";invoiceNumber=" + invoice.invoiceNumber,
+                p.confirmedAt));
+        return confirmed;
+    }
+
+    private Invoice pendingInvoice(UUID id, PaymentTransaction p) {
+        if (p.invoiceId == null) throw new BusinessException(HttpStatus.CONFLICT, "Giao dịch chưa liên kết hóa đơn hợp lệ.");
+        Invoice invoice = invoices.findById(p.invoiceId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Không tìm thấy hóa đơn đang chờ thanh toán."));
+        if (!id.equals(invoice.contractId) || !p.paymentType.equals(invoice.invoiceType)
+                || !Set.of("UNPAID", "PARTIAL", "PARTIALLY_PAID").contains(invoice.status)
+                || invoice.paidAmount == null || invoice.totalAmount == null
+                || invoice.paidAmount.compareTo(invoice.totalAmount) >= 0)
+            throw new BusinessException(HttpStatus.CONFLICT, "Hóa đơn không còn hợp lệ để xác nhận.");
+        return invoice;
     }
 }

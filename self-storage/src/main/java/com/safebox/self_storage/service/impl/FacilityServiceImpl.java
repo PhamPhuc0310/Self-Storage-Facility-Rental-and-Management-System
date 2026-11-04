@@ -45,8 +45,7 @@ public class FacilityServiceImpl implements FacilityService {
         Page<Facility> facilities = facilityRepository.searchActiveFacilities(search, pageable);
         
         return facilities.map(facility -> {
-            long availableUnitsCount = storageUnitRepository.countAvailableUnitsByFacility(facility.getFacilityId());
-            
+            long availableUnitsCount = 0;
             List<PricingPolicy> pricingPolicies = pricingPolicyRepository.findByFacilityIdAndStatus(facility.getFacilityId(), "ACTIVE");
             List<FacilityUnitTypeDto> unitTypes = new ArrayList<>();
             for (Integer typeId : storageUnitRepository.findAvailableTypeIdsByFacility(facility.getFacilityId())) {
@@ -54,8 +53,10 @@ public class FacilityServiceImpl implements FacilityService {
                 if (typeOpt.isPresent() && "ACTIVE".equals(typeOpt.get().getStatus())) {
                     StorageUnitType type = typeOpt.get();
                     BigDecimal area = type.getWidth().multiply(type.getLength());
-                    BigDecimal monthlyPrice = CurrentPricing.forType(pricingPolicies, typeId, LocalDate.now())
-                        .map(PricingPolicy::getMonthlyPrice).orElse(null);
+                    BigDecimal monthlyPrice = CurrentPricing.forType(pricingPolicies, typeId, LocalDate.now(com.safebox.self_storage.service.Sprint2Access.ZONE))
+                        .map(PricingPolicy::getMonthlyPrice).filter(p -> p != null && p.signum() > 0).orElse(null);
+                    if (monthlyPrice != null)
+                        availableUnitsCount += storageUnitRepository.countAvailableUnitsByFacilityAndType(facility.getFacilityId(), typeId);
                     unitTypes.add(new FacilityUnitTypeDto(typeId, type.getSizeName(),
                         type.getStorageMode(), area, monthlyPrice));
                 }
@@ -84,7 +85,7 @@ public class FacilityServiceImpl implements FacilityService {
             throw new RuntimeException("Facility is not active");
         }
         
-        long totalAvailableUnits = storageUnitRepository.countAvailableUnitsByFacility(facilityId);
+        long totalAvailableUnits = 0;
         List<PricingPolicy> pricingPolicies = pricingPolicyRepository.findByFacilityIdAndStatus(facilityId, "ACTIVE");
         
         List<FacilityUnitTypeDetailDto> unitTypes = new ArrayList<>();
@@ -94,7 +95,10 @@ public class FacilityServiceImpl implements FacilityService {
             if (typeOpt.isPresent() && "ACTIVE".equals(typeOpt.get().getStatus())) {
                 StorageUnitType type = typeOpt.get();
                 BigDecimal area = type.getWidth().multiply(type.getLength());
-                Optional<PricingPolicy> policy = CurrentPricing.forType(pricingPolicies, typeId, LocalDate.now());
+                Optional<PricingPolicy> policy = CurrentPricing.forType(pricingPolicies, typeId, LocalDate.now(com.safebox.self_storage.service.Sprint2Access.ZONE));
+                boolean priced = policy.map(PricingPolicy::getMonthlyPrice).filter(p -> p != null && p.signum() > 0).isPresent();
+                if (!priced) available = 0;
+                totalAvailableUnits += available;
                 
                 unitTypes.add(new FacilityUnitTypeDetailDto(
                     type.getTypeId(),

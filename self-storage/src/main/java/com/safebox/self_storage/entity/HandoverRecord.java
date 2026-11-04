@@ -23,7 +23,7 @@ public class HandoverRecord {
     @Column(name = "unit_id", nullable = false)
     private UUID unitId;
 
-    @Column(name = "staff_id", nullable = false)
+    @Column(name = "staff_id")
     private UUID staffId;
 
     @Column(name = "handover_type", nullable = false, length = 20)

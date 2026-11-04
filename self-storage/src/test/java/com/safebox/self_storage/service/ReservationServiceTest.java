@@ -70,6 +70,7 @@ class ReservationServiceTest {
         facility.setName("SafeBox Thu Duc");
         facility.setAddress("123 Vo Van Ngan");
         facility.setStatus("ACTIVE");
+        lenient().when(facilityRepository.lockById(facilityId)).thenReturn(Optional.of(facility));
 
         unitType = new StorageUnitType();
         unitType.setTypeId(typeId);
@@ -102,7 +103,7 @@ class ReservationServiceTest {
         when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
         when(storageUnitTypeRepository.findById(typeId)).thenReturn(Optional.of(unitType));
-        when(storageUnitRepository.countAvailableUnitsByFacilityAndType(facilityId, typeId)).thenReturn(5L);
+        when(storageUnitRepository.countReadyAvailable(facilityId, typeId)).thenReturn(5L);
         when(pricingPolicyRepository.findByFacilityIdAndStatus(facilityId, "ACTIVE")).thenReturn(List.of(pricingPolicy));
         when(rentalPolicyRepository.findFirstByFacilityIdAndStatusOrderByEffectiveFromDesc(facilityId, "ACTIVE"))
                 .thenReturn(Optional.empty());
@@ -123,6 +124,33 @@ class ReservationServiceTest {
         assertEquals(BigDecimal.valueOf(2200000), response.estimatedDepositAmount());
         assertEquals(3, response.rentalMonths());
         verify(reservationRepository, times(1)).save(any(Reservation.class));
+    }
+
+    @Test
+    void createReservation_retryReturnsExistingPendingRequest() {
+        LocalDate start = LocalDate.now(com.safebox.self_storage.service.Sprint2Access.ZONE).plusDays(2);
+        CreateReservationRequest request = new CreateReservationRequest(facilityId, typeId, start, 1, null);
+        Reservation previous = new Reservation();
+        previous.setReservationId(UUID.randomUUID());
+        previous.setCustomerId(customerId);
+        previous.setFacilityId(facilityId);
+        previous.setTypeId(typeId);
+        previous.setPricingId(pricingId);
+        previous.setStartDate(start);
+        previous.setEndDate(start.plusMonths(1));
+        previous.setStatus("PENDING");
+        previous.setHoldExpiresAt(LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE).plusHours(1));
+        previous.setCreatedAt(LocalDateTime.now());
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(storageUnitTypeRepository.findById(typeId)).thenReturn(Optional.of(unitType));
+        when(reservationRepository.findActiveExactRequest(customerId, facilityId, typeId, start, start.plusMonths(1)))
+                .thenReturn(List.of(previous));
+        when(pricingPolicyRepository.findById(pricingId)).thenReturn(Optional.of(pricingPolicy));
+
+        ReservationResponse response = reservationService.createReservation(customerId, request);
+        assertEquals(previous.getReservationId(), response.reservationId());
+        verify(reservationRepository, never()).save(any());
     }
 
     @Test
@@ -173,7 +201,7 @@ class ReservationServiceTest {
         when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
         when(storageUnitTypeRepository.findById(typeId)).thenReturn(Optional.of(unitType));
-        when(storageUnitRepository.countAvailableUnitsByFacilityAndType(facilityId, typeId)).thenReturn(0L);
+        when(storageUnitRepository.countReadyAvailable(facilityId, typeId)).thenReturn(0L);
 
         CreateReservationRequest request = new CreateReservationRequest(
                 facilityId, typeId, LocalDate.now().plusDays(1), 1, null
@@ -182,6 +210,51 @@ class ReservationServiceTest {
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
                 reservationService.createReservation(customerId, request));
         assertTrue(ex.getMessage().contains("không còn"));
+    }
+
+    @Test
+    void createReservation_contractConflictsAndPendingHoldsConsumeCapacity() {
+        LocalDate start = LocalDate.now(Sprint2Access.ZONE).plusDays(2);
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(storageUnitTypeRepository.findById(typeId)).thenReturn(Optional.of(unitType));
+        when(storageUnitRepository.countReadyAvailable(facilityId, typeId)).thenReturn(1L);
+        when(storageUnitRepository.countContractedAvailable(facilityId, typeId, start, start.plusMonths(1)))
+                .thenReturn(1L, 0L);
+        when(reservationRepository.countActivePendingOverlapping(eq(facilityId), eq(typeId), eq(start), eq(start.plusMonths(1)), any()))
+                .thenReturn(0L, 1L);
+        CreateReservationRequest request = new CreateReservationRequest(facilityId, typeId, start, 1, null);
+        assertThrows(IllegalStateException.class, () -> reservationService.createReservation(customerId, request));
+        assertThrows(IllegalStateException.class, () -> reservationService.createReservation(customerId, request));
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void createReservation_unpricedUnitRemainsUnbookable() {
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(storageUnitTypeRepository.findById(typeId)).thenReturn(Optional.of(unitType));
+        when(storageUnitRepository.countReadyAvailable(facilityId,typeId)).thenReturn(1L);
+        when(pricingPolicyRepository.findByFacilityIdAndStatus(facilityId,"ACTIVE")).thenReturn(List.of());
+        CreateReservationRequest request=new CreateReservationRequest(facilityId,typeId,LocalDate.now().plusDays(2),1,null);
+        assertThrows(NoSuchElementException.class,()->reservationService.createReservation(customerId,request));
+        verify(reservationRepository,never()).save(any());
+    }
+
+    @Test
+    void createReservation_usesPriceEffectiveOnRentalStartDate() {
+        LocalDate start=LocalDate.now().plusDays(3);
+        PricingPolicy future=new PricingPolicy();future.setPricingId(UUID.randomUUID());future.setFacilityId(facilityId);
+        future.setTypeId(typeId);future.setStatus("ACTIVE");future.setMonthlyPrice(new BigDecimal("3000000"));
+        future.setEffectiveFrom(start.plusDays(1));
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(storageUnitTypeRepository.findById(typeId)).thenReturn(Optional.of(unitType));
+        when(storageUnitRepository.countReadyAvailable(facilityId,typeId)).thenReturn(1L);
+        when(pricingPolicyRepository.findByFacilityIdAndStatus(facilityId,"ACTIVE")).thenReturn(List.of(future));
+        CreateReservationRequest request=new CreateReservationRequest(facilityId,typeId,start,1,null);
+        assertThrows(NoSuchElementException.class,()->reservationService.createReservation(customerId,request));
+        verify(reservationRepository,never()).save(any());
     }
 
     // =========================================================================

@@ -64,7 +64,7 @@
       }
     };
   </script>
-</head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
 <body class="bg-surface text-on-surface font-body-md text-sm">
 
   <!-- Fixed Top Header Navigation -->
@@ -108,7 +108,7 @@
               <span id="kpi-pending-count" class="text-lg font-bold text-white">-- kho</span>
             </div>
           </div>
-          <a href="/stitch/ho_tro_khach_hang_safebox_storage.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/20 text-white text-xs font-semibold hover:bg-white/30 transition-all shadow-sm">
+          <a href="/stitch/ho_tro_safebox.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/20 text-white text-xs font-semibold hover:bg-white/30 transition-all shadow-sm">
             <span class="material-symbols-outlined text-sm">support_agent</span>
             <span>Hỗ trợ kỹ thuật</span>
           </a>
@@ -116,7 +116,7 @@
             <span class="material-symbols-outlined text-sm">add</span>
             <span>Thuê thêm kho</span>
           </a>
-          <a href="/stitch/ho_tro_khach_hang_safebox_storage.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-all shadow-sm"><span class="material-symbols-outlined text-sm">support_agent</span><span>Hỗ trợ kỹ thuật &amp; Sự cố</span></a>
+          <a href="/stitch/ho_tro_safebox.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-all shadow-sm"><span class="material-symbols-outlined text-sm">support_agent</span><span>Hỗ trợ kỹ thuật &amp; Sự cố</span></a>
         </div>
 
         <!-- Background SVG Deco -->
@@ -182,7 +182,7 @@
           <a href="/stitch/t_m_kho_l_u_tr_safebox_storage.html" class="px-4 py-2 rounded-lg bg-secondary text-white text-xs font-semibold hover:bg-secondary-container transition-all">
             Khám phá kho mới
           </a>
-          <a href="/stitch/ho_tro_khach_hang_safebox_storage.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-all shadow-sm"><span class="material-symbols-outlined text-sm">support_agent</span><span>Hỗ trợ kỹ thuật &amp; Sự cố</span></a>
+          <a href="/stitch/ho_tro_safebox.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-all shadow-sm"><span class="material-symbols-outlined text-sm">support_agent</span><span>Hỗ trợ kỹ thuật &amp; Sự cố</span></a>
         </div>
       </div>
 
@@ -341,7 +341,7 @@
             </div>
             <div class="flex items-center gap-2 text-xs">
               <span class="material-symbols-outlined text-secondary text-sm">support_agent</span>
-              <span class="text-on-surface-variant">Hotline hỗ trợ: <strong class="text-primary">1900 8868</strong></span>
+              <span class="text-on-surface-variant">Hotline hỗ trợ: <strong class="text-primary"><span data-support-phone></span></strong></span>
             </div>
           </div>
         </div>
@@ -452,7 +452,7 @@
           </button>
           <button id="modal-renewal-btn" onclick="navigateToRenewal()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-all shadow-sm">
             <span class="material-symbols-outlined text-sm">autorenew</span>
-            <span>Gia hạn hợp đồng (UC17)</span>
+            <span>Gia hạn hợp đồng</span>
           </button>
           <button id="modal-return-schedule-btn" onclick="navigateToReturnSchedule()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-secondary text-white font-semibold hover:bg-secondary-container transition-all shadow-sm">
             <span class="material-symbols-outlined text-sm">event_repeat</span>
@@ -491,7 +491,7 @@
         <div class="space-y-3">
           <span class="font-bold text-sm text-on-surface block">Dịch vụ</span>
           <ul class="space-y-2 text-xs text-on-surface-variant">
-            <li>Kho mini gia đình (5m² - 10m²)</li>
+            <li>Kho mini gia đình — xem thể tích đã xác minh tại từng cơ sở</li>
             <li>Kho lưu trữ doanh nghiệp</li>
             <li>Hỗ trợ xe nâng &amp; phụ kiện lưu trữ</li>
           </ul>
@@ -534,6 +534,10 @@
     function formatMoney(amount) {
       if (amount == null) return '0 đ';
       return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+    }
+    function publicType(value) {
+      return String(value || 'Kho lưu trữ').replace(/\s*\d+(?:[.,]\d+)?\s*m(?:2|²)/gi, '').trim()
+        .replace(/^Standard$/i, 'Kho tiêu chuẩn') || 'Kho lưu trữ';
     }
 
     // Date Formatter
@@ -659,8 +663,19 @@
           return;
         }
 
-        // Render Cards (BR15.2, BR15.3, BR15.6, BR15.8, BR15.10)
-        renderRentalCards(items);
+        // Hide renewal links when the customer has an open early-return request.
+        let openEarlyReturnContracts = new Set();
+        try {
+          const returnResponse = await SafeBoxAuth.authFetch('/api/customer/early-returns');
+          if (returnResponse.ok) {
+            const returns = await returnResponse.json();
+            openEarlyReturnContracts = new Set(returns.filter(request =>
+              ['REQUESTED', 'SETTLEMENT_APPROVED', 'REFUNDED'].includes(request.status)
+            ).map(request => request.contractId));
+          }
+        } catch (_) { /* Renewal preview remains the authoritative availability check. */ }
+
+        renderRentalCards(items, openEarlyReturnContracts);
 
         // Update Pagination controls
         renderPagination(data);
@@ -674,7 +689,7 @@
     }
 
     // Render Cards
-    function renderRentalCards(items) {
+    function renderRentalCards(items, openEarlyReturnContracts = new Set()) {
       const container = document.getElementById('rentals-list-container');
       container.innerHTML = '';
 
@@ -689,13 +704,14 @@
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold border border-rose-300 animate-pulse">
               <span class="material-symbols-outlined text-sm">warning</span>
               <span>Quá hạn ${item.overdueDays} ngày</span>
+              ${item.overdueDays >= 30 ? '<span>· Cần liên hệ cơ sở để xử lý</span>' : item.overdueDays >= 25 ? '<span>· Sắp đến mốc 30 ngày, vui lòng liên hệ cơ sở</span>' : ''}
             </div>
           `;
         } else if (item.status === 'ACTIVE') {
           daysBadgeHtml = `
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold border border-emerald-200">
               <span class="material-symbols-outlined text-sm">schedule</span>
-              <span>Còn lại ${item.daysRemaining} ngày</span>
+              <span>${item.daysRemaining === 0 ? 'Hợp đồng hết hạn hôm nay' : item.daysRemaining <= 7 ? `Sắp hết hạn · Còn ${item.daysRemaining} ngày` : `Còn lại ${item.daysRemaining} ngày`}</span>
             </div>
           `;
         }
@@ -714,11 +730,11 @@
         }
 
         let renewalBtnHtml = '';
-        if (item.status === 'ACTIVE') {
+        if (item.status === 'ACTIVE' && !openEarlyReturnContracts.has(item.contractId)) {
           renewalBtnHtml = `
             <a href="/stitch/gia_han_hop_dong_safebox_storage.html?contractId=${item.contractId}" 
                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-all shadow-sm"
-               title="Gia hạn hợp đồng thuê kho (UC17)">
+               title="Gia hạn hợp đồng thuê kho">
               <span class="material-symbols-outlined text-sm">autorenew</span>
               <span>Gia hạn kho</span>
             </a>
@@ -730,7 +746,7 @@
           <div class="xl:w-72 w-full h-48 xl:h-auto rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-200">
             <img class="w-full h-full object-cover" 
                  src="${item.unitTypeImage || '/images/demo/standard-storage.png'}" 
-                 alt="${item.typeName}"/>
+                 alt="${publicType(item.typeName)}"/>
             
             <div class="absolute top-3 left-3 flex flex-col gap-1.5">
               <span class="px-2.5 py-1 rounded-md bg-primary/90 text-white font-mono font-bold text-xs shadow flex items-center gap-1">
@@ -743,8 +759,8 @@
             </div>
 
             <div class="absolute bottom-3 left-3 right-3 bg-primary/85 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-xs flex items-center justify-between">
-              <span>Diện tích: <strong>${item.area} m²</strong></span>
-              <span>${item.sizeName || item.typeName}</span>
+              <span>Thể tích: <strong>${item.volume != null ? item.volume + ' m³' : 'Chưa xác minh'}</strong></span>
+              <span>${publicType(item.typeName)}</span>
             </div>
           </div>
 
@@ -778,7 +794,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-surface-container-low border border-slate-100 text-xs">
                 <div>
                   <span class="text-on-surface-variant block mb-0.5">Kích thước (D x R x C):</span>
-                  <strong class="text-primary font-mono">${item.dimensions}</strong>
+                  <strong class="text-primary font-mono">${item.dimensions || 'Chưa xác minh'}</strong>
                 </div>
                 <div>
                   <span class="text-on-surface-variant block mb-0.5">Thời hạn thuê:</span>
@@ -883,9 +899,9 @@
       document.getElementById('modal-unit-number').innerText = c.unitNumber;
       document.getElementById('modal-facility-name').innerText = c.facilityName;
       document.getElementById('modal-facility-address').innerText = c.facilityAddress;
-      document.getElementById('modal-unit-type').innerText = `${c.typeName} (${c.storageMode})`;
-      document.getElementById('modal-dimensions').innerText = c.dimensions;
-      document.getElementById('modal-area-vol').innerText = `${c.area} m² · ${c.volume} m³`;
+      document.getElementById('modal-unit-type').innerText = `${publicType(c.typeName)} (${c.storageMode})`;
+      document.getElementById('modal-dimensions').innerText = c.dimensions || 'Chưa xác minh';
+      document.getElementById('modal-area-vol').innerText = c.volume != null ? `${c.volume} m³` : 'Thể tích chưa xác minh';
 
       document.getElementById('modal-start-date').innerText = formatDate(c.startDate);
       document.getElementById('modal-end-date').innerText = formatDate(c.endDate);

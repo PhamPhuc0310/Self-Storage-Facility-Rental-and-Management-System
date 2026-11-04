@@ -6,6 +6,7 @@ import com.safebox.self_storage.entity.PaymentTransaction;
 import com.safebox.self_storage.entity.RentalContract;
 import com.safebox.self_storage.exception.BusinessException;
 import com.safebox.self_storage.repository.DepositRefundRepository;
+import com.safebox.self_storage.repository.ActivityLogRepository;
 import com.safebox.self_storage.repository.InvoiceRepository;
 import com.safebox.self_storage.repository.PaymentTransactionRepository;
 import com.safebox.self_storage.repository.PickupAppointmentRepository;
@@ -35,7 +36,7 @@ class PaymentPersistenceTest {
     @Autowired InvoiceRepository invoices;
     @Autowired PaymentTransactionRepository transactions;
 
-    @Test void newV2DepositPersistsAndSummaryReflectsIt() {
+    @Test void newV2DepositStaysPendingUntilVerified() {
         UUID id = UUID.randomUUID(), customerId = UUID.randomUUID();
         RentalContract contract = new RentalContract();
         contract.contractId = id; contract.customerId = customerId;
@@ -67,19 +68,20 @@ class PaymentPersistenceTest {
         when(access.currentId()).thenReturn(customerId);
         when(access.today()).thenReturn(contract.startDate);
         when(access.now()).thenReturn(deposit.issuedAt);
-        PaymentService service = new PaymentService(access, transactions, invoices, appointments, refunds);
+        PaymentService service = new PaymentService(access, transactions, invoices, appointments, refunds,
+                mock(ActivityLogRepository.class));
 
         PaymentTransaction payment = service.pay(id, new PaymentRequest(
                 "DEPOSIT", contract.depositAmount, "BANK_TRANSFER", "isolated-first-deposit"));
         transactions.flush();
         assertEquals(1, transactions.findByContractId(id).size(),
                 "One request must persist exactly one payment transaction");
-        assertEquals("SUCCESS", payment.status);
+        assertEquals("PENDING", payment.status);
         assertEquals(id, payment.contractId);
         assertEquals(deposit.invoiceId, payment.invoiceId);
         assertTrue(payment.referenceCode.endsWith(payment.transactionId.toString().replace("-", "").toUpperCase()));
-        assertEquals("PAID", invoices.findById(deposit.invoiceId).orElseThrow().status);
-        assertEquals(0, service.summary(id).deposit().remainingAmount().signum());
+        assertEquals("UNPAID", invoices.findById(deposit.invoiceId).orElseThrow().status);
+        assertEquals(0, service.summary(id).deposit().paidAmount().signum());
 
         PaymentTransaction retry = service.pay(id, new PaymentRequest(
                 "DEPOSIT", contract.depositAmount, "BANK_TRANSFER", "isolated-first-deposit"));

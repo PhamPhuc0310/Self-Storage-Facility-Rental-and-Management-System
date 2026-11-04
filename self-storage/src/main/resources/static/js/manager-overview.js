@@ -44,7 +44,8 @@
     headerName.textContent = name;
     headerInfo.textContent = shown.length === 1 ? shown[0].address : name;
     $('dashboard-facility-name').textContent = name;
-    $('dashboard-facility-status').textContent = shown.length === 1 ? shown[0].status : '';
+    $('dashboard-facility-status').textContent = shown.length === 1
+      ? ({ACTIVE:'Đang hoạt động', INACTIVE:'Chưa hoạt động', MAINTENANCE:'Đang bảo trì'}[shown[0].status] || 'Đang cập nhật') : '';
     $('dashboard-address').textContent = shown.length === 1 ? shown[0].address : shown.map(f => f.address).join(' · ') || 'Vui lòng liên hệ quản trị viên.';
     $('dashboard-phone').textContent = shown.length === 1 ? (shown[0].phone || 'Chưa có số liên hệ') : 'Chọn một cơ sở để xem liên hệ';
     $('dashboard-hours').textContent = shown.length === 1 && shown[0].openingTime && shown[0].closingTime ? `${shown[0].openingTime} – ${shown[0].closingTime}` : '';

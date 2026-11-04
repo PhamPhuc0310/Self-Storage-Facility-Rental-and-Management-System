@@ -38,12 +38,16 @@ public class Sprint2Controller {
     public PaymentService.Summary summary(@PathVariable UUID id) { return payments.summary(id); }
     @GetMapping("/api/contracts/{id}/payments")
     public List<PaymentView> history(@PathVariable UUID id) { return payments.history(id).stream().map(PaymentView::from).toList(); }
+    @GetMapping("/api/staff/payments/pending")
+    public List<PaymentView> pendingPayments() { return payments.pendingForEmployee().stream().map(PaymentView::from).toList(); }
     @PostMapping("/api/contracts/{id}/payments")
     public ResponseEntity<PaymentView> pay(@PathVariable UUID id, @Valid @RequestBody PaymentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(PaymentView.from(payments.pay(id, request)));
     }
     @PostMapping("/api/staff/contracts/{id}/payments/{paymentId}/confirm-transfer")
     public PaymentView confirm(@PathVariable UUID id, @PathVariable UUID paymentId) { return PaymentView.from(payments.confirmTransfer(id, paymentId)); }
+    @PostMapping("/api/staff/contracts/{id}/payments/{paymentId}/confirm-cash")
+    public PaymentView confirmCash(@PathVariable UUID id, @PathVariable UUID paymentId) { return PaymentView.from(payments.confirmCash(id, paymentId)); }
     @GetMapping("/api/contracts/{id}/deposit-refunds")
     public List<DepositRefund> myRefunds(@PathVariable UUID id) { return refunds.mine(id); }
     @PostMapping("/api/contracts/{id}/deposit-refunds")

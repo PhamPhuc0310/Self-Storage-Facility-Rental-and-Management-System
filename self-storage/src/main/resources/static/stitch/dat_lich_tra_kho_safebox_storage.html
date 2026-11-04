@@ -55,7 +55,7 @@
       background-color: #00288e;
     }
   </style>
-</head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
 <body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
 
   <!-- Header -->
@@ -146,7 +146,7 @@
                   <span class="material-symbols-outlined text-xs text-primary">pin_drop</span> Đang tải...
                 </p>
                 <p id="sum-facility-hours" class="text-xs text-slate-500 flex items-center gap-1 pt-1">
-                  <span class="material-symbols-outlined text-xs text-secondary">schedule</span> Giờ mở cửa: <strong id="hours-val">07:00 - 21:00</strong>
+                  <span class="material-symbols-outlined text-xs text-secondary">schedule</span> Giờ hẹn trả kho: <strong id="hours-val">06:00 - 23:00</strong>
                 </p>
               </div>
 
@@ -175,11 +175,11 @@
                 <label for="return-date-input" class="font-bold text-slate-800 text-sm">Ngày hẹn trả kho</label>
               </div>
               <div class="max-w-md space-y-1.5">
-                <input type="date" id="return-date-input" readonly
+                <input type="date" id="return-date-input"
                        class="w-full h-11 px-3.5 rounded-xl bg-slate-100 border border-slate-300 font-mono text-sm text-slate-800 cursor-not-allowed font-semibold focus:outline-none"/>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500">
                   <span class="material-symbols-outlined text-sm text-secondary">verified</span>
-                  <span>Lịch hẹn trả kho được thiết lập vào ngày kết thúc hợp đồng (<span id="end-date-text" class="font-bold text-primary">...</span>).</span>
+                  <span>Ngày kết thúc hợp đồng: <span id="end-date-text" class="font-bold text-primary">...</span>. Nếu đã quá hạn, vui lòng chọn ngày trả kho phù hợp.</span>
                 </div>
               </div>
             </div>
@@ -262,7 +262,7 @@
                 <span class="material-symbols-outlined text-secondary text-2xl">call</span>
                 <div>
                   <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Hotline cơ sở</span>
-                  <a id="desk-phone" href="tel:19008868" class="font-bold text-primary text-sm hover:underline">1900 8868</a>
+                  <a id="desk-phone" href="#" data-support-link class="font-bold text-primary text-sm hover:underline"><span data-support-phone></span></a>
                 </div>
               </div>
               <div class="p-3 rounded-xl bg-surface-container-low flex items-center gap-3">
@@ -462,7 +462,7 @@
   <!-- Footer -->
   <footer class="w-full bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4">
-      <p>© 2026 SafeBox Self-Storage Management System · Hỗ trợ khách hàng 24/7</p>
+      <p>© 2026 SafeBox · Hỗ trợ khách hàng 24/7</p>
     </div>
   </footer>
 
@@ -488,17 +488,15 @@
       return isNaN(d.getTime()) ? dateTimeStr : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     }
 
-    // Dynamic slot list generator based on facility operating hours
+    // Return appointments use 30-minute slots within the physical service window.
     function generateTimeSlots(openingTimeStr, closingTimeStr) {
-      // Default fallback
-      const defaultSlots = [
-        { label: '08:30 – 09:00', start: '08:30:00', desc: 'Buổi sáng · Thuận tiện' },
-        { label: '10:00 – 10:30', start: '10:00:00', desc: 'Buổi sáng · Khuyến nghị' },
-        { label: '14:00 – 14:30', start: '14:00:00', desc: 'Đầu giờ chiều' },
-        { label: '16:30 – 17:00', start: '16:30:00', desc: 'Cuối giờ chiều' },
-        { label: '18:30 – 19:00', start: '18:30:00', desc: 'Buổi tối · Ngoài giờ' }
-      ];
-      return defaultSlots;
+      return Array.from({length: 34}, (_, index) => {
+        const minutes = 360 + index * 30;
+        const start = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+        const endMinutes = minutes + 30;
+        const end = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
+        return { label: `${start} – ${end}`, start: `${start}:00`, desc: 'Lịch hẹn trả kho' };
+      });
     }
 
     async function initPage() {
@@ -553,15 +551,28 @@
           return;
         }
 
+        let earlyReturnReq = null;
+        try {
+          const erRes = await fetch(`/api/customer/early-returns`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (erRes.ok) {
+            const erList = await erRes.json();
+            earlyReturnReq = erList.find(r => r.contractId === contractId && (r.status === 'REQUESTED' || r.status === 'SETTLEMENT_APPROVED'));
+          }
+        } catch (e) {
+          console.log('No early return requests found:', e);
+        }
+
         currentContractData = await contractRes.json();
-        renderFormView(currentContractData);
+        renderFormView(currentContractData, earlyReturnReq);
       } catch (e) {
         console.error('Fetch contract error:', e);
         showError("Lỗi kết nối", "Không thể kết nối đến máy chủ. Vui lòng thử lại sau.");
       }
     }
 
-    function renderFormView(detail) {
+    function renderFormView(detail, earlyReturnReq) {
       document.getElementById('loading-state').classList.add('hidden');
       document.getElementById('error-state').classList.add('hidden');
       document.getElementById('confirmed-view').classList.add('hidden');
@@ -572,7 +583,7 @@
       document.getElementById('sum-facility-name').textContent = c.facilityName || 'SafeBox Facility';
       document.getElementById('sum-facility-address').innerHTML = `<span class="material-symbols-outlined text-xs text-primary">pin_drop</span> ${c.facilityAddress || 'Địa chỉ cơ sở'}`;
       document.getElementById('sum-unit-number').textContent = c.unitNumber || 'N/A';
-      document.getElementById('sum-unit-type').textContent = `(${c.typeName || 'Kho tiêu chuẩn'} · ${c.area || '5'} m²)`;
+      document.getElementById('sum-unit-type').textContent = `(${c.typeName || 'Kho tiêu chuẩn'} · ${c.volumeM3 != null ? Number(c.volumeM3).toLocaleString('vi-VN') + ' m³' : 'Thể tích chưa xác minh'})`;
       document.getElementById('sum-unit-pos').textContent = `${c.floor || 'Tầng 1'} · ${c.zone || 'Khu A'}`;
       document.getElementById('period-val').textContent = `${formatDateVi(c.startDate)} – ${formatDateVi(c.endDate)}`;
       document.getElementById('end-date-text').textContent = formatDateVi(c.endDate);
@@ -582,23 +593,46 @@
         const pLink = document.getElementById('desk-phone');
         pLink.textContent = c.facilityPhone;
         pLink.href = `tel:${c.facilityPhone}`;
+        pLink.removeAttribute('data-support-link');
       }
 
-      // Date input: Lock to contract.endDate (BR16.1, BR16.2 Sprint 2)
       const dateInput = document.getElementById('return-date-input');
-      dateInput.value = c.endDate;
+      const todayVN = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Ho_Chi_Minh', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
+      const expired = c.endDate < todayVN;
+      let targetTimeSlot = null;
+
+      if (earlyReturnReq && earlyReturnReq.scheduledReturnAt) {
+        const dtParts = earlyReturnReq.scheduledReturnAt.split('T');
+        const erDate = dtParts[0];
+        const erTime = dtParts[1] ? dtParts[1].substring(0, 8) : '09:00:00';
+        dateInput.value = erDate;
+        dateInput.min = erDate;
+        dateInput.max = erDate;
+        dateInput.readOnly = true;
+        targetTimeSlot = erTime.length === 5 ? erTime + ':00' : erTime;
+        document.getElementById('end-date-text').innerHTML = `<span class="text-rose-600 font-bold">Lịch hẹn theo yêu cầu trả kho sớm: ${formatDateVi(erDate)} (Hợp đồng gốc đến ${formatDateVi(c.endDate)})</span>`;
+      } else {
+        dateInput.value = expired ? todayVN : c.endDate;
+        dateInput.min = expired ? todayVN : c.endDate;
+        dateInput.max = expired ? '' : c.endDate;
+        dateInput.readOnly = !expired;
+      }
 
       // Populate slots
-      const slots = generateTimeSlots();
+      let slots = generateTimeSlots();
+      if (targetTimeSlot && !slots.some(s => s.start === targetTimeSlot || s.start.startsWith(targetTimeSlot.substring(0, 5)))) {
+        const hhmm = targetTimeSlot.substring(0, 5);
+        slots.unshift({ label: `${hhmm} (Theo yêu cầu)`, start: targetTimeSlot, desc: 'Giờ hẹn trả kho sớm' });
+      }
       const slotsContainer = document.getElementById('slots-grid');
       slotsContainer.innerHTML = '';
 
       slots.forEach((s, idx) => {
-        const isChecked = idx === 1 ? 'checked' : '';
+        const isChecked = targetTimeSlot ? (s.start === targetTimeSlot || s.start.startsWith(targetTimeSlot.substring(0, 5))) : (idx === 1);
         const slotEl = document.createElement('label');
         slotEl.className = 'relative cursor-pointer select-none';
         slotEl.innerHTML = `
-          <input type="radio" name="timeSlot" value="${s.start}" ${isChecked} class="slot-radio sr-only"/>
+          <input type="radio" name="timeSlot" value="${s.start}" ${isChecked ? 'checked' : ''} class="slot-radio sr-only"/>
           <div class="p-3.5 rounded-xl border border-slate-200 bg-surface-container-low hover:bg-surface-container transition-all flex items-center gap-3">
             <div class="indicator w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center flex-shrink-0">
               <span class="w-2 h-2 rounded-full bg-white"></span>

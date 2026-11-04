@@ -12,6 +12,7 @@ final class CurrentPricing {
     static Optional<PricingPolicy> forType(List<PricingPolicy> policies, Integer typeId, LocalDate date) {
         return policies.stream()
             .filter(p -> typeId.equals(p.getTypeId()))
+            .filter(p -> "ACTIVE".equals(p.getStatus()) && p.getMonthlyPrice() != null && p.getMonthlyPrice().signum() > 0)
             .filter(p -> p.getEffectiveFrom() != null && !p.getEffectiveFrom().isAfter(date))
             .filter(p -> p.getEffectiveTo() == null || !p.getEffectiveTo().isBefore(date))
             .max(Comparator.comparing(PricingPolicy::getEffectiveFrom)

@@ -2,6 +2,8 @@
   const $ = id => document.getElementById(id);
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money = value => value == null ? '—' : new Intl.NumberFormat('vi-VN', {style:'currency',currency:'VND'}).format(value);
+  const publicType = value => String(value || 'Kho lưu trữ').replace(/\s*\d+(?:[.,]\d+)?\s*m(?:2|²)/gi, '').trim()
+    .replace(/^Standard$/i, 'Kho tiêu chuẩn') || 'Kho lưu trữ';
   const date = value => SafeBoxUc12Time.formatDateVN(value);
   const dateTime = value => SafeBoxUc12Time.formatDateTimeVN(value);
   const placeholder = '/images/demo/standard-storage.png';
@@ -42,15 +44,13 @@
   }
   function card(r) {
     const status = styles[r.status] || {badge:'bg-outline text-white',label:'bg-surface-container text-on-surface-variant',icon:'info'};
-    const area = r.area != null ? `${escape(r.area)} m²` : (r.sizeName ? escape(r.sizeName) : '');
     const facility = r.facilityName || 'Cơ sở không còn hiển thị';
-    const details = [r.typeName, r.sizeName && r.sizeName !== String(r.area) ? r.sizeName : null].filter(Boolean).join(' · ');
+    const details = publicType(r.typeName);
     const canCancel = r.status === 'PENDING';
     return `<article class="reservation-card bg-surface-container-lowest rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col xl:flex-row gap-6">
       <div class="xl:w-72 w-full h-48 xl:h-auto rounded-lg overflow-hidden relative flex-shrink-0 bg-surface-container">
-        <img class="reservation-image w-full h-full object-cover" src="${escape(imagePath(r.unitTypeImage))}" alt="${escape(r.typeName || 'Hình ảnh kho lưu trữ')}">
+        <img class="reservation-image w-full h-full object-cover" src="${escape(imagePath(r.unitTypeImage))}" alt="${escape(publicType(r.typeName))}">
         <span class="absolute top-3 left-3 px-2.5 py-1 rounded font-label-badge shadow flex items-center gap-1 ${status.badge}"><span class="material-symbols-outlined text-sm">${status.icon}</span>${escape(r.statusLabel || r.status)}</span>
-        ${area ? `<span class="absolute bottom-3 left-3 bg-primary/80 backdrop-blur-sm px-2.5 py-1.5 rounded text-white text-body-sm">${area}</span>` : ''}
       </div>
       <div class="flex-1 flex flex-col justify-between space-y-4"><div>
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="flex items-center gap-2.5"><strong class="px-2.5 py-1 rounded-md bg-surface-container text-primary font-mono font-headline-sm text-headline-sm">${escape(r.requestCode || r.reservationId)}</strong><span class="px-2.5 py-1 rounded-full font-label-badge ${status.label}">${escape(r.statusLabel || r.status)}</span></div><span class="text-body-sm text-on-surface-variant">Gửi lúc: ${dateTime(r.createdAt)}</span></div>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SafeBox · Chính sách kinh doanh</title>
+<style>body{font:16px "Be Vietnam Pro",system-ui,sans-serif;background:#f4f7fb;color:#17344a;margin:0}header{background:#123b58;color:white;padding:1rem 5%}main{max-width:980px;margin:auto;padding:2rem}a{color:#146b9a}article,form{background:white;border-radius:12px;padding:1.3rem;margin:1rem 0;box-shadow:0 2px 8px #123b5812}label{display:block;margin:.7rem 0}input,select,textarea{display:block;width:100%;box-sizing:border-box;padding:.6rem;border:1px solid #bccbd6;border-radius:6px}button{padding:.6rem 1rem;background:#146b9a;color:white;border:0;border-radius:6px;cursor:pointer;margin:.25rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:1rem}.muted{color:#536b7b}small{color:#536b7b}</style>
+<script src="/auth.js"></script><link rel="stylesheet" href="/css/safebox-shared.css"><link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/role-navigation.js" defer></script><script src="/js/support-contact.js" defer></script></head>
+<body style="visibility:hidden"><header data-role-navigation class="sb-management-header"><a href="/role-home.html" style="color:white">← SafeBox</a> · Chính sách kinh doanh</header><main>
+<h1>Chính sách và lịch sử phiên bản</h1><p id="message" role="status"></p>
+<label>Cơ sở<select id="facility"></select></label>
+<section id="fixed"></section>
+<form id="proposal-form" hidden><h2 id="form-title">Tạo bản nháp chính sách quá hạn</h2>
+<label>Chính sách gốc đang áp dụng<select id="base-policy" required></select></label>
+<div class="grid"><label>Số ngày ân hạn<input id="grace" type="number" min="0" step="1" required></label>
+<label>Công thức phạt<select id="penalty-type"><option value="PERCENT_DAILY">Tỷ lệ theo ngày</option><option value="FIXED_DAILY">Số tiền cố định theo ngày</option></select></label>
+<label>Tỷ lệ phạt mỗi ngày (ví dụ 0,05 = 5%)<input id="daily-rate" type="number" min="0" max="9.9999" step="0.0001" required></label>
+<label>Số tiền phạt cố định mỗi ngày (đ)<input id="fixed-amount" type="number" min="0" step="0.01" required></label>
+<label>Hiệu lực từ ngày<input id="from" type="date" required></label><label>Hiệu lực đến ngày (tùy chọn)<input id="to" type="date"></label></div>
+<label>Lý do đề xuất<textarea id="reason" minlength="10" maxlength="500" required></textarea></label>
+<button>Lưu bản nháp</button><button id="reset-form" type="button">Đề xuất mới</button></form>
+<h2>Đề xuất chính sách quá hạn</h2><section id="proposals"></section>
+<h2>Chính sách thuê, gia hạn và quá hạn</h2><section id="rental"></section>
+<form id="early-return-policy-form" hidden>
+  <h2>Kích hoạt chính sách trả kho sớm (Quản lý kinh doanh)</h2>
+  <div class="grid">
+    <label>Phiên bản chính sách<input id="erp-version" placeholder="ERP-Q7-2026-V1" required></label>
+    <label>Hiệu lực từ ngày<input id="erp-from" type="date" required></label>
+    <label>Hiệu lực đến ngày (tùy chọn)<input id="erp-to" type="date"></label>
+  </div>
+  <div class="grid">
+    <label><input id="erp-refundable" type="checkbox" checked style="display:inline;width:auto"> Được hoàn tiền đặt cọc</label>
+    <label><input id="erp-deduction" type="checkbox" checked style="display:inline;width:auto"> Cho phép khấu trừ bồi thường sau kiểm tra</label>
+    <label><input id="erp-approved" type="checkbox" required style="display:inline;width:auto"> Tôi xác nhận phê duyệt kích hoạt chính sách này</label>
+  </div>
+  <button id="btn-create-erp">Phê duyệt & Kích hoạt chính sách</button>
+</form>
+<h2>Chính sách trả kho sớm và hoàn cọc</h2><section id="returns"></section>
+</main><script>
+(async()=>{
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if(!await SafeBoxAuth.requireRole('BUSINESS_OPERATIONS_MANAGER','FACILITY_MANAGER'))return;
+  const me=SafeBoxAuth.getCurrentUser(), business=me.role==='BUSINESS_OPERATIONS_MANAGER';
+  const base=business?'/api/business':'/api/manager'; let editing=null, versions=[];
+  async function api(url,options){const r=await SafeBoxAuth.authFetch(url,options),d=await r.json().catch(()=>null);if(!r.ok)throw Error(d?.message||'Không thể xử lý chính sách.');return d}
+  function payload(){return {basePolicyId:$('base-policy').value,overdueGraceDays:Number($('grace').value),penaltyType:$('penalty-type').value,dailyPenaltyRate:Number($('daily-rate').value),fixedPenaltyAmount:Number($('fixed-amount').value),effectiveFrom:$('from').value,effectiveTo:$('to').value||null,reason:$('reason').value.trim()}}
+  function reset(){editing=null;$('proposal-form').reset();$('form-title').textContent='Tạo bản nháp chính sách quá hạn'}
+  const fs=await api(base+'/facilities');$('facility').innerHTML=fs.map(f=>`<option value="${f.facilityId}">${esc(f.name)}</option>`).join('');
+  $('proposal-form').hidden=business;$('early-return-policy-form').hidden=!business;$('facility').onchange=()=>load();$('reset-form').onclick=reset;
+  $('early-return-policy-form').onsubmit=async e=>{e.preventDefault();const fid=$('facility').value;try{await api(`/api/business/facilities/${fid}/early-return-policies`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:$('erp-version').value.trim(),effectiveFrom:$('erp-from').value,effectiveTo:$('erp-to').value||null,depositRefundable:$('erp-refundable').checked,inspectionDeductionAllowed:$('erp-deduction').checked,approved:$('erp-approved').checked})});$('message').textContent='Đã kích hoạt chính sách trả kho sớm.';$('early-return-policy-form').reset();$('erp-refundable').checked=true;$('erp-deduction').checked=true;await load()}catch(err){$('message').textContent=err.message}};
+  async function load(){const fid=$('facility').value;if(!fid)return;
+    try{const [d,proposals]=await Promise.all([api(business?'/api/business/policies':`/api/manager/facilities/${fid}/policies`),api(`${base}/facilities/${fid}/overdue-policy-proposals`)]);
+      versions=d.rentalVersions.filter(p=>p.facilityId===fid||p.facilityId===null);
+      $('fixed').innerHTML=`<article><strong>Quy tắc tài chính cố định</strong><p>${esc(d.depositRule)}</p><p>${esc(d.vatRule)}</p><p class="muted">${esc(d.approvalNote)}</p></article>`;
+      const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      const current=versions.filter(p=>(p.facilityId===fid||p.facilityId===null)&&p.status==='ACTIVE'&&p.effectiveFrom<=today&&(!p.effectiveTo||p.effectiveTo>=today));
+      const local=current.filter(p=>p.facilityId===fid);const bases=local.length?local:current.filter(p=>p.facilityId===null);
+      $('base-policy').innerHTML=bases.map(p=>`<option value="${p.policyId}">${esc(p.facilityId?'Chính sách cơ sở':'Chính sách toàn hệ thống')} · ${esc(p.effectiveFrom)} · ${esc(p.policyId)}</option>`).join('');
+      $('proposals').innerHTML=proposals.map(p=>`<article data-id="${p.proposalId}"><strong>${esc({DRAFT:'Bản nháp',SUBMITTED:'Chờ duyệt',WITHDRAWN:'Đã rút',REJECTED:'Từ chối',APPROVED:'Đã duyệt'}[p.status]||p.status)}</strong><p>Ân hạn ${esc(p.overdueGraceDays)} ngày · ${esc(p.penaltyType)} · tỷ lệ ${esc(p.dailyPenaltyRate)} · cố định ${esc(p.fixedPenaltyAmount)} đ/ngày</p><p>${esc(p.effectiveFrom)} → ${esc(p.effectiveTo||'không giới hạn')} · ${esc(p.reason)}</p><small>Người đề xuất ${esc(p.createdBy)} · Tạo ${esc(p.createdAt)} · Gửi ${esc(p.submittedAt||'chưa gửi')} · Rút ${esc(p.withdrawnAt||'chưa rút')} · Người duyệt ${esc(p.reviewedBy||'chưa có')} · Quyết định ${esc(p.reviewedAt||'chưa có')} · Lý do ${esc(p.decisionReason||'chưa có')} · Phiên bản ${esc(p.approvedPolicyId||'chưa có')}</small><div>${!business&&p.status==='DRAFT'&&p.createdBy===me.userId?`<button data-action="edit">Sửa</button><button data-action="submit">Gửi duyệt</button><button data-action="withdraw">Rút đề xuất</button>`:''}${!business&&p.status==='SUBMITTED'&&p.createdBy===me.userId?`<button data-action="withdraw">Rút đề xuất</button>`:''}${business&&p.status==='SUBMITTED'?`<label>Lý do quyết định<textarea class="decision-reason" minlength="5" maxlength="500"></textarea></label><button data-action="approve">Phê duyệt</button><button data-action="reject">Từ chối</button>`:''}</div></article>`).join('')||'<p class="muted">Chưa có đề xuất.</p>';
+      $('rental').innerHTML=versions.filter(p=>business||p.facilityId===fid||p.facilityId===null).map(p=>`<article><strong>${esc(p.facilityId||'Toàn hệ thống')} · ${esc(p.status)} ${p.overdueVersion?'· phiên bản '+esc(p.overdueVersion):''}</strong><p>Hiệu lực: ${esc(p.effectiveFrom)} → ${esc(p.effectiveTo||'không giới hạn')}</p><p>Giữ chỗ ${esc(p.reservationHoldMinutes)} phút; mở gia hạn trước ${esc(p.renewalOpenDays)} ngày; ân hạn quá hạn ${esc(p.overdueGraceDays)} ngày.</p><p>Phí quá hạn: ${esc(p.penaltyType)} · tỷ lệ ${esc(p.dailyPenaltyRate)} · cố định ${esc(p.fixedPenaltyAmount)} đ/ngày. Duyệt: ${esc(p.overdueApprovedAt||'chưa duyệt')}.</p><p>Hủy: ${esc(p.cancellationPolicy||'chưa cấu hình')} · Trả kho: ${esc(p.returnPolicy||'chưa cấu hình')}</p><small>Mã ${esc(p.policyId)} · Gốc ${esc(p.overdueSourcePolicyId||'chưa có')} · Đề xuất ${esc(p.overdueProposalId||'chưa có')}</small></article>`).join('')||'<p class="muted">Chưa có chính sách.</p>';
+      $('returns').innerHTML=d.returnVersions.filter(p=>p.facilityId===fid).map(p=>`<article><strong>${esc(p.version)} · ${esc(p.status)}</strong><p>Cơ sở ${esc(p.facilityId)} · ${esc(p.effectiveFrom)} → ${esc(p.effectiveTo||'không giới hạn')}</p><p>Hoàn cọc: ${p.depositRefundable?'Có':'Không'}; khấu trừ sau kiểm tra: ${p.inspectionDeductionAllowed?'Có':'Không'}</p><small>${esc(p.id)}</small></article>`).join('')||'<p class="muted">Chưa có chính sách trả kho sớm.</p>';
+    }catch(e){$('message').textContent=e.message}}
+  $('proposal-form').onsubmit=async e=>{e.preventDefault();const fid=$('facility').value;try{await api(`/api/manager/facilities/${fid}/overdue-policy-proposals${editing?'/'+editing:''}`,{method:editing?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload())});$('message').textContent='Đã lưu bản nháp.';reset();await load()}catch(err){$('message').textContent=err.message}};
+  $('proposals').onclick=async e=>{const btn=e.target.closest('button[data-action]');if(!btn)return;const card=btn.closest('article[data-id]'),id=card.dataset.id,fid=$('facility').value,action=btn.dataset.action;
+    if(action==='edit'){const p=(await api(`/api/manager/facilities/${fid}/overdue-policy-proposals`)).find(x=>x.proposalId===id);if(!p)return;editing=id;$('base-policy').value=p.basePolicyId;$('grace').value=p.overdueGraceDays;$('penalty-type').value=p.penaltyType;$('daily-rate').value=p.dailyPenaltyRate;$('fixed-amount').value=p.fixedPenaltyAmount;$('from').value=p.effectiveFrom;$('to').value=p.effectiveTo||'';$('reason').value=p.reason;$('form-title').textContent='Sửa bản nháp';scrollTo({top:0,behavior:'smooth'});return}
+    try{const url=business?`/api/business/facilities/${fid}/overdue-policy-proposals/${id}/${action}`:`/api/manager/facilities/${fid}/overdue-policy-proposals/${id}/${action}`;
+      const opts={method:'POST'};if(business){opts.headers={'Content-Type':'application/json'};opts.body=JSON.stringify({reason:card.querySelector('.decision-reason')?.value||''})}
+      await api(url,opts);$('message').textContent='Đã xử lý đề xuất.';await load()}catch(err){$('message').textContent=err.message}};
+  await load();
+})();
+</script></body></html>

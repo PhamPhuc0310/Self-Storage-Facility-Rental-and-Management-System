@@ -86,6 +86,12 @@ public class SupportTicketServiceImpl implements SupportTicketService {
                     "Bạn chỉ được tạo yêu cầu hỗ trợ gắn với hợp đồng do chính mình đứng tên");
         }
 
+        User creator = userRepository.findById(customerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại"));
+        if (creator.getRole() == null || !"CUSTOMER".equals(creator.getRole().getRoleName())) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ khách hàng được tạo ticket hỗ trợ.");
+        }
+
         StorageUnit unit = storageUnitRepository.findById(contract.getUnitId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin ô kho"));
 
@@ -129,13 +135,12 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
         }
 
-        User user = userRepository.findById(currentUserId).orElse(null);
-        String role = (user != null && user.getRole() != null) ? user.getRole().getRoleName() : "CUSTOMER";
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại"));
+        String role = user.getRole() == null ? "" : user.getRole().getRoleName();
 
         List<SupportTicket> tickets;
-        if ("SYSTEM_ADMIN".equalsIgnoreCase(role)) {
-            tickets = supportTicketRepository.findAllByOrderByCreatedAtDesc();
-        } else if ("FACILITY_MANAGER".equalsIgnoreCase(role) || "FACILITY_STAFF".equalsIgnoreCase(role)) {
+        if ("FACILITY_MANAGER".equalsIgnoreCase(role)) {
             LocalDate today = LocalDate.now(VIETNAM_ZONE);
             List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
             if (assignedFacilityIds.isEmpty()) {
@@ -143,8 +148,15 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             } else {
                 tickets = supportTicketRepository.findByFacilityIdInOrderByCreatedAtDesc(assignedFacilityIds);
             }
-        } else {
+        } else if ("FACILITY_STAFF".equalsIgnoreCase(role)) {
+            LocalDate today = LocalDate.now(VIETNAM_ZONE);
+            List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
+            tickets = supportTicketRepository.findByAssignedToOrderByCreatedAtDesc(currentUserId).stream()
+                    .filter(t -> assignedFacilityIds.contains(t.getFacilityId())).toList();
+        } else if ("CUSTOMER".equalsIgnoreCase(role)) {
             tickets = supportTicketRepository.findByCustomerIdOrderByCreatedAtDesc(currentUserId);
+        } else {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Vai trò không được xem ticket hỗ trợ.");
         }
 
         return tickets.stream().map(this::mapToSummaryResponse).toList();
@@ -222,6 +234,8 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         }
         ticket.setUpdatedAt(now);
         supportTicketRepository.save(ticket);
+        activityLogRepository.save(new ActivityLog(currentUserId, "REPLY_SUPPORT_TICKET",
+                "SUPPORT_TICKET", ticketId, "Reply to " + ticket.getTicketNumber(), now));
 
         return new SupportTicketReplyResponse(
                 reply.getReplyId(),
@@ -286,6 +300,14 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             return buildDetailResponse(ticket, contract, unit, currentUserId);
         }
 
+        if (!"RESOLVED".equalsIgnoreCase(ticket.getStatus())) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Chỉ ticket đã giải quyết mới được đóng.");
+        }
+        if ((closeReason == null || closeReason.isBlank())
+                && (ticket.getResolutionNote() == null || ticket.getResolutionNote().isBlank())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cần nội dung giải quyết trước khi đóng ticket.");
+        }
+
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
         ticket.setStatus("CLOSED");
         ticket.setResolvedAt(now);
@@ -316,27 +338,28 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     // =========================================================================
 
     private void validateAccessToTicket(UUID currentUserId, SupportTicket ticket) {
-        if (ticket.getCustomerId().equals(currentUserId)) {
-            return;
-        }
-
         User user = userRepository.findById(currentUserId).orElse(null);
         if (user == null || user.getRole() == null) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập yêu cầu hỗ trợ này");
         }
 
         String role = user.getRole().getRoleName();
-        if ("SYSTEM_ADMIN".equalsIgnoreCase(role)) {
+        if ("CUSTOMER".equalsIgnoreCase(role) && ticket.getCustomerId().equals(currentUserId)) {
             return;
         }
-
         if ("CUSTOMER".equalsIgnoreCase(role)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn chỉ được xem yêu cầu hỗ trợ của chính mình");
         }
 
         LocalDate today = LocalDate.now(VIETNAM_ZONE);
         List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
-        if (assignedFacilityIds.contains(ticket.getFacilityId())) {
+        if ("FACILITY_MANAGER".equalsIgnoreCase(role)
+                && assignedFacilityIds.contains(ticket.getFacilityId())) {
+            return;
+        }
+        if ("FACILITY_STAFF".equalsIgnoreCase(role)
+                && currentUserId.equals(ticket.getAssignedTo())
+                && assignedFacilityIds.contains(ticket.getFacilityId())) {
             return;
         }
 

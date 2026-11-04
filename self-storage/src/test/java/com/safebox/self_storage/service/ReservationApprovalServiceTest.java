@@ -56,12 +56,12 @@ class ReservationApprovalServiceTest {
         StorageUnitType type = new StorageUnitType(); type.setStatus("ACTIVE");
         when(types.findById(3)).thenReturn(Optional.of(type));
         when(access.today()).thenReturn(LocalDate.of(2026,10,11));
-        when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.empty());
+        when(units.lockFirstAvailable(facilityId,3,reservation.getStartDate(),reservation.getEndDate())).thenReturn(Optional.empty());
     }
     StorageUnit availableUnit() {
         StorageUnit unit = new StorageUnit(); unit.setUnitId(UUID.randomUUID());
         unit.setFacilityId(facilityId); unit.setTypeId(3); unit.setStatus("AVAILABLE");
-        when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.of(unit));
+        when(units.lockFirstAvailable(facilityId,3,reservation.getStartDate(),reservation.getEndDate())).thenReturn(Optional.of(unit));
         when(access.now()).thenReturn(LocalDateTime.of(2026,10,11,10,0));
         when(access.currentId()).thenReturn(managerId);
         return unit;
@@ -129,7 +129,7 @@ class ReservationApprovalServiceTest {
         when(access.now()).thenReturn(LocalDateTime.of(2026,10,11,10,0));
         when(access.currentId()).thenReturn(managerId);
         StorageUnit unit = new StorageUnit(); unit.setUnitId(UUID.randomUUID()); unit.setFacilityId(facilityId); unit.setTypeId(3); unit.setStatus("AVAILABLE");
-        when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.of(unit));
+        when(units.lockFirstAvailable(facilityId,3,reservation.getStartDate(),reservation.getEndDate())).thenReturn(Optional.of(unit));
         generatedContractId();
         RentalContract contract = service.approve(reservationId);
         assertEquals(reservationId,contract.reservationId);
@@ -172,7 +172,7 @@ class ReservationApprovalServiceTest {
         when(access.today()).thenReturn(LocalDate.of(2026,10,11));
         when(access.now()).thenReturn(LocalDateTime.of(2026,10,11,10,0));
         StorageUnit unit = new StorageUnit(); unit.setUnitId(UUID.randomUUID());
-        when(units.lockFirstAvailable(facilityId,3)).thenReturn(Optional.of(unit));
+        when(units.lockFirstAvailable(facilityId,3,reservation.getStartDate(),reservation.getEndDate())).thenReturn(Optional.of(unit));
         generatedContractId();
         RentalContract contract = service.approve(reservationId);
         assertEquals("v1", contract.termsVersion);

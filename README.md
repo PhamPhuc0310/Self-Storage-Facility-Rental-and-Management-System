@@ -1,301 +1,91 @@
-[![Self-Storage-Facility-Rental-and-Management-System (CI included) |  © 2026 by PhamPhuc0310](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml)
-# SafeBox Storage
+# SafeBox
 
-> Self-Storage Facility Rental and Management System
+Self-storage rental and facility management with Java 21, Spring Boot 3.3.4, SQL Server and a plain HTML/CSS/JavaScript frontend served by Spring Boot.
 
-SafeBox Storage is a web-based system designed to support the rental and management of self-storage facilities. The system provides a centralized platform for customers, facility staff, managers, and administrators to manage storage rental operations efficiently.
+Five roles: Storage Customer, Facility Staff, Facility Manager, Business Operations Manager and System Administrator. Seven flows: reservation, check-in/handover, unit management, fee/revenue management, facility/staff management, renewal/overdue handling and support requests.
 
-This project is developed as part of the **Software Project (SWP)** course.
+## Prerequisites
 
----
+- JDK 21; use the included Maven Wrapper.
+- SQL Server and sqlcmd for database setup. Use your own isolated development instance/database.
+- Node.js 20 or newer for JavaScript tests.
+- Optional Docker for local SMTP capture with Mailpit.
 
-## Overview
+## Clone
 
-SafeBox Storage aims to digitalize the main operations of a self-storage business, including:
+After the approved changes are published, clone the repository and enter its root:
 
-- Searching for storage facilities and storage units
-- Reserving storage units
-- Customer check-in and unit handover
-- Managing active rentals
-- Contract and renewal management
-- Payment and additional fee handling
-- Storage unit and facility management
-- Support request management
-- Role-based system administration
+```powershell
+git clone https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System.git
+cd Self-Storage-Facility-Rental-and-Management-System
+```
 
----
+For an unmerged pull request, select its published branch before setup. Cloning does not copy anyone else's database, environment variables, private configuration or local test evidence. Follow the database and environment steps below before starting the application.
 
-## User Roles
+## Database setup
 
-The system supports five main roles:
+Use your own isolated development SQL Server instance. Schema initialization is manual: Hibernate uses ddl-auto=none. The [ERD source](database/ERD.drawio) documents the database. Only reviewed SQL files and this ERD are uploaded under database/; local Markdown and PowerShell helpers are not part of a clone.
 
-| Role | Description |
+1. Review database/SelfStorageFacilityDB.sql, then apply it only to a new development database. It creates/uses the literal SelfStorageFacilityDB name. Some later scripts also hardcode that name: selecting a different target with sqlcmd does not override USE. For a different name, prepare reviewed local execution copies; preserve the shared SQL originals. Never target an existing shared/primary database for setup.
+2. After the baseline, review/apply 03_auth_email_migration.sql and UC11_UC12_Additive.sql; then UC17_Additive.sql, UC18_Additive.sql, 06_uc22_support_requests_compatibility.sql, 07_uc22_uc23_support.sql, sprint3_uc20_migration.sql and sprint3_uc21_migration.sql against their prerequisites. Authentication and UC18 hardcode the original target.
+3. Apply UC19/UC24 using 08_uc19_uc24_apply.sql from the repository root; its :r includes database/07_uc19_uc24_additive.sql. Do not apply that included file a second time as an extra required step.
+4. With prerequisites present, review/apply scripts 10 through 16 in order using sqlcmd SQLCMD mode, -b and an explicitly verified development target. Each requires SafeBoxTargetDb set to your development name and SafeBoxAllowPrimary=NO. Reconfirm SELECT DB_NAME() before execution and stop on any error. The local PowerShell ledger runner is excluded from Git; direct SQL execution does not supply its ledger/checksum checks, so record applied versions separately.
+
+Example syntax for one reviewed migration on your development database (Windows integrated authentication):
+
+```powershell
+sqlcmd -S localhost -E -C -b -d SafeBox_Local -v SafeBoxTargetDb=SafeBox_Local SafeBoxAllowPrimary=NO -i database/10_sprint3_remediation.sql
+```
+
+This is a prerequisite review guide, not a verified one-command empty-database installer. This cleanup does not execute SQL. Preserve script contents; review all legacy hardcoded targets and SQL errors in isolation. Optional source-listing/catalog/account/contract seeds are demo fixtures, not production initialization; inspect their identifiers, test hashes and targets before use. Scripts under database/demo/ are optional isolated campaign fixtures, not required schema migrations. The rehearsal scripts require their specifically named disposable/test databases; setup/reset placeholders intentionally stop until a reviewed fixture manifest exists. Do not include them in routine database initialization. Policy activation requires an authorized business decision, not invented rates. A runnable demo also needs appropriate role users/assignments, verified/priced units and approved policies.
+
+## Local configuration
+
+Supply these environment variables in the shell or IDE that launches Java:
+
+| Variable | Value |
 |---|---|
-| `CUSTOMER` | Searches, rents, and manages storage units |
-| `FACILITY_STAFF` | Handles check-in, handover, return, and on-site operations |
-| `FACILITY_MANAGER` | Manages storage units and facility operations |
-| `BUSINESS_OPERATIONS_MANAGER` | Monitors business rules, fees, and operations |
-| `SYSTEM_ADMIN` | Manages system-level administration |
+| DB_URL | Your JDBC URL, e.g. jdbc:sqlserver://localhost:1433;databaseName=SafeBox_Local;encrypt=true;trustServerCertificate=true |
+| DB_USERNAME | Your development SQL login |
+| DB_PASSWORD | Your development SQL password |
+| JWT_SECRET | A locally generated random secret of at least 32 UTF-8 bytes |
 
----
+PowerShell 7 example (prompts avoid storing credentials in this README or shell command history):
 
-## Technology Stack
-
-### Backend
-
-- Java 21
-- Spring Boot
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- Bean Validation
-- JWT Authentication
-- BCrypt Password Hashing
-- Maven
-
-### Database
-
-- Microsoft SQL Server
-- Microsoft JDBC Driver for SQL Server
-
-### Frontend
-
-- HTML5
-- CSS3
-- JavaScript
-- Responsive Web Interface
-
-### Development Tools
-
-- Apache NetBeans
-- SQL Server Management Studio
-- Git
-- GitHub
-
----
-
-## Project Structure
-
-```text
-self-storage/
-│
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/safebox/self_storage/
-│   │   │       ├── controller/
-│   │   │       ├── dto/
-│   │   │       ├── entity/
-│   │   │       ├── exception/
-│   │   │       ├── repository/
-│   │   │       ├── security/
-│   │   │       └── service/
-│   │   │
-│   │   └── resources/
-│   │       ├── static/
-│   │       └── application.properties
-│   │
-│   └── test/
-│
-├── .gitignore
-├── mvnw
-├── mvnw.cmd
-├── pom.xml
-└── README.md
+```powershell
+$env:DB_URL = 'jdbc:sqlserver://localhost:1433;databaseName=SafeBox_Local;encrypt=true;trustServerCertificate=true'
+$env:DB_USERNAME = Read-Host 'Development SQL login'
+$env:DB_PASSWORD = [System.Net.NetworkCredential]::new('', (Read-Host 'Development SQL password' -AsSecureString)).Password
+$env:JWT_SECRET = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 ```
 
----
+On other platforms, export the same variables in your shell. The application does **not** automatically load .env files. Always set DB_URL explicitly: the legacy URL fallback still names SelfStorageFacilityDB. Never commit live credentials, account QR images or database backups.
 
-## Main System Flows
+An optional [private profile example](self-storage/src/main/resources/application-private.properties.example) can be copied to application-private.properties in the same folder and activated with SPRING_PROFILES_ACTIVE=private. The real file is ignored; keep its credentials private. Normal environment-variable configuration needs no profile.
 
-The system is designed around the following main business flows:
+## Build, test and run
 
-1. Storage Unit Reservation
-2. Storage Check-in and Handover
-3. Rented Storage Unit Management
-4. Business Rules, Fee Management, and Revenue Monitoring
-5. Facility Storage and Staff Management
-6. Storage Renewal and Overdue Handling
-7. Support Request and Issue Handling
+From the repository root, using PowerShell:
 
----
-
-## Authentication & Authorization
-
-SafeBox Storage uses JWT-based authentication and role-based authorization.
-
-The authentication flow follows this general process:
-
-```text
-User
-  │
-  ▼
-Login
-  │
-  ▼
-Validate Credentials
-  │
-  ▼
-Check Account Status
-  │
-  ▼
-Generate JWT
-  │
-  ▼
-Return User Information + Token
-  │
-  ▼
-Redirect Based on Role
+```powershell
+cd self-storage
+.\mvnw.cmd --batch-mode --no-transfer-progress verify
+node --test src/test/js/*.test.js
+.\mvnw.cmd spring-boot:run
 ```
 
-Security mechanisms include:
+On Unix, replace .\mvnw.cmd with bash ./mvnw. Open [localhost:8080](http://localhost:8080/); backend and frontend share this process. Configure the database before startup. Registration/email verification requires SMTP; optional local capture is docker compose -f compose.mailpit.yml up -d, with the inbox at [localhost:8025](http://localhost:8025/). Existing SMTP defaults use localhost:1025. Never use demo fixture identities or passwords for a live deployment.
 
-- BCrypt password hashing
-- JWT authentication
-- Role-based authorization
-- Account status validation
-- Protected API endpoints
-- `401 Unauthorized` handling
-- `403 Forbidden` handling
-- Environment-based secret configuration
+The default Java suite uses mocks and H2. SQL Server tests are opt-in through SAFEBOX_SQLSERVER_TEST_URL, SAFEBOX_SQLSERVER_TEST_USER and SAFEBOX_SQLSERVER_TEST_PASSWORD; inspect each test's database-name and fixture requirements before enabling them. They can mutate data. Leave the opt-in URL unset for ordinary unit-test/CI runs.
 
----
+Browser tests under src/test/e2e are manual campaigns requiring Playwright, Chromium, sometimes bcryptjs, sqlcmd, explicit environment variables and campaign-specific database fixtures. Several are Windows-specific and read local .env.codex.local or prior result JSON. Prior result JSON inputs under docs/testing/evidence are local-only under the required docs policy; obtain or generate the matching campaign inputs locally before running continuation scripts. They are not available in a fresh clone and do not recreate database state. These scripts are not a portable one-command fresh-clone test suite. Do not run primary-named scripts on a shared database.
 
-## Getting Started
+## Team workflow and publication
 
-### Prerequisites
+See [CONTRIBUTING.md](CONTRIBUTING.md). [CI](.github/workflows/ci.yml) builds/tests/packages with Java 21 and Maven; JavaScript tests are run separately with the command above. Keep migrations and all role interfaces with the source. Only docs/sprint.xlsx and docs/stitch_safebox_storage_rental_platform.zip are tracked under docs/. Historical reports, screenshots, evidence and personal tooling remain local and ignored.
 
-Make sure the following software is available:
+**Publication blocked:** a database credential existed in Git history. The current configuration now requires environment credentials, but this does not erase past commits. The owner must rotate the exposed credential wherever used and complete a separately reviewed history-remediation/publication decision before publishing. No rotation or history rewrite is automated here.
 
-- JDK 21
-- Microsoft SQL Server
-- Git
-
-Maven does not need to be installed globally because the project includes **Maven Wrapper**.
-
----
-
-## Database Configuration
-
-The application uses Microsoft SQL Server.
-
-Default development configuration:
-
-```text
-Server: localhost
-Port: 1433
-Database: SelfStorageFacilityDB
-```
-
-Hibernate is configured not to automatically modify the database schema:
-
-```properties
-spring.jpa.hibernate.ddl-auto=none
-```
-
-The database schema and required seed data must be prepared before running the application.
-
----
-
-## Environment Variables
-
-Sensitive information should not be stored directly in the source code.
-
-Configure the following environment variables before starting the application:
-
-```text
-DB_USERNAME=your_database_username
-DB_PASSWORD=your_database_password
-JWT_SECRET=your_jwt_secret
-```
-
-Never commit real database credentials, JWT secrets, `.env` files, or other sensitive configuration to the repository.
-
----
-
-## Running the Application
-
-### NetBeans
-
-Open the project in Apache NetBeans and run:
-
-```text
-SafeStorageApplication.java
-```
-
-or use:
-
-```text
-Run Project (F6)
-```
-
-After the application starts successfully, access:
-
-```text
-http://localhost:8080/
-```
-
-### Command Line
-
-Windows:
-
-```bash
-mvnw.cmd spring-boot:run
-```
-
-macOS/Linux:
-
-```bash
-./mvnw spring-boot:run
-```
-
----
-
-## Running Tests
-
-Windows:
-
-```bash
-mvnw.cmd clean test
-```
-
-macOS/Linux:
-
-```bash
-./mvnw clean test
-```
-
----
-
-## Development Workflow
-
-The project uses Git for version control and follows a branch-based development workflow.
-
-```text
-main
-  │
-  └── develop
-        │
-        ├── feature/...
-        ├── feature/...
-        └── fix/...
-```
-
-New features should be developed in separate branches and integrated through Pull Requests.
-
-Direct development on the `main` branch should be avoided.
-
----
-
-## Team
-
-Developed by the **SafeBox Storage Development Team**
-
-Software Engineering  
-FPT University
-
----
-
-## License
-
-This project is developed for educational purposes as part of the Software Project (SWP) course.
+## Contact
+Connect me via: phamhoangphuccpag@gmail.com
+© 2026 - Tí Thì Rớt Môn

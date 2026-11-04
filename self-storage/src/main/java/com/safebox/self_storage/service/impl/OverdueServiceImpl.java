@@ -82,27 +82,23 @@ public class OverdueServiceImpl implements OverdueService {
         }
 
         LocalDate today = LocalDate.now(VIETNAM_ZONE);
-        User user = userRepository.findById(managerUserId).orElse(null);
-        boolean isAdmin = user != null && user.getRole() != null
-                && "SYSTEM_ADMIN".equalsIgnoreCase(user.getRole().getRoleName());
+        requireRole(managerUserId, "FACILITY_MANAGER");
 
         List<UUID> assignedFacilityIds = userFacilityAssignmentRepository.findActiveFacilityIds(managerUserId, today);
 
         if (facilityId != null) {
-            if (!isAdmin && !assignedFacilityIds.contains(facilityId)) {
+            if (!assignedFacilityIds.contains(facilityId)) {
                 throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền quản lý tại cơ sở này");
             }
-        } else if (!isAdmin && assignedFacilityIds.isEmpty()) {
+        } else if (assignedFacilityIds.isEmpty()) {
             return Page.empty(pageable);
         }
 
         List<RentalContract> allContracts;
         if (facilityId != null) {
             allContracts = rentalContractRepository.findByFacilityId(facilityId);
-        } else if (!isAdmin) {
-            allContracts = rentalContractRepository.findByFacilityIds(assignedFacilityIds);
         } else {
-            allContracts = rentalContractRepository.findAll();
+            allContracts = rentalContractRepository.findByFacilityIds(assignedFacilityIds);
         }
 
         // Lọc theo điều kiện quá hạn (BR18.1)
@@ -147,6 +143,7 @@ public class OverdueServiceImpl implements OverdueService {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
         }
 
+        requireRole(customerId, "CUSTOMER");
         LocalDate today = LocalDate.now(VIETNAM_ZONE);
         List<RentalContract> contracts = rentalContractRepository.findByCustomerIdOrderByStartDateDesc(customerId);
 
@@ -175,21 +172,13 @@ public class OverdueServiceImpl implements OverdueService {
                 .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Không xác định người dùng"));
 
         LocalDate today = LocalDate.now(VIETNAM_ZONE);
-        boolean isAdmin = user.getRole() != null && "SYSTEM_ADMIN".equalsIgnoreCase(user.getRole().getRoleName());
         boolean isCustomer = user.getRole() != null && "CUSTOMER".equalsIgnoreCase(user.getRole().getRoleName());
 
         if (isCustomer && !contract.getCustomerId().equals(currentUserId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem hợp đồng này");
         }
 
-        if (!isAdmin && !isCustomer) {
-            StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
-            UUID facilityId = (unit != null) ? unit.getFacilityId() : null;
-            List<UUID> assigned = userFacilityAssignmentRepository.findActiveFacilityIds(currentUserId, today);
-            if (facilityId != null && !assigned.contains(facilityId)) {
-                throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không được phân công quản lý tại cơ sở này");
-            }
-        }
+        if (!isCustomer) requireManagerScope(currentUserId, contract);
 
         return mapToOverdueResponse(contract, today);
     }
@@ -200,8 +189,11 @@ public class OverdueServiceImpl implements OverdueService {
     @Override
     @Transactional
     public PenaltyDetailResponse calculateOverdueFeeForContract(UUID currentUserId, UUID contractId, LocalDate targetDate) {
-        RentalContract contract = rentalContractRepository.findByContractId(contractId)
+        RentalContract contract = rentalContractRepository.lockById(contractId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng"));
+
+        // Locking the contract serializes retries before checking the unique period key.
+        UUID facilityId = requireManagerScope(currentUserId, contract);
 
         LocalDate date = (targetDate != null) ? targetDate : LocalDate.now(VIETNAM_ZONE);
 
@@ -224,37 +216,24 @@ public class OverdueServiceImpl implements OverdueService {
         }
 
         // BR18.2: Tra cứu chính sách có cấu hình và ngày hiệu lực rõ ràng
-        StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
-        UUID facilityId = (unit != null) ? unit.getFacilityId() : null;
-
-        RentalPolicy policy = null;
-        if (facilityId != null) {
-            policy = rentalPolicyRepository
-                    .findFirstByFacilityIdAndStatusOrderByEffectiveFromDesc(facilityId, "ACTIVE")
-                    .orElse(null);
-        }
-        if (policy == null) {
-            policy = rentalPolicyRepository
-                    .findFirstByFacilityIdIsNullAndStatusOrderByEffectiveFromDesc("ACTIVE")
-                    .orElseGet(() -> rentalPolicyRepository
-                            .findFirstByStatusOrderByEffectiveFromDesc("ACTIVE")
-                            .orElse(null));
-        }
-
-        int graceDays = (policy != null && policy.getOverdueGraceDays() != null) ? policy.getOverdueGraceDays() : 0;
-        int billableDays = Math.max(0, overdueDays - graceDays);
-
-        BigDecimal dailyPenaltyRate = (policy != null && policy.getDailyPenaltyRate() != null)
-                ? policy.getDailyPenaltyRate()
-                : new BigDecimal("0.05"); // 5%/ngày
+        RentalPolicy policy = requireApplicablePolicy(facilityId, date);
+        int graceDays = policy.getOverdueGraceDays();
+        LocalDate chargeFrom = contract.getEndDate().plusDays(graceDays);
+        List<ContractPenalty> priorPeriods = contractPenaltyRepository.findByContractIdOrderByPeriodDateDesc(contractId);
+        if (!priorPeriods.isEmpty() && priorPeriods.get(0).getPeriodDate().isAfter(chargeFrom))
+            chargeFrom = priorPeriods.get(0).getPeriodDate();
+        if (chargeFrom.isAfter(date))
+            throw new BusinessException(HttpStatus.CONFLICT, "Đã có kỳ phí phát sinh sau ngày tính phí này.");
+        int billableDays = (int) ChronoUnit.DAYS.between(chargeFrom, date);
+        BigDecimal dailyPenaltyRate = policy.getDailyPenaltyRate();
 
         BigDecimal monthlyFee = contract.getMonthlyRentalFee() != null ? contract.getMonthlyRentalFee() : BigDecimal.ZERO;
         BigDecimal dailyRate = monthlyFee.divide(BigDecimal.valueOf(30), 2, RoundingMode.HALF_UP);
 
         BigDecimal penaltyAmount = BigDecimal.ZERO;
         if (billableDays > 0) {
-            String pType = (policy != null && policy.getPenaltyType() != null) ? policy.getPenaltyType() : "PERCENT_DAILY";
-            if ("FIXED_DAILY".equalsIgnoreCase(pType) && policy.getFixedPenaltyAmount() != null) {
+            String pType = policy.getPenaltyType();
+            if ("FIXED_DAILY".equalsIgnoreCase(pType)) {
                 penaltyAmount = policy.getFixedPenaltyAmount().multiply(BigDecimal.valueOf(billableDays));
             } else {
                 penaltyAmount = dailyRate.multiply(BigDecimal.valueOf(billableDays))
@@ -266,7 +245,7 @@ public class OverdueServiceImpl implements OverdueService {
         // BR18.3: Tạo log giải thích cách tính minh bạch
         String rateText = dailyPenaltyRate.multiply(BigDecimal.valueOf(100)).stripTrailingZeros().toPlainString() + "%";
         String explanation = String.format(
-                "Đơn giá thuê: %,d đ/tháng (~%,.0f đ/ngày). Quá hạn %d ngày (Ân hạn: %d ngày -> Tính phí: %d ngày). "
+                "Đơn giá thuê: %,d đ/tháng (~%,.0f đ/ngày). Quá hạn %d ngày (Ân hạn: %d ngày -> Kỳ này tính phí: %d ngày). "
                         + "Chính sách áp dụng: %s/ngày theo quy định cơ sở. Tổng phí phạt = %,.0f đ.",
                 monthlyFee.longValue(),
                 dailyRate.doubleValue(),
@@ -296,7 +275,7 @@ public class OverdueServiceImpl implements OverdueService {
         // Tạo bản ghi CONTRACT_PENALTIES
         ContractPenalty penalty = new ContractPenalty();
         penalty.setContractId(contractId);
-        penalty.setPolicyId(policy != null ? policy.getPolicyId() : null);
+        penalty.setPolicyId(policy.getPolicyId());
         penalty.setInvoiceId(savedInvoice.invoiceId);
         penalty.setPeriodDate(date);
         penalty.setOverdueDays(overdueDays);
@@ -312,12 +291,6 @@ public class OverdueServiceImpl implements OverdueService {
 
         ContractPenalty savedPenalty = contractPenaltyRepository.saveAndFlush(penalty);
 
-        // Cập nhật trạng thái hợp đồng thành OVERDUE nếu chưa cập nhật
-        if (!"OVERDUE".equalsIgnoreCase(contract.getStatus()) && !"TERMINATED".equalsIgnoreCase(contract.getStatus())) {
-            contract.setStatus("OVERDUE");
-            rentalContractRepository.save(contract);
-        }
-
         return mapToPenaltyDetailResponse(savedPenalty, contract.getContractNumber());
     }
 
@@ -328,9 +301,15 @@ public class OverdueServiceImpl implements OverdueService {
     @Transactional
     public int batchCalculateOverdueFeesForFacility(UUID managerUserId, UUID facilityId, LocalDate targetDate) {
         LocalDate date = (targetDate != null) ? targetDate : LocalDate.now(VIETNAM_ZONE);
-        List<RentalContract> contracts = (facilityId != null)
+        requireRole(managerUserId, "FACILITY_MANAGER");
+        List<UUID> allowed = userFacilityAssignmentRepository.findActiveFacilityIds(managerUserId, LocalDate.now(VIETNAM_ZONE));
+        if (facilityId != null && !allowed.contains(facilityId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền quản lý tại cơ sở này");
+        }
+        if (allowed.isEmpty()) return 0;
+        List<RentalContract> contracts = facilityId != null
                 ? rentalContractRepository.findByFacilityId(facilityId)
-                : rentalContractRepository.findAll();
+                : rentalContractRepository.findByFacilityIds(allowed);
 
         int count = 0;
         for (RentalContract c : contracts) {
@@ -361,20 +340,7 @@ public class OverdueServiceImpl implements OverdueService {
         RentalContract contract = rentalContractRepository.findByContractId(penalty.getContractId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng liên quan"));
 
-        // Kiểm tra quyền quản lý tại cơ sở (BR18.4)
-        LocalDate today = LocalDate.now(VIETNAM_ZONE);
-        User user = userRepository.findById(managerUserId).orElse(null);
-        boolean isAdmin = user != null && user.getRole() != null
-                && "SYSTEM_ADMIN".equalsIgnoreCase(user.getRole().getRoleName());
-
-        if (!isAdmin) {
-            StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
-            UUID facilityId = (unit != null) ? unit.getFacilityId() : null;
-            List<UUID> assigned = userFacilityAssignmentRepository.findActiveFacilityIds(managerUserId, today);
-            if (facilityId != null && !assigned.contains(facilityId)) {
-                throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền điều chỉnh công nợ tại cơ sở này");
-            }
-        }
+        requireManagerScope(managerUserId, contract);
 
         BigDecimal originalAmount = penalty.getPenaltyAmount();
         BigDecimal newAmount = request.getAdjustedAmount();
@@ -434,6 +400,25 @@ public class OverdueServiceImpl implements OverdueService {
         RentalContract contract = rentalContractRepository.findByContractId(penalty.getContractId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng liên quan"));
 
+        String role = actorRole(currentUserId);
+        boolean isCashCollection = "CASH".equalsIgnoreCase(request.getPaymentMethod());
+        if ("CUSTOMER".equals(role)) {
+            if (!currentUserId.equals(contract.getCustomerId()) || isCashCollection) {
+                throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ khách hàng của hợp đồng được gửi khoản thanh toán không dùng tiền mặt.");
+            }
+        } else if ("FACILITY_MANAGER".equals(role) && isCashCollection) {
+            requireManagerScope(currentUserId, contract);
+        } else {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền ghi nhận khoản phí này.");
+        }
+
+        if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
+            Optional<PaymentTransaction> existingTx = paymentTransactionRepository.findByCreatedByAndIdempotencyKey(currentUserId, request.getIdempotencyKey());
+            if (existingTx.isPresent()) {
+                return mapToPenaltyDetailResponse(penalty, contract.getContractNumber());
+            }
+        }
+
         if ("PAID".equalsIgnoreCase(penalty.getStatus()) || "ADJUSTED".equalsIgnoreCase(penalty.getStatus())) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Khoản phí phạt này đã được thanh toán hoặc điều chỉnh miễn giảm.");
         }
@@ -448,8 +433,6 @@ public class OverdueServiceImpl implements OverdueService {
                     String.format("Số tiền thanh toán (%,.0f đ) vượt quá số nợ còn lại (%,.0f đ)",
                             request.getAmount().doubleValue(), remaining.doubleValue()));
         }
-
-        boolean isCashCollection = "CASH".equalsIgnoreCase(request.getPaymentMethod());
 
         // Nếu quản lý thu tiền mặt trực tiếp tại quầy -> Xác nhận ngay
         if (isCashCollection) {
@@ -516,20 +499,7 @@ public class OverdueServiceImpl implements OverdueService {
         RentalContract contract = rentalContractRepository.findByContractId(penalty.getContractId())
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng liên quan"));
 
-        // Kiểm tra quyền cơ sở phụ trách (BR18.4)
-        LocalDate today = LocalDate.now(VIETNAM_ZONE);
-        User user = userRepository.findById(managerUserId).orElse(null);
-        boolean isAdmin = user != null && user.getRole() != null
-                && "SYSTEM_ADMIN".equalsIgnoreCase(user.getRole().getRoleName());
-
-        if (!isAdmin) {
-            StorageUnit unit = storageUnitRepository.findById(contract.getUnitId()).orElse(null);
-            UUID facilityId = (unit != null) ? unit.getFacilityId() : null;
-            List<UUID> assigned = userFacilityAssignmentRepository.findActiveFacilityIds(managerUserId, today);
-            if (facilityId != null && !assigned.contains(facilityId)) {
-                throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền duyệt thanh toán tại cơ sở này");
-            }
-        }
+        requireManagerScope(managerUserId, contract);
 
         if (!"PENDING_APPROVAL".equalsIgnoreCase(penalty.getStatus())) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Khoản phí phạt này không ở trạng thái chờ duyệt thanh toán.");
@@ -590,6 +560,57 @@ public class OverdueServiceImpl implements OverdueService {
     }
 
 
+    private String actorRole(UUID actorId) {
+        if (actorId == null) throw new BusinessException(HttpStatus.UNAUTHORIZED, "Phiên đăng nhập không hợp lệ");
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Không xác định người dùng"));
+        if (!"ACTIVE".equalsIgnoreCase(actor.getStatus()) || actor.getRole() == null) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Tài khoản không hoạt động hoặc không có vai trò.");
+        }
+        return actor.getRole().getRoleName();
+    }
+
+    private void requireRole(UUID actorId, String role) {
+        if (!role.equals(actorRole(actorId))) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Vai trò không được phép thực hiện nghiệp vụ này.");
+        }
+    }
+
+    private UUID requireManagerScope(UUID managerId, RentalContract contract) {
+        requireRole(managerId, "FACILITY_MANAGER");
+        StorageUnit unit = storageUnitRepository.findById(contract.getUnitId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Hợp đồng không có kho hợp lệ."));
+        UUID facilityId = unit.getFacilityId();
+        if (facilityId == null || !userFacilityAssignmentRepository.isUserAssignedToFacility(
+                managerId, facilityId, LocalDate.now(VIETNAM_ZONE))) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không quản lý cơ sở của hợp đồng này.");
+        }
+        return facilityId;
+    }
+
+    private RentalPolicy requireApplicablePolicy(UUID facilityId, LocalDate date) {
+        List<RentalPolicy> eligible = rentalPolicyRepository.findApplicableOverduePolicies(facilityId, date);
+        List<RentalPolicy> local = eligible.stream().filter(p -> facilityId.equals(p.getFacilityId())).toList();
+        List<RentalPolicy> chosen = local.isEmpty()
+                ? eligible.stream().filter(p -> p.getFacilityId() == null).toList() : local;
+        if (chosen.isEmpty()) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Không có chính sách phí quá hạn đã duyệt và có hiệu lực cho cơ sở/ngày này.");
+        }
+        if (chosen.size() != 1) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Nhiều chính sách phí quá hạn đã duyệt cùng có hiệu lực; cần xử lý xung đột.");
+        }
+        RentalPolicy policy = chosen.get(0);
+        boolean invalid = policy.getOverdueGraceDays() == null || policy.getOverdueGraceDays() < 0
+                || policy.getPenaltyType() == null
+                || !("PERCENT_DAILY".equalsIgnoreCase(policy.getPenaltyType())
+                        || "FIXED_DAILY".equalsIgnoreCase(policy.getPenaltyType()))
+                || policy.getDailyPenaltyRate() == null || policy.getDailyPenaltyRate().signum() < 0
+                || ("FIXED_DAILY".equalsIgnoreCase(policy.getPenaltyType())
+                        && (policy.getFixedPenaltyAmount() == null || policy.getFixedPenaltyAmount().signum() < 0));
+        if (invalid) throw new BusinessException(HttpStatus.CONFLICT, "Chính sách phí quá hạn có cấu hình không hợp lệ.");
+        return policy;
+    }
+
     // =========================================================================
     // Helper: BR18.1 Kiểm tra xem hợp đồng có thuộc diện quá hạn hay không
     // =========================================================================
@@ -601,23 +622,9 @@ public class OverdueServiceImpl implements OverdueService {
             return false;
         }
 
-        // Không áp dụng cho hợp đồng đã bị hủy trước khi chạy
-        if ("CANCELLED".equalsIgnoreCase(contract.getStatus())) {
+        // Only a rental that has started and remains open has an outstanding obligation.
+        if (!"ACTIVE".equalsIgnoreCase(contract.getStatus()) && !"OVERDUE".equalsIgnoreCase(contract.getStatus())) {
             return false;
-        }
-
-        // 2. Chưa có gia hạn hợp lệ (Renewals đang APPROVED chưa hết hạn hoặc COMPLETED)
-        List<Renewal> activeRenewals = renewalRepository.findByContractIdAndStatusIn(
-                contract.getContractId(), List.of("COMPLETED", "APPROVED"));
-        if (!activeRenewals.isEmpty()) {
-            boolean hasValidRenewal = activeRenewals.stream().anyMatch(r -> {
-                if ("COMPLETED".equalsIgnoreCase(r.getStatus())) return true;
-                if ("APPROVED".equalsIgnoreCase(r.getStatus())) {
-                    return r.getPaymentDeadline() == null || r.getPaymentDeadline().isAfter(LocalDateTime.now(VIETNAM_ZONE));
-                }
-                return false;
-            });
-            if (hasValidRenewal) return false;
         }
 
         // 3. Đã hoàn tất trả kho
@@ -640,18 +647,13 @@ public class OverdueServiceImpl implements OverdueService {
 
         RentalPolicy policy = null;
         if (facility != null) {
-            policy = rentalPolicyRepository
-                    .findFirstByFacilityIdAndStatusOrderByEffectiveFromDesc(facility.getFacilityId(), "ACTIVE")
-                    .orElse(null);
+            List<RentalPolicy> applicable = rentalPolicyRepository.findApplicableOverduePolicies(facility.getFacilityId(), today);
+            List<RentalPolicy> local = applicable.stream().filter(p -> facility.getFacilityId().equals(p.getFacilityId())).toList();
+            List<RentalPolicy> selected = local.isEmpty() ? applicable.stream().filter(p -> p.getFacilityId() == null).toList() : local;
+            if (selected.size() == 1) policy = selected.get(0);
         }
-        if (policy == null) {
-            policy = rentalPolicyRepository
-                    .findFirstByStatusOrderByEffectiveFromDesc("ACTIVE")
-                    .orElse(null);
-        }
-
-        int graceDays = (policy != null && policy.getOverdueGraceDays() != null) ? policy.getOverdueGraceDays() : 0;
-        int billableDays = Math.max(0, overdueDays - graceDays);
+        Integer graceDays = policy == null ? null : policy.getOverdueGraceDays();
+        Integer billableDays = graceDays == null ? null : Math.max(0, overdueDays - graceDays);
 
         BigDecimal monthlyFee = contract.getMonthlyRentalFee() != null ? contract.getMonthlyRentalFee() : BigDecimal.ZERO;
         BigDecimal dailyRent = monthlyFee.divide(BigDecimal.valueOf(30), 2, RoundingMode.HALF_UP);
@@ -662,7 +664,8 @@ public class OverdueServiceImpl implements OverdueService {
                 .toList();
 
         BigDecimal totalPenaltyDebt = penalties.stream()
-                .filter(p -> "UNPAID".equalsIgnoreCase(p.getStatus()) || "PARTIAL".equalsIgnoreCase(p.getStatus()))
+                .filter(p -> "UNPAID".equalsIgnoreCase(p.getStatus()) || "PARTIAL".equalsIgnoreCase(p.getStatus())
+                        || "PENDING_APPROVAL".equalsIgnoreCase(p.getStatus()))
                 .map(p -> p.getPenaltyAmount().subtract(p.getPaidAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -690,13 +693,14 @@ public class OverdueServiceImpl implements OverdueService {
                 overdueDays,
                 graceDays,
                 billableDays,
-                true,
-                false,
-                false,
+                isContractEligibleForOverdue(contract, today),
+                !renewalRepository.findByContractIdAndStatusIn(contract.getContractId(), List.of("PENDING", "APPROVED")).isEmpty(),
+                handoverRecordRepository.findFirstByContractIdAndHandoverTypeAndStatus(contract.getContractId(), "RETURN", "COMPLETED").isPresent(),
                 totalPenaltyDebt,
                 totalPenaltyPaid,
                 contract.getStatus(),
-                penaltyDetails
+                penaltyDetails,
+                overdueDays >= 30 && isContractEligibleForOverdue(contract, today)
         );
     }
 

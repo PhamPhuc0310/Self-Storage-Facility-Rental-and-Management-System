@@ -286,10 +286,10 @@ class UC20ReturnCompletionTest {
 
         assertNotNull(res);
         assertEquals("COMPLETED", res.contractStatus());
-        assertEquals("AVAILABLE", res.unitStatus());
+        assertEquals("INACTIVE", res.unitStatus());
         assertEquals(contractId, res.contractId());
 
-        verify(storageUnitRepository).save(argThat(u -> "AVAILABLE".equals(u.getStatus())));
+        verify(storageUnitRepository).save(argThat(u -> "INACTIVE".equals(u.getStatus())));
         verify(rentalContractRepository).save(argThat(c -> "COMPLETED".equals(c.getStatus()) && c.getActualEndDate() != null));
         verify(activityLogRepository).save(any(ActivityLog.class));
     }

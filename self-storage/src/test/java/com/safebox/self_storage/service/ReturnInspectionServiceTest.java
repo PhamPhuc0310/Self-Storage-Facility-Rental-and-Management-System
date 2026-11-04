@@ -46,6 +46,9 @@ class ReturnInspectionServiceTest {
     @Mock private UserFacilityAssignmentRepository userFacilityAssignmentRepository;
     @Mock private InvoiceRepository invoiceRepository;
     @Mock private TerminationRequestRepository terminationRequestRepository;
+    @Mock private PickupAppointmentRepository pickupAppointmentRepository;
+    @Mock private StaffRegionAssignmentRepository staffRegionAssignmentRepository;
+    @Mock private ActivityLogRepository activityLogRepository;
 
     @InjectMocks
     private ReturnInspectionServiceImpl returnInspectionService;
@@ -77,6 +80,8 @@ class ReturnInspectionServiceTest {
         unitId = UUID.randomUUID();
         facilityId = UUID.randomUUID();
         handoverId = UUID.randomUUID();
+        lenient().when(handoverRecordRepository.findFirstByContractIdAndHandoverTypeAndStatus(contractId, "RETURN", "COMPLETED"))
+                .thenReturn(Optional.empty());
 
         Role customerRole = new Role();
         customerRole.setRoleId(1);
@@ -138,6 +143,7 @@ class ReturnInspectionServiceTest {
         contract.setMonthlyRentalFee(new BigDecimal("1500000.00"));
         contract.setDepositAmount(new BigDecimal("1500000.00"));
         contract.setStatus("ACTIVE");
+        lenient().when(rentalContractRepository.lockById(contractId)).thenReturn(Optional.of(contract));
 
         scheduledHandover = new HandoverRecord();
         scheduledHandover.setHandoverId(handoverId);
@@ -179,6 +185,21 @@ class ReturnInspectionServiceTest {
     }
 
     @Test
+    void customerCanReadReturnAppointmentBeforeStaffAssignment() {
+        scheduledHandover.setStaffId(null);
+        when(handoverRecordRepository.findById(handoverId)).thenReturn(Optional.of(scheduledHandover));
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+
+        var detail = returnInspectionService.getReturnInspectionDetail(customerId, handoverId);
+
+        assertNull(detail.inspectorId());
+        assertEquals("Chưa phân công", detail.inspectorName());
+        verify(userRepository, never()).findById(isNull());
+    }
+
+    @Test
     @DisplayName("BR16.1, BR16.2: Đặt lịch trả kho thành công khi đúng hạn và trong giờ hoạt động")
     void testScheduleReturnAppointment_Success() {
         LocalDateTime apptTime = LocalDateTime.of(contract.getEndDate(), LocalTime.of(10, 0));
@@ -190,23 +211,106 @@ class ReturnInspectionServiceTest {
                 .thenReturn(Optional.empty());
         when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
         when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
-        when(userFacilityAssignmentRepository.findActiveUserIdsByFacility(eq(facilityId), any(LocalDate.class)))
-                .thenReturn(List.of(staffId));
         when(handoverRecordRepository.save(any(HandoverRecord.class))).thenAnswer(invocation -> {
             HandoverRecord ho = invocation.getArgument(0);
             ho.setHandoverId(UUID.randomUUID());
             return ho;
         });
-        when(userRepository.findById(staffId)).thenReturn(Optional.of(staff));
 
         ReturnScheduleResponse response = returnInspectionService.scheduleReturnAppointment(customerId, contractId, request);
 
         assertNotNull(response);
         assertEquals(contractId, response.contractId());
         assertEquals("SCHEDULED", response.status());
+        assertNull(response.staffId());
         assertEquals(apptTime, response.scheduledAt());
         assertEquals("SafeBox Quận 7", response.facilityName());
         verify(handoverRecordRepository).save(any(HandoverRecord.class));
+    }
+
+    @Test
+    void expiredRentalCanScheduleFutureReturnWithoutChangingContractEnd() {
+        LocalDate originalEnd = LocalDate.now(VIETNAM_ZONE).minusDays(4);
+        contract.setEndDate(originalEnd);
+        LocalDateTime appointment = LocalDate.now(VIETNAM_ZONE).plusDays(1).atTime(10, 0);
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(handoverRecordRepository.save(any(HandoverRecord.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var response = returnInspectionService.scheduleReturnAppointment(customerId, contractId,
+                new CreateReturnScheduleRequest(contractId, appointment, "", true, true));
+        assertEquals("SCHEDULED", response.status());
+        assertNull(response.staffId());
+        assertEquals(originalEnd, contract.getEndDate());
+        assertEquals("OCCUPIED", storageUnit.getStatus());
+    }
+
+    @Test
+    void managerAssignsRegionEligibleStaffOnce() {
+        scheduledHandover.setStaffId(null);
+        manager.setStatus("ACTIVE");
+        facility.setRegionCode("Q7");
+        StaffRegionAssignment region = new StaffRegionAssignment();
+        region.setRegionCode("Q7");
+        when(handoverRecordRepository.lockById(handoverId)).thenReturn(Optional.of(scheduledHandover));
+        when(userRepository.findById(managerId)).thenReturn(Optional.of(manager));
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(userFacilityAssignmentRepository.isUserAssignedToFacility(eq(managerId), eq(facilityId), any(LocalDate.class))).thenReturn(true);
+        when(userRepository.lockById(staffId)).thenReturn(Optional.of(staff));
+        when(userFacilityAssignmentRepository.isUserAssignedToFacility(eq(staffId), eq(facilityId), any(LocalDate.class))).thenReturn(true);
+        when(staffRegionAssignmentRepository.findByUserIdAndStatus(staffId, "ACTIVE")).thenReturn(List.of(region));
+        when(pickupAppointmentRepository.findStaffOverlapping(eq(staffId), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
+        when(handoverRecordRepository.findScheduledReturnConflicts(eq(staffId), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
+        when(handoverRecordRepository.saveAndFlush(any(HandoverRecord.class))).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.findById(staffId)).thenReturn(Optional.of(staff));
+
+        ReturnScheduleResponse first = returnInspectionService.assignReturnStaff(managerId, handoverId, staffId);
+        ReturnScheduleResponse repeat = returnInspectionService.assignReturnStaff(managerId, handoverId, staffId);
+
+        assertEquals(staffId, first.staffId());
+        assertEquals(staffId, repeat.staffId());
+        verify(handoverRecordRepository, times(1)).saveAndFlush(scheduledHandover);
+        verify(activityLogRepository, times(1)).save(any(ActivityLog.class));
+    }
+
+    @Test
+    void crossFacilityManagerCannotAssignReturn() {
+        manager.setStatus("ACTIVE");
+        facility.setRegionCode("Q7");
+        when(handoverRecordRepository.lockById(handoverId)).thenReturn(Optional.of(scheduledHandover));
+        when(userRepository.findById(managerId)).thenReturn(Optional.of(manager));
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(userFacilityAssignmentRepository.isUserAssignedToFacility(eq(managerId), eq(facilityId), any(LocalDate.class))).thenReturn(false);
+
+        BusinessException error = assertThrows(BusinessException.class,
+                () -> returnInspectionService.assignReturnStaff(managerId, handoverId, staffId));
+        assertEquals(HttpStatus.FORBIDDEN, error.status());
+        verify(handoverRecordRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void managerCannotAssignStaffOutsideRegion() {
+        scheduledHandover.setStaffId(null);
+        manager.setStatus("ACTIVE");
+        facility.setRegionCode("Q7");
+        when(handoverRecordRepository.lockById(handoverId)).thenReturn(Optional.of(scheduledHandover));
+        when(userRepository.findById(managerId)).thenReturn(Optional.of(manager));
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(userFacilityAssignmentRepository.isUserAssignedToFacility(eq(managerId), eq(facilityId), any(LocalDate.class))).thenReturn(true);
+        when(userRepository.lockById(staffId)).thenReturn(Optional.of(staff));
+        when(userFacilityAssignmentRepository.isUserAssignedToFacility(eq(staffId), eq(facilityId), any(LocalDate.class))).thenReturn(true);
+        when(staffRegionAssignmentRepository.findByUserIdAndStatus(staffId, "ACTIVE")).thenReturn(List.of());
+
+        BusinessException error = assertThrows(BusinessException.class,
+                () -> returnInspectionService.assignReturnStaff(managerId, handoverId, staffId));
+        assertEquals(HttpStatus.CONFLICT, error.status());
+        verify(handoverRecordRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -240,7 +344,7 @@ class ReturnInspectionServiceTest {
                 returnInspectionService.scheduleReturnAppointment(customerId, contractId, request));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.status());
-        assertTrue(ex.getMessage().contains("ACTIVE"));
+        assertTrue(ex.getMessage().contains("đang hoạt động"));
     }
 
     @Test
@@ -315,7 +419,7 @@ class ReturnInspectionServiceTest {
                 returnInspectionService.scheduleReturnAppointment(customerId, contractId, request));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.status());
-        assertTrue(ex.getMessage().contains("mở cửa"));
+        assertTrue(ex.getMessage().contains("06:00–23:00"));
     }
 
     // =========================================================================
@@ -421,6 +525,7 @@ class ReturnInspectionServiceTest {
     @Test
     @DisplayName("BR16.5, BR16.7, BR16.8, BR16.9, BR16.10: Hoàn tất nhận lại kho đạt chuẩn -> AVAILABLE & RETURNED")
     void testCompleteReturnInspection_SuccessGoodCondition() {
+        scheduledHandover.setScheduledAt(LocalDateTime.now(VIETNAM_ZONE).minusMinutes(1));
         CompleteReturnInspectionRequest request = new CompleteReturnInspectionRequest();
         request.setHandoverId(handoverId);
         request.setLeftoverItems(false);
@@ -459,7 +564,8 @@ class ReturnInspectionServiceTest {
         assertNotNull(response);
         assertEquals("COMPLETED", response.handoverStatus());
         assertEquals("RETURNED", response.contractStatus());
-        assertEquals("AVAILABLE", response.unitStatus()); // BR16.7
+        assertEquals("INACTIVE", response.unitStatus());
+        assertFalse(storageUnit.isReadinessVerified());
         assertEquals("GOOD", response.conditionStatus());
         assertFalse(response.financialObligationsSettled()); // BR16.9: Not closed, deposit held
         assertNotNull(response.financialStatusNotes());
@@ -473,6 +579,7 @@ class ReturnInspectionServiceTest {
     @Test
     @DisplayName("BR16.7: Khi kho bị hỏng (conditionStatus = DAMAGED, repairCost > 0) -> MAINTENANCE & RETURNED")
     void testCompleteReturnInspection_SuccessDamagedCondition() {
+        scheduledHandover.setScheduledAt(LocalDateTime.now(VIETNAM_ZONE).minusMinutes(1));
         CompleteReturnInspectionRequest request = new CompleteReturnInspectionRequest();
         request.setHandoverId(handoverId);
         request.setLeftoverItems(false);

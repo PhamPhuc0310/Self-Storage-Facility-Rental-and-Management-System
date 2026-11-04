@@ -1,4 +1,10 @@
 ﻿(function () {
+  if (document.querySelector && document.createElement && document.head &&
+      !document.querySelector('link[href="/css/safebox-shared.css"]')) {
+    const shared = document.createElement('link');
+    shared.rel = 'stylesheet'; shared.href = '/css/safebox-shared.css';
+    document.head.append(shared);
+  }
   const loginPath = '/stitch/ng_nh_p_ng_k_safebox_storage.html';
   const destinations = {
     CUSTOMER: '/stitch/kho_dang_thue_safebox_storage.html',
@@ -51,7 +57,9 @@
     headers.set('Authorization', 'Bearer ' + token);
     const response = await fetch(url, { ...options, headers });
     if (response.status === 401) { clearAuth(); location.replace(loginPath); throw new Error('Unauthorized'); }
-    if (response.status === 403) { deny(); throw new Error('Forbidden'); }
+    // A forbidden API action may be caused by facility scope or record ownership.
+    // Let the calling page explain that action without destroying its navigation.
+    if (response.status === 403) return response;
     return response;
   }
   async function requireRole(...roles) {

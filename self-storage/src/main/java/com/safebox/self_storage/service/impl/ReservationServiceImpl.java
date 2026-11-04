@@ -98,11 +98,14 @@ public class ReservationServiceImpl implements ReservationService {
         if (startDate == null) {
             throw new IllegalArgumentException("Ngày bắt đầu thuê không được để trống");
         }
-        if (startDate.isBefore(LocalDate.now())) {
+        if (startDate.isBefore(LocalDate.now(com.safebox.self_storage.service.Sprint2Access.ZONE))) {
             throw new IllegalArgumentException("Ngày bắt đầu thuê không được trong quá khứ");
         }
 
         int months = (request.months() != null && request.months() > 0) ? request.months() : 1;
+        if (months > 36) {
+            throw new IllegalArgumentException("Thời gian thuê tối đa 36 tháng");
+        }
         LocalDate endDate = (request.endDate() != null) ? request.endDate() : startDate.plusMonths(months);
 
         if (endDate.isBefore(startDate)) {
@@ -114,7 +117,23 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         // Bước 5: Kiểm tra số lượng ô kho còn trống (StorageUnit với trạng thái AVAILABLE)
-        long availableUnits = storageUnitRepository.countAvailableUnitsByFacilityAndType(request.facilityId(), request.typeId());
+        // Serialize type-level holds for this facility. Approval still locks the physical unit.
+        facilityRepository.lockById(request.facilityId())
+                .orElseThrow(() -> new NoSuchElementException("Cơ sở không tồn tại"));
+        List<Reservation> existing = reservationRepository.findActiveExactRequest(customerId,
+                request.facilityId(), request.typeId(), startDate, endDate);
+        if (existing != null) {
+            for (Reservation previous : existing) {
+                if ("CONFIRMED".equals(previous.getStatus()) || previous.getHoldExpiresAt() == null
+                        || previous.getHoldExpiresAt().isAfter(LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE))) {
+                    return toResponse(previous);
+                }
+            }
+        }
+        long availableUnits = storageUnitRepository.countReadyAvailable(request.facilityId(), request.typeId())
+                - storageUnitRepository.countContractedAvailable(request.facilityId(), request.typeId(), startDate, endDate)
+                - reservationRepository.countActivePendingOverlapping(request.facilityId(), request.typeId(), startDate, endDate,
+                        LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE));
         if (availableUnits <= 0) {
             throw new IllegalStateException("Hiện không còn ô kho trống cho loại kho này tại cơ sở đã chọn");
         }
@@ -122,6 +141,7 @@ public class ReservationServiceImpl implements ReservationService {
         // Bước 6: Tra cứu bảng giá có hiệu lực tại ngày thuê
         List<PricingPolicy> policies = pricingPolicyRepository.findByFacilityIdAndStatus(request.facilityId(), "ACTIVE");
         PricingPolicy policy = CurrentPricing.forType(policies, request.typeId(), startDate)
+                .filter(p -> p.getMonthlyPrice()!=null && p.getMonthlyPrice().signum()>0)
                 .orElseThrow(() -> new NoSuchElementException("Cơ sở chưa có bảng giá đang hiệu lực cho loại kho này"));
 
         BigDecimal monthlyPrice = policy.getMonthlyPrice();
@@ -135,7 +155,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .findFirstByFacilityIdAndStatusOrderByEffectiveFromDesc(request.facilityId(), "ACTIVE")
                 .map(RentalPolicy::getReservationHoldMinutes)
                 .orElse(1440); // Mặc định giữ chỗ trong 24 giờ (1440 phút)
-        LocalDateTime holdExpiresAt = LocalDateTime.now().plusMinutes(holdMinutes);
+        LocalDateTime holdExpiresAt = LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE).plusMinutes(holdMinutes);
 
         // Bước 8: Khởi tạo và lưu thực thể Reservation
         Reservation reservation = new Reservation();
@@ -151,7 +171,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setQuotedMonthlyPrice(monthlyPrice);
         reservation.setPricingVersion("v2");
         reservation.setStatus("PENDING");
-        reservation.setCreatedAt(LocalDateTime.now());
+        reservation.setCreatedAt(LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE));
 
         Reservation saved = reservationRepository.save(reservation);
 
@@ -238,7 +258,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         reservation.setStatus("CANCELLED");
-        reservation.setCancelledAt(LocalDateTime.now());
+        reservation.setCancelledAt(LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE));
         String reason = (request != null && request.cancellationReason() != null && !request.cancellationReason().isBlank())
                 ? request.cancellationReason().trim()
                 : "Khách hàng yêu cầu hủy";

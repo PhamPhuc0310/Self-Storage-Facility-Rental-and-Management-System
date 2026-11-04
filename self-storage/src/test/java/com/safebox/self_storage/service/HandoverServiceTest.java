@@ -84,4 +84,18 @@ class HandoverServiceTest {
         assertEquals(409, error.status().value());
         verify(handovers, never()).saveAndFlush(any());
     }
+    @Test void staffCannotCompleteHandoverBeforeScheduledTime() {
+        LocalDateTime now=LocalDateTime.of(2026,10,19,7,0);
+        PickupAppointment appointment=new PickupAppointment();appointment.appointmentTime=now.plusHours(1);
+        appointment.facilityId=facilityId;appointment.assignedStaffId=staffId;appointment.status="SCHEDULED";
+        when(access.contract(contractId,true)).thenReturn(contract);
+        when(access.role()).thenReturn("FACILITY_STAFF");when(access.currentId()).thenReturn(staffId);
+        when(access.facilityId(contract)).thenReturn(facilityId);when(access.now()).thenReturn(now);
+        when(appointments.findFirstByContractIdAndStatus(contractId,"SCHEDULED")).thenReturn(Optional.of(appointment));
+        PaymentService.Component paid=new PaymentService.Component(BigDecimal.ONE,BigDecimal.ONE,BigDecimal.ZERO,"PAID");
+        when(payments.summary(contractId)).thenReturn(new PaymentService.Summary(contractId,paid,paid,true));
+        BusinessException error=assertThrows(BusinessException.class,()->service.complete(contractId,
+                new HandoverRequest("GOOD","PIN","1234","Customer","Staff",null,null,null,BigDecimal.ZERO)));
+        assertEquals(409,error.status().value());verifyNoInteractions(units,inspections,contracts);
+    }
 }

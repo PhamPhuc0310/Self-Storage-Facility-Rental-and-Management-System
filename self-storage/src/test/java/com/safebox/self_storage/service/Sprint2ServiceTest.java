@@ -21,7 +21,9 @@ class Sprint2ServiceTest {
     @Mock PaymentTransactionRepository paymentRepository;
     @Mock InvoiceRepository invoices;
     @Mock DepositRefundRepository refunds;
+    @Mock ActivityLogRepository activityLogs;
     @Mock PickupAppointmentRepository appointmentRepository;
+    @Mock HandoverRecordRepository handoverRepository;
     @Mock RentalContractRepository contracts;
     @Mock FacilityRepository facilities;
     @Mock StorageUnitRepository units;
@@ -34,8 +36,8 @@ class Sprint2ServiceTest {
     LocalDateTime now = LocalDateTime.of(2026, 10, 11, 8, 0);
 
     @BeforeEach void setup() {
-        payments = new PaymentService(access, paymentRepository, invoices, appointmentRepository, refunds);
-        appointments = new AppointmentService(access, appointmentRepository, contracts, facilities, units, users, assignments, invoices, payments);
+        payments = new PaymentService(access, paymentRepository, invoices, appointmentRepository, refunds, activityLogs);
+        appointments = new AppointmentService(access, appointmentRepository, handoverRepository, contracts, facilities, units, users, assignments, invoices, payments);
         contract = new RentalContract(); contract.contractId = contractId; contract.customerId = customerId;
         contract.unitId = UUID.randomUUID(); contract.status = "CONFIRMED";
         contract.startDate = LocalDate.of(2026,10,11); contract.endDate = LocalDate.of(2027,4,11);
@@ -60,7 +62,7 @@ class Sprint2ServiceTest {
         paymentSetup();
         PaymentRequest request = new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "same-key");
         PaymentTransaction created = payments.pay(contractId, request);
-        assertEquals("SUCCESS", created.status);
+        assertEquals("PENDING", created.status);
         when(paymentRepository.findByCreatedByAndIdempotencyKey(customerId,"same-key")).thenReturn(Optional.of(created));
         assertSame(created, payments.pay(contractId, request));
         verify(paymentRepository, times(1)).saveAndFlush(any());
@@ -95,7 +97,7 @@ class Sprint2ServiceTest {
                 .thenReturn(List.of(legacy));
         PaymentTransaction paid = payments.pay(contractId,
                 new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "v2-deposit"));
-        assertEquals("SUCCESS", paid.status);
+        assertEquals("PENDING", paid.status);
         assertEquals("DEPOSIT", paid.paymentType);
         verify(paymentRepository).findByInvoiceIdIn(Set.of(legacy.invoiceId));
     }
@@ -122,7 +124,7 @@ class Sprint2ServiceTest {
         otherLegacy.paidAmount = new BigDecimal("2000000");
         when(invoices.findByContractIdAndInvoiceType(any(UUID.class), eq("INITIAL_PAYMENT")))
                 .thenAnswer(call -> otherContractId.equals(call.getArgument(0)) ? List.of(otherLegacy) : List.of());
-        assertEquals("SUCCESS", payments.pay(contractId,
+        assertEquals("PENDING", payments.pay(contractId,
                 new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "isolated-key")).status);
         verify(invoices).findByContractIdAndInvoiceType(contractId, "INITIAL_PAYMENT");
         verify(invoices, never()).findByContractIdAndInvoiceType(otherContractId, "INITIAL_PAYMENT");
@@ -135,17 +137,17 @@ class Sprint2ServiceTest {
     }
     @Test void customerDepositIsProcessedByBackendWithoutStaff() {
         paymentSetup();
-        assertEquals(403, assertThrows(BusinessException.class, () -> payments.pay(contractId,
-                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "CASH", "cash-key"))).status().value());
+        assertEquals("PENDING", payments.pay(contractId,
+                new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "CASH", "cash-key")).status);
         assertEquals(403, assertThrows(BusinessException.class, () -> payments.pay(contractId,
                 new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "DEMO_ONLINE_PAYMENT", "demo-key"))).status().value());
         assertEquals(403, assertThrows(BusinessException.class, () -> payments.pay(contractId,
                 new PaymentRequest("INITIAL_RENT", new BigDecimal("1000000"), "BANK_TRANSFER", "rent-key"))).status().value());
         PaymentTransaction paid = payments.pay(contractId,
                 new PaymentRequest("DEPOSIT", new BigDecimal("1000000"), "BANK_TRANSFER", "bank-key"));
-        assertEquals("SUCCESS", paid.status);
+        assertEquals("PENDING", paid.status);
         assertEquals(new BigDecimal("2000000"), payments.calculate(contract).deposit().remainingAmount());
-        verify(invoices).save(any());
+        verify(invoices, never()).save(any());
     }
     @Test void onlySuccessfulTransactionsCountAndBothComponentsRequired() {
         PaymentTransaction success = new PaymentTransaction(); success.amount = new BigDecimal("1000000");
@@ -241,6 +243,7 @@ class Sprint2ServiceTest {
         transfer.paymentType = "REMAINING_RENT"; transfer.paymentMethod = "BANK_TRANSFER";
         transfer.status = "PENDING"; transfer.amount = new BigDecimal("1980000");
         Invoice invoice = new Invoice(); invoice.invoiceId = transfer.invoiceId;
+        invoice.contractId = contractId; invoice.invoiceType = "REMAINING_RENT"; invoice.status = "UNPAID";
         invoice.totalAmount = transfer.amount; invoice.paidAmount = BigDecimal.ZERO;
         when(access.contract(contractId,true)).thenReturn(contract);
         when(access.role()).thenReturn("FACILITY_STAFF");
@@ -269,8 +272,8 @@ class Sprint2ServiceTest {
         assertEquals(409, assertThrows(BusinessException.class, () -> appointments.create(contractId,request)).status().value());
         PaymentTransaction paid = new PaymentTransaction(); paid.amount = new BigDecimal("990000");
         when(paymentRepository.successful(contractId,"DEPOSIT")).thenReturn(List.of(paid));
-        Facility facility = new Facility(); facility.setOpeningTime(LocalTime.of(8,0)); facility.setClosingTime(LocalTime.of(17,0));
-        when(facilities.findById(facilityId)).thenReturn(Optional.of(facility));
+        Invoice deposit = new Invoice(); deposit.status = "PAID"; deposit.totalAmount = paid.amount; deposit.paidAmount = paid.amount;
+        when(invoices.findFirstByContractIdAndInvoiceType(contractId, "DEPOSIT")).thenReturn(Optional.of(deposit));
         when(appointmentRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         PickupAppointment created = appointments.create(contractId, request);
         assertEquals("SCHEDULED", created.status);
@@ -293,8 +296,6 @@ class Sprint2ServiceTest {
         when(access.contract(contractId,true)).thenReturn(contract);
         when(access.role()).thenReturn("CUSTOMER"); when(access.now()).thenReturn(now);
         when(access.facilityId(contract)).thenReturn(facilityId);
-        Facility facility = new Facility(); facility.setOpeningTime(LocalTime.of(8,0)); facility.setClosingTime(LocalTime.of(17,0));
-        when(facilities.findById(facilityId)).thenReturn(Optional.of(facility));
         when(appointmentRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         AppointmentRequest valid = new AppointmentRequest(OffsetDateTime.of(2026,10,12,9,0,0,0,ZoneOffset.ofHours(7)));
         assertEquals("SCHEDULED", appointments.create(contractId, valid).status);
@@ -304,6 +305,23 @@ class Sprint2ServiceTest {
         when(appointmentRepository.findFirstByContractIdAndStatus(contractId,"SCHEDULED"))
                 .thenReturn(Optional.of(new PickupAppointment()));
         assertEquals(409, assertThrows(BusinessException.class, () -> appointments.create(contractId, valid)).status().value());
+    }
+    @Test void pickupWindowFitsFullHourWithinSixToTwentyThree() {
+        when(access.contract(contractId, true)).thenReturn(contract);
+        when(access.role()).thenReturn("CUSTOMER");
+        when(access.now()).thenReturn(now);
+        when(access.facilityId(contract)).thenReturn(facilityId);
+        when(appointmentRepository.saveAndFlush(any())).thenAnswer(call -> call.getArgument(0));
+        for (String time : List.of("05:59", "23:00", "23:01")) {
+            AppointmentRequest request = new AppointmentRequest(OffsetDateTime.parse("2026-10-12T" + time + "+07:00"));
+            assertEquals(400, assertThrows(BusinessException.class,
+                    () -> appointments.create(contractId, request)).status().value());
+        }
+        for (String time : List.of("06:00", "17:00", "22:00")) {
+            AppointmentRequest request = new AppointmentRequest(OffsetDateTime.parse("2026-10-12T" + time + "+07:00"));
+            assertEquals("SCHEDULED", appointments.create(contractId, request).status);
+        }
+        verify(appointmentRepository, times(3)).saveAndFlush(any());
     }
     @Test void pastAppointmentIsRejected() {
         when(access.contract(contractId,true)).thenReturn(contract);
@@ -504,10 +522,7 @@ class Sprint2ServiceTest {
         when(access.contract(contractId,true)).thenReturn(contract);
         when(access.contract(contractId,false)).thenReturn(contract);
         when(access.role()).thenReturn("CUSTOMER"); when(access.now()).thenReturn(now);
-        when(access.facilityId(contract)).thenReturn(facilityId);
         when(appointmentRepository.findFirstByContractIdAndStatus(contractId,"SCHEDULED")).thenReturn(Optional.of(a));
-        Facility facility = new Facility(); facility.setOpeningTime(LocalTime.of(8,0)); facility.setClosingTime(LocalTime.of(17,0));
-        when(facilities.findById(facilityId)).thenReturn(Optional.of(facility));
         when(appointmentRepository.save(a)).thenReturn(a);
         AppointmentRequest later = new AppointmentRequest(OffsetDateTime.of(2026,10,13,10,0,0,0,ZoneOffset.ofHours(7)));
         assertNull(appointments.reschedule(contractId,later).assignedStaffId);
@@ -554,7 +569,7 @@ class Sprint2ServiceTest {
     }
     @Test void managerSeesOwnFacilityTask() {
         PaymentService paymentReader = mock(PaymentService.class);
-        AppointmentService service = new AppointmentService(access,appointmentRepository,contracts,facilities,units,users,assignments,invoices,paymentReader);
+        AppointmentService service = new AppointmentService(access,appointmentRepository,handoverRepository,contracts,facilities,units,users,assignments,invoices,paymentReader);
         when(access.role()).thenReturn("FACILITY_MANAGER");
         when(access.facilities()).thenReturn(List.of(facilityId));
         PickupAppointment a = new PickupAppointment(); a.contractId = contractId; a.facilityId = facilityId;
@@ -595,7 +610,7 @@ class Sprint2ServiceTest {
     }
     @Test void handoverCannotCompleteBeforeBothChargesArePaid() {
         PaymentService paymentReader = mock(PaymentService.class);
-        AppointmentService service = new AppointmentService(access,appointmentRepository,contracts,facilities,units,users,assignments,invoices,paymentReader);
+        AppointmentService service = new AppointmentService(access,appointmentRepository,handoverRepository,contracts,facilities,units,users,assignments,invoices,paymentReader);
         PaymentService.Component unpaid = new PaymentService.Component(BigDecimal.ONE,BigDecimal.ZERO,BigDecimal.ONE,"UNPAID");
         when(paymentReader.summary(contractId)).thenReturn(new PaymentService.Summary(contractId,unpaid,unpaid,false));
         assertEquals(409, assertThrows(BusinessException.class,

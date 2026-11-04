@@ -35,7 +35,7 @@ public class SupportTicket {
     @Column(name = "issue_type", nullable = false, length = 30)
     private String issueType;
 
-    @Column(name = "title", nullable = false, length = 200)
+    @Column(name = "title", nullable = false, length = 255)
     private String title;
 
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)", nullable = false)

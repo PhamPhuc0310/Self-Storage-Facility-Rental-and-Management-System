@@ -192,7 +192,7 @@ public class EarlyReturnService {
         transaction.referenceCode = reference; transaction.status = "SUCCESS";
         transaction.createdBy = access.currentId(); transaction.idempotencyKey = reference;
         transaction.createdAt = transaction.transactionDate; transaction.updatedAt = transaction.transactionDate;
-        payments.saveAndFlush(transaction);
+        transaction = payments.saveAndFlush(transaction);
         DepositRefund refund = new DepositRefund();
         refund.id = UUID.randomUUID(); refund.contractId = row.contractId; refund.customerId = row.requestedBy;
         refund.facilityId = access.facilityId(access.contract(row.contractId, false));

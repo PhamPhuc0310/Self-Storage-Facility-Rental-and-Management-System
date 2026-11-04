@@ -33,5 +33,8 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
 
     List<PaymentTransaction> findByContractIdAndStatus(UUID contractId, String status);
 
+    @Query("select p from PaymentTransaction p, RentalContract c, StorageUnit u where p.contractId = c.contractId and c.unitId = u.unitId and u.facilityId in :facilityIds and p.status = 'PENDING' and p.paymentMethod in ('CASH', 'BANK_TRANSFER') order by p.createdAt desc")
+    List<PaymentTransaction> pendingForFacilities(@Param("facilityIds") Collection<UUID> facilityIds);
+
     Optional<PaymentTransaction> findByReferenceCode(String referenceCode);
 }

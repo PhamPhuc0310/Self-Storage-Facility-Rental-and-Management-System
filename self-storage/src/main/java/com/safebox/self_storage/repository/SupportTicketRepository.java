@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,13 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, UU
     List<SupportTicket> findByFacilityIdOrderByCreatedAtDesc(UUID facilityId);
 
     List<SupportTicket> findByFacilityIdInOrderByCreatedAtDesc(java.util.Collection<UUID> facilityIds);
+
+    List<SupportTicket> findByAssignedToOrderByCreatedAtDesc(UUID staffId);
+
+    @Query("select count(t) from SupportTicket t where t.assignedTo = :staffId "
+            + "and t.facilityId = :facilityId and t.status in :statuses")
+    long countOpenWork(@Param("staffId") UUID staffId, @Param("facilityId") UUID facilityId,
+                       @Param("statuses") java.util.Collection<String> statuses);
 
     List<SupportTicket> findAllByOrderByCreatedAtDesc();
 

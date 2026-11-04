@@ -14,6 +14,8 @@ public class ReportingController {
     private ReportingService.Filters filters(LocalDate startDate, LocalDate endDate, UUID facilityId) {
         return new ReportingService.Filters(startDate, endDate, facilityId);
     }
+    @GetMapping("/facilities")
+    public List<UUID> facilities() { return reports.availableFacilities(); }
     @GetMapping("/financial-summary")
     public ReportingService.FinancialSummary financial(@RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate, @RequestParam(required = false) UUID facilityId) {

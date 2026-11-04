@@ -101,7 +101,7 @@ public class ReservationApprovalService {
             if (months > 0) monthly = r.getEstimatedRentalAmount()
                     .divide(BigDecimal.valueOf(months), 2, java.math.RoundingMode.HALF_UP);
         }
-        if (monthly == null || monthly.signum() < 0)
+        if (monthly == null || monthly.signum() <= 0)
             throw new BusinessException(HttpStatus.CONFLICT, "Yêu cầu chưa có giá thuê đã chốt.");
         boolean v2 = "v2".equals(r.getPricingVersion());
         ContractPricing price = null;
@@ -112,7 +112,7 @@ public class ReservationApprovalService {
         BigDecimal deposit = v2 ? price.deposit() : r.getEstimatedDepositAmount();
         if (deposit == null || deposit.signum() < 0)
             throw new BusinessException(HttpStatus.CONFLICT, "Yêu cầu thiếu báo giá tiền cọc.");
-        StorageUnit unit = units.lockFirstAvailable(r.getFacilityId(), r.getTypeId())
+        StorageUnit unit = units.lockFirstAvailable(r.getFacilityId(), r.getTypeId(), r.getStartDate(), r.getEndDate())
                 .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Không còn ô kho phù hợp."));
         unit.setStatus("RESERVED");
         units.save(unit);

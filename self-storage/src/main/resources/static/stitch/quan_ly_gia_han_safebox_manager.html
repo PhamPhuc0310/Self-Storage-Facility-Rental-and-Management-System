@@ -95,7 +95,7 @@
       }
     }
   </style>
-</head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
 <body class="bg-surface text-on-surface antialiased min-h-screen flex">
 
   <!-- Left Sidebar (SafeBox Manager Standard Layout) -->
@@ -105,7 +105,7 @@
       <div class="h-20 px-6 flex items-center gap-3 bg-primary/40">
         <img alt="SafeBox Storage Logo" class="h-8 w-auto object-contain" src="/stitch/assets/safebox-storage-logo.svg"/>
         <div class="flex flex-col">
-          <span class="font-headline-sm text-headline-sm text-white tracking-tight font-semibold">SafeBox Admin</span>
+          <span class="font-headline-sm text-headline-sm text-white tracking-tight font-semibold">SafeBox</span>
           <span class="font-body-sm text-body-sm text-on-primary-container">Quản lý cơ sở kho</span>
         </div>
       </div>
@@ -142,7 +142,7 @@
         <!-- Active Page: UC17 -->
         <a aria-current="page" class="flex items-center px-4 py-3 transition-colors bg-secondary-container text-on-secondary font-bold rounded-lg" href="/stitch/quan_ly_gia_han_safebox_manager.html">
           <span class="material-symbols-outlined mr-3">autorenew</span>
-          <span class="font-label-button text-label-button">Xét duyệt gia hạn (UC17)</span>
+          <span class="font-label-button text-label-button">Xét duyệt gia hạn</span>
         </a>
         <a class="flex items-center px-4 py-3 rounded-lg text-on-primary-container hover:bg-primary hover:text-white transition-colors" href="/stitch/quan_ly_qua_han_safebox_manager.html">
           <span class="material-symbols-outlined mr-3">gavel</span>
@@ -170,7 +170,7 @@
         <div>
           <h2 id="top-facility-title" class="font-headline-sm text-headline-sm text-on-surface font-semibold flex items-center gap-2">
             <span>Xét duyệt gia hạn hợp đồng thuê kho</span>
-            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">UC17</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Gia hạn</span>
           </h2>
           <p class="font-body-sm text-body-sm text-on-surface-variant">Kiểm tra khả dụng ô kho, phê duyệt gia hạn &amp; đôn đốc thanh toán trong 24h</p>
         </div>
@@ -261,6 +261,17 @@
 
       </div>
 
+      <section class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6" aria-labelledby="renewal-payment-heading">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 id="renewal-payment-heading" class="font-bold text-primary">Thanh toán gia hạn chờ xác nhận</h2>
+            <p class="text-xs text-slate-500">Chỉ xác nhận sau khi cơ sở đã nhận tiền mặt hoặc đối chiếu được khoản chuyển khoản.</p>
+          </div>
+          <button onclick="loadPendingRenewalPayments()" class="px-3 py-2 rounded-lg bg-slate-100 text-primary text-xs font-semibold">Làm mới hàng chờ</button>
+        </div>
+        <div id="renewal-payment-queue" class="text-sm text-slate-500">Đang tải khoản thanh toán...</div>
+      </section>
+
       <!-- Renewals Data Table -->
       <div class="bg-surface-container-lowest rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
@@ -291,7 +302,7 @@
     </main>
   </div>
 
-  <!-- MODAL: XÉT DUYỆT / CHI TIẾT YÊU CẦU GIA HẠN (BR17.3) -->
+  <!-- MODAL: XÉT DUYỆT / CHI TIẾT YÊU CẦU GIA HẠN -->
   <div id="review-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/60 backdrop-blur-sm hidden">
     <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
       
@@ -312,10 +323,10 @@
       <!-- Modal Body -->
       <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1">
         
-        <!-- Status & Condition Checklist (BR17.3) -->
+        <!-- Status & Condition Checklist -->
         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
           <span class="font-bold text-slate-700 block uppercase tracking-wider text-[11px]">
-            Kiểm tra điều kiện cơ sở &amp; Ô kho (BR17.3):
+            Kiểm tra điều kiện cơ sở &amp; Ô kho:
           </span>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
             <div class="flex items-center gap-2 p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -346,12 +357,12 @@
             <span id="modal-old-end-date" class="font-mono font-bold text-rose-600">--</span>
           </div>
           <div>
-            <span class="text-slate-400 block text-[10px]">Kỳ hạn mới gia hạn (BR17.2):</span>
+            <span class="text-slate-400 block text-[10px]">Kỳ hạn mới gia hạn:</span>
             <span id="modal-new-end-date" class="font-mono font-bold text-emerald-700">--</span>
           </div>
         </div>
 
-        <!-- Snapshot Financials (BR17.4) -->
+        <!-- Snapshot Financials -->
         <div class="border border-slate-200 rounded-xl p-4 space-y-2">
           <h4 class="font-bold text-primary text-xs mb-1">Chi tiết tài chính chốt kỳ gia hạn</h4>
           <div class="flex justify-between text-slate-600">
@@ -445,7 +456,7 @@
     let selectedRenewal = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const authed = await SafeBoxAuth.requireRole('FACILITY_MANAGER', 'SYSTEM_ADMIN');
+      const authed = await SafeBoxAuth.requireRole('FACILITY_MANAGER');
       if (!authed) return;
 
       const user = SafeBoxAuth.getCurrentUser();
@@ -457,7 +468,61 @@
       }
 
       await loadFacilityRenewals();
+      await loadPendingRenewalPayments();
     });
+
+    async function loadPendingRenewalPayments() {
+      const target = document.getElementById('renewal-payment-queue');
+      try {
+        const response = await SafeBoxAuth.authFetch('/api/manager/renewals/payments/pending');
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Không thể tải hàng chờ.');
+        const payments = await response.json();
+        if (!payments.length) {
+          target.textContent = 'Không có khoản gia hạn chờ xác nhận tại cơ sở phụ trách.';
+          return;
+        }
+        target.innerHTML = payments.map(p => `
+          <div class="flex flex-wrap items-center justify-between gap-3 py-3 border-t border-slate-100">
+            <div>
+              <div class="font-semibold text-primary">Gia hạn #${p.renewalId.substring(0, 8)} · ${formatMoney(p.amount)}</div>
+              <div class="text-xs text-slate-500">${p.paymentMethod === 'CASH' ? 'Tiền mặt tại cơ sở' : 'Chuyển khoản chờ đối chiếu'} · ${p.referenceCode}</div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="confirmRenewalPayment('${p.renewalId}','${p.transactionId}','${p.paymentMethod}')" class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Xác nhận đã nhận tiền</button>
+              <button onclick="rejectRenewalPayment('${p.renewalId}','${p.transactionId}')" class="px-3 py-2 rounded-lg bg-rose-50 text-rose-700 text-xs font-semibold">Từ chối</button>
+            </div>
+          </div>`).join('');
+      } catch (error) { target.textContent = error.message; }
+    }
+
+    async function confirmRenewalPayment(renewalId, paymentId, method) {
+      const verificationReference = method === 'BANK_TRANSFER'
+        ? prompt('Nhập mã đối soát ngân hàng sau khi đã kiểm tra tiền thực nhận:')
+        : (confirm('Xác nhận cơ sở đã thực nhận tiền mặt cho khoản gia hạn này?') ? '' : null);
+      if (verificationReference === null) return;
+      try {
+        const response = await SafeBoxAuth.authFetch(`/api/manager/renewals/${renewalId}/payments/${paymentId}/confirm`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({verificationReference})
+        });
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Không thể xác nhận thanh toán.');
+        showAlert('Đã xác nhận thanh toán và gia hạn hợp đồng.', 'success');
+        await loadPendingRenewalPayments();
+        await loadFacilityRenewals();
+      } catch (error) { showAlert(error.message, 'error'); }
+    }
+
+    async function rejectRenewalPayment(renewalId, paymentId) {
+      const reason = prompt('Nhập lý do từ chối yêu cầu thanh toán:');
+      if (!reason || !reason.trim()) return;
+      try {
+        const response = await SafeBoxAuth.authFetch(`/api/manager/renewals/${renewalId}/payments/${paymentId}/reject`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({reason: reason.trim()})
+        });
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Không thể từ chối yêu cầu.');
+        showAlert('Đã từ chối yêu cầu thanh toán. Hóa đơn và kỳ hạn không đổi.', 'info');
+        await loadPendingRenewalPayments();
+      } catch (error) { showAlert(error.message, 'error'); }
+    }
 
     function formatMoney(amount) {
       if (amount == null || isNaN(amount)) return '0 đ';
@@ -590,10 +655,10 @@
               <span class="text-slate-500 text-[11px]">${r.facilityName} · Kho ${r.unitNumber}</span>
             </td>
             <td class="p-4">
-              <div class="flex items-center gap-1 font-mono text-[11px]">
-                <span>${formatDate(r.oldEndDate)}</span>
+              <div class="font-mono text-[11px] leading-relaxed">
+                <span class="whitespace-nowrap">${formatDate(r.oldEndDate)}</span>
                 <span class="text-secondary font-bold">→</span>
-                <strong class="text-emerald-700">${formatDate(r.newEndDate)}</strong>
+                <strong class="text-emerald-700 whitespace-nowrap">${formatDate(r.newEndDate)}</strong>
               </div>
               <span class="text-[10px] text-slate-400 block">+${r.extensionMonths} tháng</span>
             </td>
@@ -621,7 +686,7 @@
       renderRenewalsTable(renewals);
     }
 
-    // Open review modal (BR17.3)
+    // Open review modal
     async function openReviewModal(renewalId) {
       try {
         const res = await SafeBoxAuth.authFetch(`/api/manager/renewals/${renewalId}`);
@@ -706,7 +771,7 @@
       openReviewModal(selectedRenewal.renewalId);
     }
 
-    // Execute Approval (BR17.3)
+    // Execute Approval
     async function executeApproval(renewalId) {
       const hours = parseInt(document.getElementById('input-payment-hours').value, 10) || 24;
       try {
@@ -730,7 +795,7 @@
       }
     }
 
-    // Execute Rejection with Reason (BR17.3)
+    // Execute Rejection with Reason
     async function executeRejection(renewalId) {
       const reason = document.getElementById('input-reject-reason').value.trim();
       if (!reason) {

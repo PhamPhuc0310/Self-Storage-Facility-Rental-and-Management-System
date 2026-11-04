@@ -100,10 +100,16 @@ class EarlyReturnServiceTest {
         when(payments.successful(contractId,"DEPOSIT")).thenReturn(List.of(deposit));
         when(refunds.completedTotal(contractId)).thenReturn(BigDecimal.ZERO);
         when(access.currentId()).thenReturn(managerId);
-        when(payments.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
+        UUID savedTransactionId = UUID.randomUUID();
+        when(payments.saveAndFlush(any())).thenAnswer(i -> {
+            PaymentTransaction saved = new PaymentTransaction();
+            saved.transactionId = savedTransactionId;
+            return saved;
+        });
         when(refunds.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
         when(settlements.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
         assertEquals("REFUNDED",service.refund(row.id).status);
+        assertEquals(savedTransactionId, s.refundTransactionId);
         assertEquals("REFUNDED",service.refund(row.id).status);
         verify(payments,times(1)).saveAndFlush(any());
         verify(refunds,times(1)).saveAndFlush(any());

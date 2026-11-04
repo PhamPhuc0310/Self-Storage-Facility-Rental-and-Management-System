@@ -22,4 +22,5 @@ public class ManagerCatalogController {
     @GetMapping("/{facilityId}/units") public List<ManagedStorageUnitResponse> units(@AuthenticationPrincipal UUID managerId, @PathVariable UUID facilityId) { return catalog.units(managerId, facilityId); }
     @PostMapping("/{facilityId}/units") public ManagedStorageUnitResponse createUnit(@AuthenticationPrincipal UUID managerId, @PathVariable UUID facilityId, @Valid @RequestBody StorageUnitRequest request) { return catalog.createUnit(managerId, facilityId, request); }
     @PutMapping("/{facilityId}/units/{unitId}") public ManagedStorageUnitResponse updateUnit(@AuthenticationPrincipal UUID managerId, @PathVariable UUID facilityId, @PathVariable UUID unitId, @Valid @RequestBody StorageUnitRequest request) { return catalog.updateUnit(managerId, facilityId, unitId, request); }
+    @PutMapping("/{facilityId}/units/{unitId}/dimensions") public ManagedStorageUnitResponse verifyDimensions(@AuthenticationPrincipal UUID managerId, @PathVariable UUID facilityId, @PathVariable UUID unitId, @Valid @RequestBody DimensionVerificationRequest request) { return catalog.verifyDimensions(managerId, facilityId, unitId, request); }
 }

@@ -7,6 +7,7 @@ import com.safebox.self_storage.dto.response.ContractCompletionResponse;
 import com.safebox.self_storage.dto.response.FacilityReturnTaskItemResponse;
 import com.safebox.self_storage.dto.response.ReturnInspectionDetailResponse;
 import com.safebox.self_storage.dto.response.ReturnScheduleResponse;
+import com.safebox.self_storage.dto.response.ReturnStaffOption;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,10 @@ public interface ReturnInspectionService {
      * Khách hàng hủy lịch hẹn trả kho đang SCHEDULED trước giờ hẹn (BR12.5).
      */
     ReturnScheduleResponse cancelReturnAppointment(UUID currentUserId, UUID contractId);
+
+    List<ReturnStaffOption> eligibleReturnStaff(UUID managerId, UUID handoverId);
+
+    ReturnScheduleResponse assignReturnStaff(UUID managerId, UUID handoverId, UUID staffId);
 
     /**
      * Danh sách lịch hẹn trả kho tại cơ sở cho nhân viên và quản lý cơ sở (BR12.6, BR12.7, BR16.3).

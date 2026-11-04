@@ -34,6 +34,16 @@ public class ReportingService {
             long pendingReturns, long completedReturnsInPeriod, long maintenanceUnits) {}
 
     private record Scope(MapSqlParameterSource params, List<UUID> facilities, LocalDate start, LocalDate end) {}
+    @Transactional(readOnly = true)
+    public List<UUID> availableFacilities() {
+        String role = access.role();
+        if (!Set.of("FACILITY_MANAGER", "BUSINESS_OPERATIONS_MANAGER").contains(role))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Reports require a management role.");
+        List<UUID> assigned = access.facilities();
+        if ("BUSINESS_OPERATIONS_MANAGER".equals(role) && assigned.isEmpty())
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Chưa được cấp phạm vi báo cáo. Quản trị viên cần mở Quản trị truy cập, nhập UUID cơ sở cho tài khoản quản lý kinh doanh và chọn Cấp cơ sở.");
+        return assigned;
+    }
     private Scope scope(Filters f) {
         String role = access.role();
         if (!Set.of("FACILITY_MANAGER", "BUSINESS_OPERATIONS_MANAGER").contains(role))
@@ -41,7 +51,7 @@ public class ReportingService {
         if (f == null || f.startDate() == null || f.endDate() == null || f.endDate().isBefore(f.startDate())
                 || ChronoUnit.DAYS.between(f.startDate(), f.endDate()) > 366)
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Choose a valid period of at most 367 calendar days.");
-        List<UUID> assigned = access.facilities();
+        List<UUID> assigned = availableFacilities();
         if (f.facilityId() != null && !assigned.contains(f.facilityId()))
             throw new BusinessException(HttpStatus.FORBIDDEN, "Facility is outside your assigned scope.");
         List<UUID> facilities = f.facilityId() == null ? assigned : List.of(f.facilityId());
@@ -146,9 +156,10 @@ public class ReportingService {
         Map<UUID,long[]> counts = new HashMap<>();
         jdbc.query("SELECT facility_id, COUNT(*) total, SUM(CASE WHEN status='OCCUPIED' THEN 1 ELSE 0 END) occupied, "
                 + "SUM(CASE WHEN status='AVAILABLE' THEN 1 ELSE 0 END) available, "
-                + "SUM(CASE WHEN status='MAINTENANCE' THEN 1 ELSE 0 END) maintenance "
+                + "SUM(CASE WHEN status='MAINTENANCE' THEN 1 ELSE 0 END) maintenance, "
+                + "SUM(CASE WHEN status IN ('AVAILABLE','RESERVED','OCCUPIED') THEN 1 ELSE 0 END) rentable "
                 + "FROM dbo.STORAGE_UNITS WHERE facility_id IN (:facilities) GROUP BY facility_id", s.params(), rs ->
-                { counts.put(UUID.fromString(rs.getString("facility_id")), new long[]{rs.getLong("total"),rs.getLong("occupied"),rs.getLong("available"),rs.getLong("maintenance")}); });
+                { counts.put(UUID.fromString(rs.getString("facility_id")), new long[]{rs.getLong("total"),rs.getLong("occupied"),rs.getLong("available"),rs.getLong("maintenance"),rs.getLong("rentable")}); });
         Map<UUID,Long> active = new HashMap<>();
         jdbc.query("SELECT u.facility_id, COUNT(*) amount FROM dbo.RENTAL_CONTRACTS c JOIN dbo.STORAGE_UNITS u ON u.unit_id=c.unit_id "
                 + "WHERE u.facility_id IN (:facilities) AND c.status='ACTIVE' GROUP BY u.facility_id", s.params(), rs ->
@@ -164,8 +175,8 @@ public class ReportingService {
                 + "AND i.status <> 'CANCELLED' AND i.invoice_type <> 'DEPOSIT' AND i.issued_at < :end GROUP BY u.facility_id", s.params(), rs ->
                 { outstanding.put(UUID.fromString(rs.getString("facility_id")), money(rs,"amount")); });
         return s.facilities().stream().map(id -> {
-            long[] n = counts.getOrDefault(id,new long[4]);
-            long denominator = n[0] - n[3]; // rentable units exclude maintenance
+            long[] n = counts.getOrDefault(id,new long[5]);
+            long denominator = n[4]; // exclude maintenance and inactive units
             BigDecimal rate = denominator == 0 ? BigDecimal.ZERO : BigDecimal.valueOf(n[1])
                     .multiply(BigDecimal.valueOf(100)).divide(BigDecimal.valueOf(denominator), 2, RoundingMode.HALF_UP);
             return new FacilityPerformance(id,(int)n[0],(int)n[1],(int)n[2],(int)n[3],rate,

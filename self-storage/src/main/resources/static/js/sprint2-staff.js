@@ -1,4 +1,8 @@
 (function () {
+  if (SafeBoxAuth.getCurrentUser()?.role === 'FACILITY_STAFF') {
+    const link = document.createElement('a'); link.href = '/staff-measurements.html'; link.textContent = 'Ghi nhận số đo kho';
+    document.querySelector('header .max-w-7xl > div.flex.flex-wrap')?.append(link);
+  }
   const $ = id => document.getElementById(id);
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money = value => new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(value || 0);
@@ -42,7 +46,7 @@
     $('task-completed').textContent = rows.filter(r => r.status === 'COMPLETED').length;
     $('task-checkins').textContent = rows.filter(r => r.taskType === 'CHECK_IN').length;
     $('task-empty').hidden = rows.length > 0;
-    $('task-rows').innerHTML = rows.map(r => `<tr class="border-b border-outline-variant/30"><td class="p-4">${formatDateTimeVN(r.appointmentTime)}</td><td class="p-4">${labels[r.taskType]}</td><td class="p-4">${escape(r.contractCode)}</td><td class="p-4">${escape(r.customerName)}</td><td class="p-4">${escape(r.storageUnitCode || 'Chưa phân kho')}</td><td class="p-4">${escape(r.facilityName)}</td><td class="p-4">${escape(r.assignedStaffName || 'Chưa phân công')}</td><td class="p-4">${r.readyForHandover ? 'Đã thanh toán đủ' : 'Chưa đủ điều kiện bàn giao'}</td><td class="p-4">${labels[r.status]}</td><td class="p-4">${taskActions(r)}</td></tr>`).join('');
+    $('task-rows').innerHTML = rows.map(r => `<tr class="border-b border-outline-variant/30"><td class="p-4">${formatDateTimeVN(r.appointmentTime)}</td><td class="p-4">${labels[r.taskType]}</td><td class="p-4">${escape(r.contractCode)}</td><td class="p-4">${escape(r.customerName)}</td><td class="p-4">${escape(r.storageUnitCode || 'Chưa phân kho')}</td><td class="p-4">${escape(r.facilityName)}</td><td class="p-4">${escape(r.assignedStaffName || 'Chưa phân công')}</td><td class="p-4">${r.status === 'COMPLETED' ? 'Đã thanh toán đủ khi bàn giao' : r.readyForHandover ? 'Đã thanh toán đủ' : 'Chưa đủ điều kiện bàn giao'}</td><td class="p-4">${labels[r.status]}</td><td class="p-4">${taskActions(r)}</td></tr>`).join('');
     if (SafeBoxAuth.getCurrentUser()?.role === 'FACILITY_MANAGER') await loadAwaiting();
     } catch (e) {
       $('task-rows').replaceChildren();
@@ -51,6 +55,21 @@
       message(e.message, true);
     } finally { $('task-loading').hidden = true; }
     if (SafeBoxAuth.getCurrentUser()?.role === 'FACILITY_STAFF') await loadUpcoming();
+    await loadPendingPayments();
+  }
+  async function loadPendingPayments() {
+    try {
+      const rows = await api('/api/staff/payments/pending');
+      const contractIds = [...new Set(rows.map(p => p.contractId))];
+      const contractRows = await Promise.all(contractIds.map(id => api(`/api/contracts/${id}`)));
+      const contractById = new Map(contractRows.map(c => [c.contractId, c]));
+      const role = SafeBoxAuth.getCurrentUser()?.role;
+      $('pending-payment-list').innerHTML = rows.length ? rows.map(p => {
+        const canConfirm = p.paymentMethod === 'CASH' || role === 'FACILITY_STAFF';
+        const contract = contractById.get(p.contractId);
+        return `<article class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-outline-variant p-3"><div><strong>${escape(p.transactionCode)}</strong><p>${escape(contract?.facilityName)} · ${escape(contract?.contractNumber)}</p><p>${p.paymentType === 'DEPOSIT' ? 'Tiền cọc' : 'Tiền thuê'} · ${p.paymentMethod === 'CASH' ? 'Tiền mặt tại cơ sở' : 'Chuyển khoản'} · ${money(p.amount)}</p></div>${canConfirm ? `<button type="button" class="confirm-pending px-4 py-2 bg-secondary text-white rounded-lg" data-contract="${escape(p.contractId)}" data-id="${escape(p.id)}" data-method="${escape(p.paymentMethod)}" data-amount="${escape(p.amount)}">Xác nhận đã nhận tiền</button>` : '<span>Nhân viên cơ sở đối soát</span>'}</article>`;
+      }).join('') : '<p>Không có khoản thanh toán chờ xác nhận.</p>';
+    } catch (e) { $('pending-payment-list').textContent = e.message; }
   }
   async function loadUpcoming() {
     $('staff-upcoming-loading').hidden = false;
@@ -116,6 +135,17 @@
     catch (e) { message(e.message,true); }
   });
   document.addEventListener('click', async event => {
+    const pending = event.target.closest('.confirm-pending');
+    if (pending) {
+      if (!window.confirm(`Xác nhận đã nhận ${money(Number(pending.dataset.amount))} ${pending.dataset.method === 'CASH' ? 'tiền mặt' : 'qua chuyển khoản'}?`)) return;
+      pending.disabled = true;
+      try {
+        const suffix = pending.dataset.method === 'CASH' ? 'confirm-cash' : 'confirm-transfer';
+        await api(`/api/staff/contracts/${pending.dataset.contract}/payments/${pending.dataset.id}/${suffix}`, {method:'POST'});
+        message('Đã xác nhận khoản thanh toán.'); await load();
+      } catch (e) { message(e.message,true); pending.disabled = false; }
+      return;
+    }
     const openHandover = event.target.closest('.open-handover');
     if (openHandover) {
       currentHandoverContract = openHandover.dataset.id;
@@ -183,6 +213,12 @@
     const role = SafeBoxAuth.getCurrentUser()?.role;
     if (!['FACILITY_STAFF', 'FACILITY_MANAGER'].includes(role)) return;
     const manager = role === 'FACILITY_MANAGER';
+    $('staff-measurement-link').hidden = manager;
+    document.querySelector('#pending-payment-section h2').textContent = manager
+      ? 'Tiền cọc tại cơ sở chờ xác nhận' : 'Khoản thu trong lịch được giao';
+    document.querySelector('#pending-payment-section > p').textContent = manager
+      ? 'Chỉ xác nhận tiền cọc mặt đã nhận tại cơ sở được phân công.'
+      : 'Chỉ xác nhận tiền mặt của lịch nhận kho được giao hoặc chuyển khoản đã đối soát.';
     $('manager-home').hidden = !manager; $('staff-filter-wrap').hidden = !manager; $('facility-filter-wrap').hidden = !manager;
     $('assignment-section').hidden = !manager;
     document.querySelector('a[href="/staff-tasks.html#assignment-section"]').hidden = !manager;

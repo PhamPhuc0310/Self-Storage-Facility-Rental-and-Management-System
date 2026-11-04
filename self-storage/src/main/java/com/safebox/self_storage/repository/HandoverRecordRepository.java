@@ -8,6 +8,18 @@ import java.util.UUID;
 
 public interface HandoverRecordRepository extends JpaRepository<HandoverRecord, UUID> {
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select h from HandoverRecord h where h.handoverId = :id")
+    java.util.Optional<HandoverRecord> lockById(@org.springframework.data.repository.query.Param("id") UUID id);
+
+    @org.springframework.data.jpa.repository.Query("SELECT h FROM HandoverRecord h WHERE h.staffId = :staffId " +
+            "AND h.status = 'SCHEDULED' AND h.handoverType = 'RETURN' " +
+            "AND h.scheduledAt >= :from AND h.scheduledAt < :to")
+    List<HandoverRecord> findScheduledReturnConflicts(
+            @org.springframework.data.repository.query.Param("staffId") UUID staffId,
+            @org.springframework.data.repository.query.Param("from") java.time.LocalDateTime from,
+            @org.springframework.data.repository.query.Param("to") java.time.LocalDateTime to);
+
     List<HandoverRecord> findByContractIdOrderByScheduledAtDesc(UUID contractId);
 
     List<HandoverRecord> findByContractId(UUID contractId);

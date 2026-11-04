@@ -184,7 +184,7 @@ class RenewalControllerTest {
                 "PAY-RNW-20261021-001",
                 new BigDecimal("3300000"),
                 "BANK_TRANSFER",
-                "SUCCESS",
+                "PENDING",
                 LocalDateTime.now(),
                 LocalDate.of(2027, 2, 1),
                 "Thanh toán phí gia hạn thành công."
@@ -197,7 +197,7 @@ class RenewalControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.amount").value(3300000))
                 .andExpect(jsonPath("$.referenceCode").value("PAY-RNW-20261021-001"));
     }

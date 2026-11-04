@@ -393,4 +393,26 @@ class ContractServiceTest {
         assertEquals("Customer signature", response.customerSignature());
         assertEquals(new BigDecimal("2970000"), response.totalPayable());
     }
+    @Test
+    void shortenedHistoricalContractUsesOriginalReservationFinancialSnapshotInList() {
+        RentalContract historical = new RentalContract();
+        UUID id=UUID.randomUUID();historical.contractId=id;historical.reservationId=reservationId;
+        historical.customerId=customerId;historical.unitId=unitId;
+        historical.startDate=LocalDate.of(2026,10,19);historical.endDate=LocalDate.of(2026,10,20);
+        historical.monthlyRentalFee=new BigDecimal("3600000");historical.depositAmount=new BigDecimal("7920000");
+        historical.termsVersion="v2";historical.status="OVERDUE";
+        reservation.setStartDate(LocalDate.of(2026,10,19));reservation.setEndDate(LocalDate.of(2027,4,19));
+        reservation.setEstimatedRentalAmount(new BigDecimal("23760000"));
+        when(contracts.findByCustomerIdOrderByCreatedAtDesc(customerId)).thenReturn(List.of(historical));
+        when(reservations.findById(reservationId)).thenReturn(Optional.of(reservation));
+        when(units.findById(unitId)).thenReturn(Optional.of(unit));
+        when(facilities.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(users.findById(customerId)).thenReturn(Optional.of(customer));
+        when(unitTypes.findById(typeId)).thenReturn(Optional.of(unitType));
+        ContractResponse view=contractService.getMyContracts(customerId,null).get(0);
+        assertEquals(new BigDecimal("23760000"),view.totalPayable());
+        assertEquals(new BigDecimal("21600000"),view.totalRentalAmount());
+        assertEquals(6,view.months());
+        assertEquals("Đã quá hạn",view.statusLabel());
+    }
 }
