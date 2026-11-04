@@ -1,3 +1,20 @@
+
+<!-- SafeBox Technology Stack -->
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.4-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?style=flat-square)
+![Maven](https://img.shields.io/badge/Maven-Build-C71A36?style=flat-square)
+![JWT](https://img.shields.io/badge/Auth-JWT-8A2BE2?style=flat-square)
+
+<!-- Project Information -->
+![Architecture](https://img.shields.io/badge/Architecture-REST_API-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-3_Completed-2E8B57?style=flat-square)
+![Tests](https://img.shields.io/badge/Automated_Tests-310_Passed-228B22?style=flat-square)
+
+<!-- GitHub Actions: replace with the actual workflow file -->
+[![Self-Storage-Facility-Rental-and-Management-System (CI included) |  © 2026 by PhamPhuc0310](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml)
+
+
 # SafeBox
 
 Self-storage rental and facility management with Java 21, Spring Boot 3.3.4, SQL Server and a plain HTML/CSS/JavaScript frontend served by Spring Boot.
