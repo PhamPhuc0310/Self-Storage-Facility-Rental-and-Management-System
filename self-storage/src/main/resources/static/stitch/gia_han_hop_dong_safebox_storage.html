@@ -82,7 +82,7 @@
       }
     }
   </style>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script></head>
 <body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
 
   <!-- Header standard SafeBox -->
@@ -685,14 +685,7 @@
     }
 
     // Helper: Format Date
-    function formatDate(dateStr) {
-      if (!dateStr) return '--';
-      try {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('vi-VN');
-      } catch (_) { return dateStr; }
-    }
+    function formatDate(dateStr) { return SafeBoxUc12Time.formatDateVN(dateStr); }
 
     // Helper: Show Alert
     function showAlert(text, type = 'info') {
@@ -1073,7 +1066,7 @@
         } else if (data.status === 'APPROVED' && data.paymentDeadline) {
           reviewBox.classList.remove('hidden');
           reviewBox.className = 'p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs';
-          reviewBox.innerHTML = `<strong>Hạn chót thanh toán:</strong> ${new Date(data.paymentDeadline).toLocaleString('vi-VN')}<br/><span class="text-[11px] text-blue-700">Vui lòng hoàn tất thanh toán trước thời hạn này để kỳ hạn mới chính thức có hiệu lực.</span>`;
+          reviewBox.innerHTML = `<strong>Hạn chót thanh toán:</strong> ${SafeBoxUc12Time.formatDateTimeVN(data.paymentDeadline)}<br/><span class="text-[11px] text-blue-700">Vui lòng hoàn tất thanh toán trước thời hạn này để kỳ hạn mới chính thức có hiệu lực.</span>`;
         } else {
           reviewBox.classList.add('hidden');
         }
@@ -1143,7 +1136,7 @@
       payingAmount = amount;
 
       document.getElementById('pay-amount-display').textContent = formatMoney(amount);
-      document.getElementById('pay-deadline-display').textContent = deadline ? new Date(deadline).toLocaleString('vi-VN') : 'Trong 24 giờ';
+      document.getElementById('pay-deadline-display').textContent = deadline ? SafeBoxUc12Time.formatDateTimeVN(deadline) : 'Trong 24 giờ';
       document.getElementById('pay-reference-code').textContent = 'GH ' + renewalId.substring(0,8).toUpperCase();
 
       document.getElementById('payment-modal').classList.remove('hidden');

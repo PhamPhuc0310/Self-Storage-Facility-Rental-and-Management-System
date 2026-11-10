@@ -76,7 +76,7 @@
     $('staff-upcoming-empty').hidden = true;
     try {
       const rows = await api('/api/staff/tasks/upcoming');
-      $('staff-upcoming-list').innerHTML = rows.map(r => `<article class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface-container-low p-3"><span>${formatDateTimeVN(r.appointmentTime)} · ${escape(r.facilityName)} · ${escape(r.contractCode)}</span><button type="button" class="jump-task-date text-secondary underline" data-date="${escape(r.appointmentTime?.slice(0,10))}">Xem ngày</button></article>`).join('');
+      $('staff-upcoming-list').innerHTML = rows.map(r => `<article class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface-container-low p-3"><span>${formatDateTimeVN(r.appointmentTime)} · ${escape(r.facilityName)} · ${escape(r.contractCode)}</span><button type="button" class="jump-task-date text-secondary underline" data-date="${escape(SafeBoxUc12Time.appointmentLocalFields(r.appointmentTime)?.date)}">Xem ngày</button></article>`).join('');
       $('staff-upcoming-empty').hidden = rows.length > 0;
     } catch (e) {
       $('staff-upcoming-list').replaceChildren();

@@ -31,4 +31,9 @@ public class EarlyReturnSettlement {
     @Column(name = "approved_by", nullable = false) public UUID approvedBy;
     @Column(name = "refund_id") public UUID refundId;
     @Column(name = "refund_transaction_id") public UUID refundTransactionId;
+    @Column(name = "calculation_snapshot", columnDefinition = "NVARCHAR(MAX)") public String calculationSnapshot;
+    @Column(name = "refund_confirmation_reference") public String refundConfirmationReference;
+    @Column(name = "refund_confirmation_method") public String refundConfirmationMethod;
+    @Column(name = "refund_confirmed_by") public UUID refundConfirmedBy;
+    @Column(name = "refund_confirmed_at") public LocalDateTime refundConfirmedAt;
 }

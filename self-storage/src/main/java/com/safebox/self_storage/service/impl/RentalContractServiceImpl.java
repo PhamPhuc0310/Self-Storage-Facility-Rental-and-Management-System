@@ -266,7 +266,7 @@ public class RentalContractServiceImpl implements RentalContractService {
         }
 
         // BR15.10: Cho phép chuyển sang đặt lịch trả kho UC16 nếu đang ở trạng thái ACTIVE
-        boolean canScheduleReturn = "ACTIVE".equalsIgnoreCase(contract.getStatus());
+        boolean canScheduleReturn = List.of("ACTIVE", "OVERDUE").contains(contract.getStatus());
 
         return new RentalContractListItemResponse(
                 contract.getContractId(),

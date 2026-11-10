@@ -147,7 +147,9 @@ class Phase46PaymentServiceTest {
                 () -> service.confirmCash(contractId, p.transactionId)).status());
         assertEquals(HttpStatus.FORBIDDEN, assertThrows(BusinessException.class,
                 () -> service.confirmCash(contractId, p.transactionId)).status());
-        // Match the invoice to the actual remaining amount calculated from v2 terms.
+        i.totalAmount = ContractPricing.of(r.monthlyRentalFee,r.startDate,r.endDate).remaining();
+        when(invoices.findFirstByContractIdAndInvoiceType(contractId,"REMAINING_RENT")).thenReturn(Optional.of(i));
+        // Match the persisted original invoice rather than recalculating after renewal.
         p.amount = service.calculate(r).initialRent().amountDue();
         i.totalAmount = p.amount;
         actor.set(staffId);
@@ -158,6 +160,27 @@ class Phase46PaymentServiceTest {
         verify(activityLogs).saveAndFlush(log.capture());
         assertEquals(staffId, log.getValue().getUserId());
         assertTrue(log.getValue().getDescription().contains("role=FACILITY_STAFF;result=SUCCESS"));
+    }
+
+    @Test void paidOriginalRentDoesNotReappearAfterThreeAndTwelveMonthRenewals() {
+        RentalContract r=contract();r.termsVersion="v2";r.monthlyRentalFee=new BigDecimal("900000");
+        var original=ContractPricing.of(r.monthlyRentalFee,r.startDate,r.endDate);r.depositAmount=original.deposit();
+        Invoice rent=invoice();rent.invoiceType="REMAINING_RENT";rent.totalAmount=original.remaining();
+        when(invoices.findFirstByContractIdAndInvoiceType(contractId,"REMAINING_RENT")).thenReturn(Optional.of(rent));
+        PaymentTransaction paid=new PaymentTransaction();paid.amount=rent.totalAmount;
+        when(payments.successful(contractId,"REMAINING_RENT")).thenReturn(java.util.List.of(paid));
+        when(payments.successfulTotals(anyCollection())).thenReturn(java.util.Collections.singletonList(new Object[]{contractId,"REMAINING_RENT",paid.amount}));
+        for(int months:new int[]{3,12}) {
+            r.endDate=r.endDate.plusMonths(months);
+            var summary=service.calculate(r);
+            assertEquals(0,summary.initialRent().remainingAmount().signum());
+            assertEquals(0,summary.contractTotal().compareTo(original.total()));
+            assertEquals(0,service.balances(java.util.List.of(r)).get(contractId).rentRemainingAmount().signum());
+        }
+        when(payments.successful(contractId,"REMAINING_RENT")).thenReturn(java.util.List.of());
+        assertEquals(0,service.calculate(r).initialRent().remainingAmount().compareTo(original.remaining()));
+        when(invoices.findFirstByContractIdAndInvoiceType(contractId,"REMAINING_RENT")).thenReturn(Optional.empty());
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,()->service.calculate(r)).status());
     }
 
     @Test

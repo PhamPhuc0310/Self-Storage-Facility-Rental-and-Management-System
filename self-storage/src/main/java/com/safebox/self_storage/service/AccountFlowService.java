@@ -49,21 +49,10 @@ public class AccountFlowService {
             throw new AuthFlowException(HttpStatus.CONFLICT, "Email đã được sử dụng. Nếu chưa xác thực, hãy gửi lại email xác thực.");
         User user = new User();
         user.setUserId(UUID.randomUUID());
-        Role customerRole = roles.findByRoleName("CUSTOMER").orElseGet(() -> {
-            return roles.findAll().stream()
-                    .filter(r -> "CUSTOMER".equalsIgnoreCase(r.getRoleName()))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        Role r = new Role();
-                        r.setRoleId(1);
-                        r.setRoleName("CUSTOMER");
-                        r.setDescription("Khách hàng");
-                        try { return roles.saveAndFlush(r); } catch (Exception ignored) { return null; }
-                    });
-        });
-        if (customerRole == null) {
-            customerRole = roles.findAll().stream().findFirst().orElseThrow(() -> new IllegalStateException("Cơ sở dữ liệu chưa có vai trò người dùng (ROLES). Vui lòng chạy seed."));
-        }
+        Role customerRole = roles.findByRoleName("CUSTOMER")
+                .filter(role -> "CUSTOMER".equals(role.getRoleName()))
+                .orElseThrow(() -> new AuthFlowException(HttpStatus.SERVICE_UNAVAILABLE,
+                        "Chưa cấu hình vai trò khách hàng. Vui lòng liên hệ quản trị viên."));
         user.setRole(customerRole);
         user.setEmail(email);
         user.setPasswordHash(passwords.encode(request.password()));
@@ -113,11 +102,8 @@ public class AccountFlowService {
             token.setSentAt(LocalDateTime.now(ZoneOffset.UTC));
             tokens.saveAndFlush(token);
         } catch (MessagingException | MailException ex) {
-            // Khi không có Mail Server chạy ngầm, tự động kích hoạt tài khoản để kiểm thử mượt mà và in log
-            user.setEmailVerified(true);
-            users.saveAndFlush(user);
-            org.slf4j.LoggerFactory.getLogger(AccountFlowService.class).info(
-                    "[SafeBox Storage] Không kết nối được mail server SMTP. Tự động kích hoạt tài khoản kiểm thử cho email: {}", user.getEmail());
+            throw new AuthFlowException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Chưa gửi được email. Tài khoản vẫn chờ xác thực; vui lòng thử gửi lại sau.");
         }
     }
 

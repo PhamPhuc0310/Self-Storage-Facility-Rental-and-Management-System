@@ -59,6 +59,43 @@ class OverduePolicyGovernanceServiceTest {
         assertEquals(HttpStatus.FORBIDDEN,assertThrows(BusinessException.class,()->service.create(UUID.randomUUID(),request())).status());
         verify(policies,never()).saveAndFlush(any());
     }
+    @Test void businessActivatesGlobalDirectlyAndPreservesUnrelatedTermsAndLocalFlow() {
+        base.setFacilityId(null);
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");when(access.currentId()).thenReturn(business);
+        when(policies.findFirstByFacilityIdIsNullOrderByEffectiveFromAscPolicyIdAsc()).thenReturn(Optional.of(base));
+        when(policies.lockById(baseId)).thenReturn(Optional.of(base));
+        when(policies.findByFacilityId(null)).thenReturn(List.of(base));
+        RentalPolicy next=service.activateGlobal(request());
+        assertNull(next.getFacilityId());assertEquals(business,next.getOverdueCreatedBy());
+        assertEquals(business,next.getOverdueApprovedBy());assertNull(next.getOverdueProposalId());
+        assertEquals(1,next.getOverdueVersion());assertEquals(baseId,next.getOverdueSourcePolicyId());
+        assertEquals(base.getReservationHoldMinutes(),next.getReservationHoldMinutes());
+        assertEquals(base.getReturnPolicy(),next.getReturnPolicy());assertNull(base.getOverdueApprovedAt());
+        verify(policies).lockById(baseId);verifyNoInteractions(proposals,facilities);
+        verify(logs).save(argThat(log->"GLOBAL_OVERDUE_POLICY_ACTIVATE".equals(log.getActionType())&&"RENTAL_POLICY".equals(log.getEntityType())));
+    }
+    @Test void globalReplacementClosesOldBoundaryAndConflictingRetryIsRejected() {
+        base.setFacilityId(null);base.setOverdueApprovedBy(business);base.setOverdueApprovedAt(today.atStartOfDay());base.setOverdueVersion(2);
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");when(access.currentId()).thenReturn(business);
+        when(policies.findFirstByFacilityIdIsNullOrderByEffectiveFromAscPolicyIdAsc()).thenReturn(Optional.of(base));
+        when(policies.lockById(baseId)).thenReturn(Optional.of(base));when(policies.findByFacilityId(null)).thenReturn(List.of(base));
+        var next=service.activateGlobal(request());assertEquals(3,next.getOverdueVersion());
+        assertEquals(request().effectiveFrom().minusDays(1),base.getEffectiveTo());
+        when(policies.findByFacilityId(null)).thenReturn(List.of(base,next));
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,()->service.activateGlobal(request())).status());
+        verify(policies,times(2)).saveAndFlush(any());
+    }
+    @Test void otherRolesCannotReadOrActivateGlobalAndBackdatedPolicyIsRejected() {
+        for(String role:List.of("SYSTEM_ADMIN","FACILITY_MANAGER","FACILITY_STAFF","CUSTOMER")) {
+            when(access.role()).thenReturn(role);
+            assertEquals(HttpStatus.FORBIDDEN,assertThrows(BusinessException.class,()->service.activateGlobal(request())).status());
+            assertEquals(HttpStatus.FORBIDDEN,assertThrows(BusinessException.class,()->service.globalHistory()).status());
+        }
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");
+        var r=request();var past=new OverduePolicyProposalRequest(baseId,r.overdueGraceDays(),r.penaltyType(),r.dailyPenaltyRate(),r.fixedPenaltyAmount(),today.minusDays(1),null,r.reason());
+        assertEquals(HttpStatus.BAD_REQUEST,assertThrows(BusinessException.class,()->service.activateGlobal(past)).status());
+        verify(policies,never()).saveAndFlush(any());
+    }
     @Test void managerEditsSubmitsAndWithdrawsOwnProposalOnly() {
         when(access.role()).thenReturn("FACILITY_MANAGER");when(access.facilities()).thenReturn(List.of(facility));when(access.currentId()).thenReturn(manager);
         UUID id=UUID.randomUUID();OverduePolicyProposal p=pending();p.setStatus("DRAFT");when(proposals.lockById(id)).thenReturn(Optional.of(p));

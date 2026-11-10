@@ -1,0 +1,11 @@
+# Database bootstrap
+
+Use the procedure in [TEAM_SETUP.md](../TEAM_SETUP.md). PowerShell7 and sqlcmd use your own Windows integrated SQL account. The initializer only accepts `SafeBox_Local` or `SafeBox_Local_<letters/digits>` and refuses existing tables. No primary/test/shared database can be selected.
+
+`bootstrap-local.ps1` applies, in order: canonical base schema; schema-only catalog presentation fields (no seed rows); auth email; UC11/12; UC17; UC18; support compatibility/history; UC20; UC21; atomic UC19/24; then the checksum-ledger runner for10–17; then five role definitions. It sets SQL Server's required filtered-index session options. Legacy hardcoded USE/CREATE names are rebound only in a temporary execution copy for the validated empty local target. Canonical SQL files remain unchanged.
+
+The historical `apply_10_15.ps1` filename is retained; it covers10–17. Migration17 cannot run directly on an empty database: prerequisites and migrations10–16 must exist first. The runner preserves its canonical source checksum and exact DDL, extending only the execution allowlist for the explicitly verified `SafeBox_Local...` target. Its separate primary guard, source pinning, transactional schema/ledger recording and postconditions remain authoritative. Do not use primary approval flags for development. `-VerifyOnly` checks initialized databases without applying changes.
+
+Migration source bytes are preserved with `.gitattributes` because existing ledgers hash exact bytes. Do not edit/reformat already-applied SQL. Bootstrap stops on errors and preserves any partial local database for inspection; it never drops data or automatically retries. Start with another unique local database if needed.
+
+No customer accounts, payment/receipt/history fixtures, financial policies or production dump are part of initialization. Optional local accounts use `scripts/CreateLocalUsers.java` with a newly supplied password; see the team guide. Unit types, verified inventory, pricing and approved business policies are configured through the application's authorized management workflows when needed. Owner-specific SQL campaigns and private dumps remain local and are not required to clone or run the project.

@@ -22,20 +22,57 @@ public class EarlyReturnService {
     private final PaymentTransactionRepository payments;
     private final InvoiceRepository invoices;
     private final DepositRefundRepository refunds;
+    private final EarlyReturnRentSettlement rentSettlement;
 
     public EarlyReturnService(Sprint2Access access, TerminationRequestRepository requests,
             EarlyReturnPolicyRepository policies, EarlyReturnSettlementRepository settlements,
             HandoverRecordRepository handovers, InspectionReportRepository inspections,
-            PaymentTransactionRepository payments, InvoiceRepository invoices, DepositRefundRepository refunds) {
+            PaymentTransactionRepository payments, InvoiceRepository invoices, DepositRefundRepository refunds,
+            EarlyReturnRentSettlement rentSettlement) {
         this.access = access; this.requests = requests; this.policies = policies; this.settlements = settlements;
         this.handovers = handovers; this.inspections = inspections; this.payments = payments;
         this.invoices = invoices; this.refunds = refunds;
+        this.rentSettlement = rentSettlement;
     }
 
     public record RequestInput(LocalDateTime proposedReturnAt, String reason, String notes) {}
     public record ApprovalInput(BigDecimal inspectionDeduction, String deductionReason) {}
     public record RejectInput(String reason) {}
-    public record SettlementView(String status, EarlyReturnSettlement settlement, String message) {}
+    public record SettlementView(String status, EarlyReturnSettlement settlement, String message,
+            EarlyReturnRentSettlement.Calculation calculation) {
+        public SettlementView(String status,EarlyReturnSettlement settlement,String message){this(status,settlement,message,null);}
+    }
+
+    @Transactional
+    public void prepareReturnSchedule(RentalContract contract, LocalDateTime scheduledAt, String note) {
+        Optional<TerminationRequest> existing = requests.findFirstByContractIdAndTypeAndStatusIn(
+                contract.contractId, "EARLY_RETURN", OPEN);
+        if (existing.isPresent()) {
+            TerminationRequest row = existing.get();
+            if ("REQUESTED".equals(row.status) && scheduledAt.equals(row.scheduledReturnAt)) return;
+            throw conflict("Yêu cầu trả trước hạn đang được xử lý. Vui lòng dùng thời gian đã đề xuất hoặc liên hệ quản lý để thay đổi.");
+        }
+        if (scheduledAt.toLocalDate().isBefore(contract.endDate))
+            request(contract.contractId, new RequestInput(scheduledAt, "Trả kho trước hạn theo lịch hẹn", note));
+    }
+
+    @Transactional(readOnly = true)
+    public void requireSettlementForClosure(UUID contractId) {
+        Optional<TerminationRequest> open = requests.findFirstByContractIdAndTypeAndStatusIn(
+                contractId, "EARLY_RETURN", List.of("REQUESTED", "SETTLEMENT_APPROVED"));
+        if (open.isEmpty()) return;
+        TerminationRequest row = open.get();
+        Optional<EarlyReturnSettlement> approved = settlements.findByTerminationId(row.id);
+        if (approved.filter(s -> s.calculationSnapshot != null && s.refundConfirmedAt != null
+                && "COMPLETED".equals(s.status)).isPresent()) return;
+        if (approved.filter(s -> s.calculationSnapshot != null).isPresent())
+            throw conflict("Cần xác nhận thực hiện quyết toán đã duyệt trước khi đóng hợp đồng.");
+        // An approved zero-refund decision needs no fabricated payment/refund transaction.
+        if ("SETTLEMENT_APPROVED".equals(row.status) && approved.filter(s -> "APPROVED".equals(s.status)
+                && s.depositRefundAmount.signum() == 0 && s.unusedRentRefund.signum() == 0
+                && s.remainingPayable.signum() == 0).isPresent()) return;
+        throw conflict("Cần hoàn tất quyết toán trả trước hạn và khoản hoàn cọc được duyệt trước khi đóng hợp đồng.");
+    }
 
     @Transactional
     public TerminationRequest request(UUID contractId, RequestInput input) {
@@ -53,6 +90,7 @@ public class EarlyReturnService {
             throw conflict("Resolve the existing deposit refund request before starting early return.");
         if (handovers.findFirstByContractIdAndHandoverTypeAndStatus(contractId, "RETURN", "SCHEDULED").isPresent())
             throw conflict("A return appointment already exists.");
+        rentSettlement.requireNoPendingRenewal(contractId);
         TerminationRequest row = new TerminationRequest();
         row.id = UUID.randomUUID(); row.contractId = contractId; row.type = "EARLY_RETURN";
         row.requestedBy = access.currentId(); row.requestedAt = access.now();
@@ -87,14 +125,31 @@ public class EarlyReturnService {
     @Transactional(readOnly = true)
     public SettlementView settlement(UUID id) {
         TerminationRequest row = managerRequest(id, false);
+        return settlementView(row);
+    }
+
+    @Transactional(readOnly = true)
+    public SettlementView customerSettlement(UUID id) { return settlementView(customerGet(id)); }
+
+    private SettlementView settlementView(TerminationRequest row) {
+        UUID id=row.id;
         Optional<EarlyReturnSettlement> existing = settlements.findByTerminationId(id);
-        if (existing.isPresent()) return new SettlementView(existing.get().status, existing.get(), null);
+        if (existing.isPresent()) return new SettlementView(existing.get().status, existing.get(), null,
+                existing.get().calculationSnapshot==null?null:rentSettlement.read(existing.get()));
         UUID facility = access.facilityId(access.contract(row.contractId, false));
-        List<EarlyReturnPolicy> applicable = policies.applicable(facility, row.scheduledReturnAt.toLocalDate());
+        LocalDateTime actual=handovers.findByContractIdAndHandoverTypeOrderByScheduledAtDesc(row.contractId,"RETURN").stream()
+                .filter(h->"COMPLETED".equals(h.getStatus())&&h.getActualAt()!=null).map(HandoverRecord::getActualAt).findFirst().orElse(null);
+        List<EarlyReturnPolicy> applicable = policies.applicable(facility, (actual==null?row.scheduledReturnAt:actual).toLocalDate());
         if (applicable.isEmpty())
             return new SettlementView("PENDING_POLICY", null, "No approved early-return financial policy is configured for this facility and date.");
         if (applicable.size() > 1)
             return new SettlementView("POLICY_CONFLICT", null, "Overlapping approved policies must be resolved before settlement.");
+        if (applicable.get(0).rentalRefundPercent!=null&&applicable.get(0).rentalRefundPercent.signum()>0) {
+            var calculation=rentSettlement.calculate(access.contract(row.contractId,false),
+                    (actual==null?row.scheduledReturnAt:actual).toLocalDate(),actual==null,applicable.get(0),BigDecimal.ZERO,actual==null?access.now():actual);
+            return new SettlementView(inspectionReady(row.contractId)?"READY_FOR_APPROVAL":"ESTIMATED",null,
+                    "Ước tính chưa phải khoản hoàn đã xác nhận; quyết toán dùng ngày bàn giao thực tế.",calculation);
+        }
         if (!inspectionReady(row.contractId))
             return new SettlementView("PENDING_INSPECTION", null, "UC16/UC20 handover and inspection must be completed first.");
         return new SettlementView("READY_FOR_APPROVAL", null, "Manager must finalize inspection deduction with a reason.");
@@ -107,12 +162,12 @@ public class EarlyReturnService {
         if (settlements.findByTerminationId(id).isPresent()) throw conflict("A settlement already exists.");
         RentalContract contract = access.contract(row.contractId, true);
         UUID facility = access.facilityId(contract);
-        List<EarlyReturnPolicy> applicable = policies.applicable(facility, row.scheduledReturnAt.toLocalDate());
-        if (applicable.size() != 1) throw conflict("Exactly one approved early-return policy is required.");
-        EarlyReturnPolicy policy = applicable.get(0);
         HandoverRecord handover = handovers.findByContractIdAndHandoverTypeOrderByScheduledAtDesc(row.contractId, "RETURN")
                 .stream().filter(h -> "COMPLETED".equals(h.getStatus()) && h.getActualAt() != null)
                 .findFirst().orElseThrow(() -> conflict("Physical return has not been completed."));
+        List<EarlyReturnPolicy> applicable = policies.applicable(facility, handover.getActualAt().toLocalDate());
+        if (applicable.size() != 1) throw conflict("Exactly one approved early-return policy is required.");
+        EarlyReturnPolicy policy = applicable.get(0);
         InspectionReport inspection = inspections.findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(
                 row.contractId, "RETURN_INSPECTION").orElseThrow(() -> conflict("Return inspection is missing."));
         if (inspection.getInspectionDate().isBefore(handover.getActualAt()))
@@ -127,9 +182,25 @@ public class EarlyReturnService {
         if (deduction.signum() > 0 && (!policy.inspectionDeductionAllowed
                 || deduction.compareTo(inspection.getEstimatedRepairCost()) > 0))
             throw conflict("Deduction is not allowed by policy or exceeds the inspection estimate.");
+        if (policy.rentalRefundPercent!=null&&policy.rentalRefundPercent.signum()>0) {
+            if (!row.requestedBy.equals(contract.customerId))throw conflict("Chính sách 80% chỉ áp dụng yêu cầu do khách hàng chủ động.");
+            EarlyReturnSettlement s=new EarlyReturnSettlement();s.id=UUID.randomUUID();s.terminationId=id;s.contractId=row.contractId;
+            rentSettlement.addInspectionCharge(contract,s.id,deduction,input.deductionReason());
+            var calc=rentSettlement.calculate(contract,handover.getActualAt().toLocalDate(),false,policy,deduction,handover.getActualAt());
+            s.policyId=policy.id;s.policyVersion=policy.version;s.handoverId=handover.getHandoverId();s.inspectionId=inspection.getInspectionId();
+            s.depositContractAmount=contract.depositAmount;s.depositCollected=calc.depositBalance();s.priorDepositRefunds=refunds.completedTotal(row.contractId);
+            s.rentalCollected=calc.eligiblePrepaidRent();s.unusedRentRefund=calc.rentalRefund();s.outstandingReceivables=calc.outstandingDebt();
+            s.inspectionDeduction=deduction;s.deductionReason=input.deductionReason();s.remainingPayable=calc.remainingDebt();
+            s.depositRefundAmount=calc.refundLines().stream().filter(l->"DEPOSIT".equals(l.paymentType())).map(EarlyReturnRentSettlement.RefundLine::amount).reduce(BigDecimal.ZERO,BigDecimal::add);
+            s.calculationSnapshot=rentSettlement.snapshot(calc);s.status="APPROVED";s.calculatedAt=access.now();s.approvedAt=s.calculatedAt;s.approvedBy=access.currentId();
+            row.deductionAmount=calc.liabilityOffset();row.refundAmount=calc.netRefund();row.approvedBy=s.approvedBy;row.status="SETTLEMENT_APPROVED";
+            requests.save(row);return settlements.saveAndFlush(s);
+        }
         BigDecimal collected = successfulDeposits(row.contractId).stream().map(p -> p.amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal priorRefunds = refunds.completedTotal(row.contractId);
         BigDecimal depositBalance = collected.subtract(priorRefunds).max(BigDecimal.ZERO).min(contract.depositAmount);
+        if (deduction.compareTo(depositBalance) > 0)
+            throw conflict("Khấu trừ từ tiền cọc không được vượt số dư cọc đã thu còn lại. Cần đối soát các khoản phí khác riêng.");
         BigDecimal rentCollected = payments.findByContractIdAndStatus(row.contractId, "SUCCESS").stream()
                 .filter(p -> !"REFUND".equals(p.transactionType) && p.paymentType != null
                         && Set.of("INITIAL_RENT", "REMAINING_RENT", "MONTHLY_RENT", "RENEWAL").contains(p.paymentType))
@@ -161,6 +232,9 @@ public class EarlyReturnService {
         TerminationRequest row = managerRequest(id, true);
         if (!"REQUESTED".equals(row.status)) throw conflict("This request has already been decided.");
         if (input == null || input.reason() == null || input.reason().isBlank()) throw bad("A rejection reason is required.");
+        if (handovers.findByContractIdAndHandoverTypeOrderByScheduledAtDesc(row.contractId, "RETURN").stream()
+                .anyMatch(h -> Set.of("SCHEDULED", "COMPLETED").contains(h.getStatus())))
+            throw conflict("Đã có lịch hoặc biên bản trả kho; cần xử lý lịch hẹn và quyết toán trước khi từ chối yêu cầu.");
         row.status = "REJECTED"; row.reason += "\nRejection: " + input.reason().trim();
         row.approvedBy = access.currentId(); row.completedAt = access.now();
         return requests.saveAndFlush(row);
@@ -168,10 +242,18 @@ public class EarlyReturnService {
 
     @Transactional
     public EarlyReturnSettlement refund(UUID id) {
+        return refund(id,null);
+    }
+    @Transactional
+    public EarlyReturnSettlement refund(UUID id,EarlyReturnRentSettlement.Confirmation confirmation) {
         TerminationRequest row = managerRequest(id, true);
-        access.contract(row.contractId, true); // serializes concurrent refund attempts per contract
+        RentalContract contract=access.contract(row.contractId, true); // serializes concurrent refund attempts per contract
         EarlyReturnSettlement s = settlements.findByTerminationId(id)
                 .orElseThrow(() -> conflict("Approved settlement is missing."));
+        if(s.calculationSnapshot!=null) {
+            if(!inspectionReady(row.contractId))throw conflict("Physical return or inspection is missing.");
+            rentSettlement.complete(contract,row,s,confirmation);requests.save(row);return settlements.saveAndFlush(s);
+        }
         if ("REFUNDED".equals(s.status)) return s;
         if (!"SETTLEMENT_APPROVED".equals(row.status) || !"APPROVED".equals(s.status))
             throw conflict("Settlement is not approved.");

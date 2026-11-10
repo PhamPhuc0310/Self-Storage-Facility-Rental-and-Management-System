@@ -32,13 +32,13 @@
       title: 'Quản lý kinh doanh',
       intro: 'Quản lý cơ sở và xét duyệt đề xuất trong phạm vi kinh doanh được giao.',
       links: [['Cơ sở', '/management-business.html'], ['Bảng giá', '/management-pricing.html'],
-        ['Chính sách', '/management-policies.html'], ['Báo cáo', '/reports.html']]
+        ['Chính sách', '/management-policies.html'], ['Báo cáo', '/stitch/business-reports.html']]
     },
     SYSTEM_ADMIN: {
       title: 'Quản trị hệ thống',
       intro: 'Quản lý tài khoản, phân quyền và nhật ký quản trị.',
-      links: [['Tài khoản và quyền', '/management-admin.html#users'],
-        ['Nhật ký quản trị', '/management-admin.html#audit']]
+      links: [['Tài khoản và quyền', '/management-admin.html'],
+        ['Nhật ký kiểm toán', '/stitch/management-audit.html']]
     }
   };
   SafeBoxAuth.requireAuth().then(ok => {

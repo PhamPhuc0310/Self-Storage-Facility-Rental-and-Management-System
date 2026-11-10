@@ -1,5 +1,6 @@
 (async()=>{'use strict';
   const auth=window.SafeBoxAuth;if(!await auth.requireRole('FACILITY_MANAGER','BUSINESS_OPERATIONS_MANAGER'))return;
+  if(auth.getCurrentUser()?.role==='BUSINESS_OPERATIONS_MANAGER'){location.replace('/stitch/business-reports.html');return;}
   const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v||0))+' đ';
   const {todayISODateVN,formatDateVN,toISODate}=SafeBoxUc12Time;

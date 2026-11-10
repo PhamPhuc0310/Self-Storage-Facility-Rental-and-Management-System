@@ -19,6 +19,20 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HandoverServiceTest {
+    @Test void completedRetryDoesNotExposeAnotherStaffsHandoverAndNeverWritesAgain() {
+        HandoverRecord completed=new HandoverRecord(); completed.setStaffId(staffId);
+        when(access.contract(contractId,true)).thenReturn(contract);
+        when(handovers.findFirstByContractIdAndHandoverTypeAndStatus(contractId,"CHECK_IN","COMPLETED"))
+                .thenReturn(Optional.of(completed));
+        when(access.role()).thenReturn("FACILITY_STAFF");
+        when(access.currentId()).thenReturn(UUID.randomUUID(),staffId);
+        assertEquals(403,assertThrows(BusinessException.class,()->service.complete(contractId,null)).status().value());
+        assertSame(completed,service.complete(contractId,null));
+        when(access.role()).thenReturn("FACILITY_MANAGER");
+        assertSame(completed,service.complete(contractId,null));
+        verify(handovers,never()).saveAndFlush(any());
+        verifyNoInteractions(payments,appointments,inspections,units);
+    }
     @Mock Sprint2Access access;
     @Mock PickupAppointmentRepository appointments;
     @Mock HandoverRecordRepository handovers;

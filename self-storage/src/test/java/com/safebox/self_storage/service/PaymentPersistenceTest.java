@@ -58,6 +58,12 @@ class PaymentPersistenceTest {
         deposit.dueDate = deposit.issuedAt;
         deposit.status = "UNPAID";
         invoices.saveAndFlush(deposit);
+        Invoice rent=new Invoice();rent.contractId=id;rent.invoiceType="REMAINING_RENT";
+        rent.invoiceNumber="INV-RENT-"+UUID.randomUUID();rent.description="Phần tiền thuê còn lại";
+        rent.subtotal=ContractPricing.of(contract.monthlyRentalFee,contract.startDate,contract.endDate).remaining();
+        rent.totalAmount=rent.subtotal;rent.penaltyAmount=BigDecimal.ZERO;rent.discountAmount=BigDecimal.ZERO;
+        rent.paidAmount=BigDecimal.ZERO;rent.issuedAt=deposit.issuedAt;rent.dueDate=deposit.dueDate;rent.status="UNPAID";
+        invoices.saveAndFlush(rent);
 
         Sprint2Access access = mock(Sprint2Access.class);
         PickupAppointmentRepository appointments = mock(PickupAppointmentRepository.class);

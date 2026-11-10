@@ -40,8 +40,13 @@ class Sprint2ServiceTest {
         appointments = new AppointmentService(access, appointmentRepository, handoverRepository, contracts, facilities, units, users, assignments, invoices, payments);
         contract = new RentalContract(); contract.contractId = contractId; contract.customerId = customerId;
         contract.unitId = UUID.randomUUID(); contract.status = "CONFIRMED";
+        contract.customerSignedAt = now; contract.customerSignature = "Customer acceptance";
         contract.startDate = LocalDate.of(2026,10,11); contract.endDate = LocalDate.of(2027,4,11);
         contract.depositAmount = new BigDecimal("2000000"); contract.monthlyRentalFee = new BigDecimal("4500000");
+    }
+    void originalRentInvoice() {
+        Invoice rent=new Invoice();rent.totalAmount=ContractPricing.of(contract.monthlyRentalFee,contract.startDate,contract.endDate).remaining();
+        lenient().when(invoices.findFirstByContractIdAndInvoiceType(contractId,"REMAINING_RENT")).thenReturn(Optional.of(rent));
     }
     void paymentSetup() {
         when(access.contract(contractId,true)).thenReturn(contract);
@@ -164,6 +169,7 @@ class Sprint2ServiceTest {
         contract.startDate = LocalDate.of(2026,11,1); contract.endDate = LocalDate.of(2027,2,1);
         contract.monthlyRentalFee = new BigDecimal("900000"); contract.depositAmount = new BigDecimal("990000");
         paymentSetup();
+        originalRentInvoice();
         PaymentService.Summary s = payments.calculate(contract);
         assertEquals(new BigDecimal("2970000"), s.contractTotal());
         assertEquals(new BigDecimal("1980000"), s.initialRent().amountDue());
@@ -235,6 +241,7 @@ class Sprint2ServiceTest {
     @Test void pendingRemainingTransferNeedsStaffVerificationAndDueDate() {
         contract.termsVersion = "v2";
         contract.startDate = LocalDate.of(2026,11,1); contract.endDate = LocalDate.of(2027,2,1);
+        originalRentInvoice();
         contract.monthlyRentalFee = new BigDecimal("900000"); contract.depositAmount = new BigDecimal("990000");
         PickupAppointment pickup = new PickupAppointment(); pickup.appointmentTime = LocalDateTime.of(2026,11,25,9,0);
         UUID staffId = UUID.randomUUID(); pickup.assignedStaffId = staffId; pickup.facilityId = facilityId; pickup.customerId = customerId;
@@ -265,6 +272,7 @@ class Sprint2ServiceTest {
         contract.termsVersion = "v2"; contract.depositAmount = new BigDecimal("990000");
         contract.monthlyRentalFee = new BigDecimal("900000");
         contract.endDate = LocalDate.of(2027,1,11);
+        originalRentInvoice();
         when(access.contract(contractId,true)).thenReturn(contract);
         when(access.role()).thenReturn("CUSTOMER"); when(access.now()).thenReturn(now);
         when(access.facilityId(contract)).thenReturn(facilityId);
@@ -366,6 +374,7 @@ class Sprint2ServiceTest {
         contract.termsVersion = "v2"; contract.depositAmount = new BigDecimal("990000");
         contract.monthlyRentalFee = new BigDecimal("900000");
         contract.endDate = LocalDate.of(2027,1,11);
+        originalRentInvoice();
         UUID staffId = UUID.randomUUID();
         PickupAppointment a = new PickupAppointment(); a.contractId = contractId;
         a.status = "SCHEDULED"; a.appointmentTime = now.plusDays(2); a.assignedStaffId = staffId;

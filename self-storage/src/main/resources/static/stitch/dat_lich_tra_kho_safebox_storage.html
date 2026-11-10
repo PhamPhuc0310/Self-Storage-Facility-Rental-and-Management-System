@@ -55,7 +55,7 @@
       background-color: #00288e;
     }
   </style>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script></head>
 <body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
 
   <!-- Header -->
@@ -113,7 +113,7 @@
         <div class="text-sm">
           <p class="font-bold text-amber-950">Lưu ý quan trọng về quy trình trả kho:</p>
           <p class="mt-1 text-amber-900 leading-relaxed">
-            Việc gửi yêu cầu đặt lịch này <strong>chưa chấm dứt hợp đồng ngay</strong>. Hợp đồng vẫn ở trạng thái <strong class="text-primary font-bold">ACTIVE</strong> cho đến khi bạn tới cơ sở, nhân viên kiểm tra xác nhận kho đã dọn trống và thu hồi đầy đủ chìa khóa, thẻ từ truy cập.
+            Việc gửi yêu cầu đặt lịch này <strong>chưa chấm dứt hợp đồng ngay</strong>. Hợp đồng vẫn ở trạng thái <strong class="text-primary font-bold">đang thuê hoặc quá hạn</strong> cho đến khi bạn tới cơ sở, nhân viên kiểm tra xác nhận kho đã dọn trống và thu hồi đầy đủ chìa khóa, thẻ từ truy cập.
           </p>
         </div>
       </div>
@@ -132,7 +132,7 @@
                 <h2 class="font-bold text-slate-800 text-base">Thông tin hợp đồng kho đang thuê</h2>
               </div>
               <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">ACTIVE</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200" id="return-contract-status">Đang tải</span>
                 <span id="badge-contract-no" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-100 text-slate-700">SB-CT-...</span>
               </div>
             </div>
@@ -176,12 +176,17 @@
               </div>
               <div class="max-w-md space-y-1.5">
                 <input type="date" id="return-date-input"
-                       class="w-full h-11 px-3.5 rounded-xl bg-slate-100 border border-slate-300 font-mono text-sm text-slate-800 cursor-not-allowed font-semibold focus:outline-none"/>
+                       required onchange="updateReturnPolicyNotice()" class="w-full h-11 px-3.5 rounded-xl bg-slate-100 border border-slate-300 font-mono text-sm text-slate-800 font-semibold focus:outline-none"/>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500">
                   <span class="material-symbols-outlined text-sm text-secondary">verified</span>
-                  <span>Ngày kết thúc hợp đồng: <span id="end-date-text" class="font-bold text-primary">...</span>. Nếu đã quá hạn, vui lòng chọn ngày trả kho phù hợp.</span>
+                  <span>Ngày kết thúc hợp đồng: <span id="end-date-text" class="font-bold text-primary">...</span>. Bạn có thể chọn ngày trả trước, đúng hoặc sau ngày này, từ hôm nay trở đi.</span>
                 </div>
               </div>
+            </div>
+
+            <div id="early-return-policy" hidden role="status" class="p-4 rounded-xl border border-amber-300 bg-amber-50 text-sm text-amber-950">
+              <strong>Trả kho trước hạn</strong>
+              <p>Có thể phát sinh khấu trừ theo chính sách được duyệt. Tiền cọc được quyết toán riêng sau kiểm tra; tiền thuê trả trước đủ điều kiện được hoàn 80% phần ngày chưa sử dụng theo chính sách đã duyệt; 20% còn lại được giữ lại, không thu thêm lần nữa. Số tiền hiện tại chỉ là ước tính; việc đặt lịch không được tự động hoàn lại tiền. Công nợ và chi phí hư hỏng, vệ sinh (nếu được duyệt) phải được đối soát. Đặt lịch chưa đóng hợp đồng và không thay đổi ngày kết thúc hợp đồng.</p>
             </div>
 
             <!-- Step 2: Time Slot Selector -->
@@ -287,7 +292,7 @@
             </div>
             <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
               <li>Nhân viên và khách hàng cùng mở kho để kiểm tra tình trạng sàn, tường và cửa cuốn.</li>
-              <li>Kho không hư hỏng sẽ được xác nhận đủ chuẩn và chuyển sang trạng thái <strong>AVAILABLE</strong>.</li>
+              <li>Kho chỉ được mở cho thuê lại sau khi hoàn tất kiểm tra và xác nhận đủ điều kiện.</li>
               <li>Khoản tiền cọc ban đầu được bảo lưu trên hệ thống để tất toán theo quy định hợp đồng.</li>
             </ul>
           </div>
@@ -316,7 +321,7 @@
                   Đã xác nhận lịch hẹn (SCHEDULED)
                 </span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-                  Hợp đồng: ACTIVE
+                  Hợp đồng chưa hoàn tất trả kho
                 </span>
               </div>
               <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Lịch hẹn trả kho đã được xác nhận</h1>
@@ -347,7 +352,7 @@
         <span class="material-symbols-outlined text-primary text-xl flex-shrink-0 mt-0.5">info</span>
         <div class="text-xs sm:text-sm">
           <strong>Thông báo tiến trình hợp đồng:</strong>
-          Hợp đồng thuê vẫn ở trạng thái <strong class="text-primary font-bold">ACTIVE</strong> cho đến khi bạn tới cơ sở vào khung giờ hẹn và hoàn tất nghiệm thu với nhân viên trực quầy.
+          Ngày kết thúc hợp đồng được giữ nguyên. Ngày trả thực tế chỉ được ghi nhận khi hoàn tất bàn giao và kiểm tra; quyết toán và đóng hợp đồng là các bước riêng.
         </div>
       </div>
 
@@ -364,6 +369,7 @@
               </div>
               <span id="conf-contract-no" class="font-mono text-xs font-bold text-slate-500">SB-CT-...</span>
             </div>
+            <p id="conf-return-dates" class="text-sm text-slate-600"></p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Location Tile -->
@@ -476,17 +482,9 @@
     let existingScheduleData = null;
 
     // Format helpers
-    function formatDateVi(dateStr) {
-      if (!dateStr) return 'N/A';
-      const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('vi-VN');
-    }
+    function formatDateVi(dateStr) { return SafeBoxUc12Time.formatDateVN(dateStr); }
 
-    function formatTimeVi(dateTimeStr) {
-      if (!dateTimeStr) return 'N/A';
-      const d = new Date(dateTimeStr);
-      return isNaN(d.getTime()) ? dateTimeStr : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    }
+    function formatTimeVi(dateTimeStr) { return SafeBoxUc12Time.formatTimeVN(dateTimeStr); }
 
     // Return appointments use 30-minute slots within the physical service window.
     function generateTimeSlots(openingTimeStr, closingTimeStr) {
@@ -530,7 +528,7 @@
 
         if (scheduleRes.ok) {
           existingScheduleData = await scheduleRes.json();
-          if (existingScheduleData && existingScheduleData.status === 'SCHEDULED') {
+          if (existingScheduleData && ['SCHEDULED','COMPLETED'].includes(existingScheduleData.status)) {
             renderConfirmedView(existingScheduleData);
             return;
           }
@@ -573,12 +571,14 @@
     }
 
     function renderFormView(detail, earlyReturnReq) {
+      currentContractData = detail;
       document.getElementById('loading-state').classList.add('hidden');
       document.getElementById('error-state').classList.add('hidden');
       document.getElementById('confirmed-view').classList.add('hidden');
       document.getElementById('form-view').classList.remove('hidden');
 
       const c = detail.contract;
+      document.getElementById('return-contract-status').textContent = c.statusLabel || ({ACTIVE:'Đang thuê',OVERDUE:'Quá hạn'}[c.status]) || 'Chưa xác định';
       document.getElementById('badge-contract-no').textContent = c.contractNumber;
       document.getElementById('sum-facility-name').textContent = c.facilityName || 'SafeBox Facility';
       document.getElementById('sum-facility-address').innerHTML = `<span class="material-symbols-outlined text-xs text-primary">pin_drop</span> ${c.facilityAddress || 'Địa chỉ cơ sở'}`;
@@ -597,7 +597,7 @@
       }
 
       const dateInput = document.getElementById('return-date-input');
-      const todayVN = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Ho_Chi_Minh', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
+      const todayVN = SafeBoxUc12Time.todayISODateVN();
       const expired = c.endDate < todayVN;
       let targetTimeSlot = null;
 
@@ -613,10 +613,11 @@
         document.getElementById('end-date-text').innerHTML = `<span class="text-rose-600 font-bold">Lịch hẹn theo yêu cầu trả kho sớm: ${formatDateVi(erDate)} (Hợp đồng gốc đến ${formatDateVi(c.endDate)})</span>`;
       } else {
         dateInput.value = expired ? todayVN : c.endDate;
-        dateInput.min = expired ? todayVN : c.endDate;
-        dateInput.max = expired ? '' : c.endDate;
-        dateInput.readOnly = !expired;
+        dateInput.min = todayVN;
+        dateInput.max = '';
+        dateInput.readOnly = false;
       }
+      updateReturnPolicyNotice();
 
       // Populate slots
       let slots = generateTimeSlots();
@@ -647,13 +648,18 @@
       });
     }
 
+    function updateReturnPolicyNotice() {
+      const date = document.getElementById('return-date-input').value;
+      document.getElementById('early-return-policy').hidden = !date || !currentContractData || date >= currentContractData.contract.endDate;
+    }
+
     function renderConfirmedView(schedule) {
       document.getElementById('loading-state').classList.add('hidden');
       document.getElementById('error-state').classList.add('hidden');
       document.getElementById('form-view').classList.add('hidden');
       document.getElementById('confirmed-view').classList.remove('hidden');
 
-      document.getElementById('breadcrumb-title').textContent = "Xác nhận lịch hẹn trả kho";
+      document.getElementById('breadcrumb-title').textContent = schedule.status === 'COMPLETED' ? "Đã nhận lại kho" : "Xác nhận lịch hẹn trả kho";
       document.getElementById('conf-ref-code').textContent = `MÃ HẸN: APT-${schedule.handoverId.substring(0, 8).toUpperCase()}`;
       document.getElementById('conf-contract-no').textContent = schedule.contractNumber;
       document.getElementById('conf-facility-name').textContent = schedule.facilityName;
@@ -662,6 +668,7 @@
       document.getElementById('conf-unit-zone').textContent = `(${schedule.floor || 'Tầng 1'} · ${schedule.zone || 'Khu A'})`;
       document.getElementById('conf-date-val').textContent = formatDateVi(schedule.scheduledAt);
       document.getElementById('conf-time-val').textContent = formatTimeVi(schedule.scheduledAt);
+      document.getElementById('conf-return-dates').textContent = `Ngày kết thúc hợp đồng: ${formatDateVi(schedule.contractEndDate)} · Trả thực tế: ${schedule.actualAt ? SafeBoxUc12Time.formatDateTimeVN(schedule.actualAt) : 'Chưa bàn giao'}`;
       document.getElementById('conf-staff-name').textContent = schedule.staffName || 'Nhân viên trực quầy';
 
       // Cancel button disabled if already past or completed

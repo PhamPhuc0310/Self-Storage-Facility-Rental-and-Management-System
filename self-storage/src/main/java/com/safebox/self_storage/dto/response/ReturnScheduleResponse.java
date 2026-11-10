@@ -29,7 +29,8 @@ public record ReturnScheduleResponse(
         String note,
         LocalDate contractEndDate,
         boolean canReschedule,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime actualAt
 ) {
     public static String getStatusLabel(String status) {
         if (status == null) return "Chưa xác định";
