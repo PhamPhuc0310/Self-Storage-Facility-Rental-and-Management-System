@@ -8,6 +8,46 @@
 
 <!-- Project Information -->
 ![Architecture](https://img.shields.io/badge/Architecture-REST_API-blue?style=flat-square)
+![Sprint](https://img.shields.io/badge/Sprint-3_Completed-2E8B57?style=flat-square)
+![Tests](https://img.shields.io/badge/Automated_Tests-310_Passed-228B22?style=flat-square)
+
+<!-- GitHub Actions: replace with the actual workflow file -->
+[![Self-Storage-Facility-Rental-and-Management-System (CI included) |  © 2026 by PhamPhuc0310](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System/actions/workflows/ci.yml)
+
+
+# SafeBox
+
+Self-storage rental and facility management with Java 21, Spring Boot 3.3.4, SQL Server and a plain HTML/CSS/JavaScript frontend served by Spring Boot.
+
+Five roles: Storage Customer, Facility Staff, Facility Manager, Business Operations Manager and System Administrator. Seven flows: reservation, check-in/handover, unit management, fee/revenue management, facility/staff management, renewal/overdue handling and support requests.
+
+## Prerequisites
+
+- JDK 21; use the included Maven Wrapper.
+- SQL Server and sqlcmd for database setup. Use your own isolated development instance/database.
+- Node.js 20 or newer for JavaScript tests.
+- Optional Docker for local SMTP capture with Mailpit.
+
+## Clone
+
+After the approved changes are published, clone the repository and enter its root:
+
+```powershell
+git clone https://github.com/PhamPhuc0310/Self-Storage-Facility-Rental-and-Management-System.git
+cd Self-Storage-Facility-Rental-and-Management-System
+```
+
+For an unmerged pull request, select its published branch before setup. Cloning does not copy anyone else's database, environment variables, private configuration or local test evidence. Follow the database and environment steps below before starting the application.
+
+<!-- SafeBox Technology Stack -->
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.4-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?style=flat-square)
+![Maven](https://img.shields.io/badge/Maven-Build-C71A36?style=flat-square)
+![JWT](https://img.shields.io/badge/Auth-JWT-8A2BE2?style=flat-square)
+
+<!-- Project Information -->
+![Architecture](https://img.shields.io/badge/Architecture-REST_API-blue?style=flat-square)
 ![Tests](https://img.shields.io/badge/Automated_Tests-_Passed-228B22?style=flat-square)
 
 <!-- GitHub Actions: replace with the actual workflow file -->
