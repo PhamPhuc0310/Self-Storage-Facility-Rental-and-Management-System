@@ -506,24 +506,9 @@ function formatCurrency(amount) {
     return Number(amount).toLocaleString('vi-VN') + ' đ';
 }
 
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return dateStr;
-}
+function formatDate(dateStr) { return SafeBoxUc12Time.formatDateVN(dateStr); }
 
-function formatDateTime(dtStr) {
-    if (!dtStr) return 'N/A';
-    try {
-        const d = new Date(dtStr);
-        return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    } catch (_) {
-        return dtStr;
-    }
-}
+function formatDateTime(dtStr) { return SafeBoxUc12Time.formatDateTimeVN(dtStr); }
 
 function escapeHtml(text) {
     if (!text) return '';

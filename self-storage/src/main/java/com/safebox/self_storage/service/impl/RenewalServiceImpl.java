@@ -92,6 +92,11 @@ public class RenewalServiceImpl implements RenewalService {
         boolean canRenew = true;
         String warningMessage = "Ước tính phí gia hạn thành công";
 
+        if (!contract.hasCustomerAcceptance()) {
+            canRenew = false;
+            warningMessage = "Hợp đồng chưa có xác nhận điều khoản của khách hàng.";
+        }
+
         if (!"ACTIVE".equalsIgnoreCase(contract.getStatus())) {
             canRenew = false;
             warningMessage = "Chỉ hợp đồng đang hoạt động mới được yêu cầu gia hạn.";
@@ -184,6 +189,8 @@ public class RenewalServiceImpl implements RenewalService {
         if (!contract.getCustomerId().equals(customerId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền yêu cầu gia hạn hợp đồng này");
         }
+        if (!contract.hasCustomerAcceptance())
+            throw new BusinessException(HttpStatus.CONFLICT, "Hợp đồng chưa có xác nhận điều khoản của khách hàng.");
         if (!"ACTIVE".equalsIgnoreCase(contract.getStatus())) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
                     "Chỉ hợp đồng đang hoạt động mới được yêu cầu gia hạn.");
@@ -445,7 +452,7 @@ public class RenewalServiceImpl implements RenewalService {
                     "Số tiền thanh toán (" + request.getAmount() + " VND) không khớp với số tiền cần thanh toán (" + renewal.getRenewalAmount() + " VND).");
         }
 
-        if (!"ACTIVE".equals(contract.getStatus()) || !renewal.getOldEndDate().equals(contract.getEndDate())
+        if (!contract.hasCustomerAcceptance() || !"ACTIVE".equals(contract.getStatus()) || !renewal.getOldEndDate().equals(contract.getEndDate())
                 || !"UNPAID".equals(invoice.getStatus()) || invoice.getPaidAmount().signum() != 0
                 || invoice.getTotalAmount().compareTo(renewal.getRenewalAmount()) != 0) {
             throw new BusinessException(HttpStatus.CONFLICT, "Hợp đồng hoặc hóa đơn gia hạn đã thay đổi.");
@@ -520,7 +527,7 @@ public class RenewalServiceImpl implements RenewalService {
             }
             return renewalPaymentResponse(payment, renewal, contract, "Khoản thanh toán đã được xác nhận trước đó.");
         }
-        if (!"PENDING".equals(payment.getStatus()) || !"APPROVED".equals(renewal.getStatus())
+        if (!contract.hasCustomerAcceptance() || !"PENDING".equals(payment.getStatus()) || !"APPROVED".equals(renewal.getStatus())
                 || !"ACTIVE".equals(contract.getStatus()) || !renewal.getOldEndDate().equals(contract.getEndDate())
                 || !"UNPAID".equals(invoice.getStatus()) || invoice.getPaidAmount() == null
                 || invoice.getPaidAmount().signum() != 0 || invoice.getTotalAmount().compareTo(payment.getAmount()) != 0

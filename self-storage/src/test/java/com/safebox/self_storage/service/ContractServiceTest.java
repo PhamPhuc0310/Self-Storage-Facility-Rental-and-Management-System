@@ -305,7 +305,7 @@ class ContractServiceTest {
         contract.setCustomerId(customerId);
         contract.setStatus("PENDING_CONFIRMATION");
 
-        when(contracts.findById(contractId)).thenReturn(Optional.of(contract));
+        when(contracts.lockById(contractId)).thenReturn(Optional.of(contract));
 
         ConfirmContractRequest req = new ConfirmContractRequest(false, null);
         BusinessException ex = assertThrows(BusinessException.class, () ->
@@ -324,7 +324,7 @@ class ContractServiceTest {
         contract.setCustomerId(customerId);
         contract.setStatus("PENDING_HANDOVER"); // đã xác nhận rồi
 
-        when(contracts.findById(contractId)).thenReturn(Optional.of(contract));
+        when(contracts.lockById(contractId)).thenReturn(Optional.of(contract));
 
         ConfirmContractRequest req = new ConfirmContractRequest(true, "Nguyễn Văn Khách");
         BusinessException ex = assertThrows(BusinessException.class, () ->
@@ -353,7 +353,7 @@ class ContractServiceTest {
         contract.setStatus("PENDING_CONFIRMATION");
         contract.setCreatedAt(LocalDateTime.now().minusHours(2));
 
-        when(contracts.findById(contractId)).thenReturn(Optional.of(contract));
+        when(contracts.lockById(contractId)).thenReturn(Optional.of(contract));
         when(users.findById(customerId)).thenReturn(Optional.of(customer));
         when(reservations.findById(reservationId)).thenReturn(Optional.of(reservation));
         when(units.findById(unitId)).thenReturn(Optional.of(unit));
@@ -382,7 +382,7 @@ class ContractServiceTest {
         approved.monthlyRentalFee = new BigDecimal("900000");
         approved.depositAmount = new BigDecimal("990000");
         approved.termsVersion = "v2"; approved.status = "CONFIRMED";
-        when(contracts.findById(id)).thenReturn(Optional.of(approved));
+        when(contracts.lockById(id)).thenReturn(Optional.of(approved));
         when(users.findById(customerId)).thenReturn(Optional.of(customer));
         when(contracts.save(approved)).thenReturn(approved);
 
@@ -392,6 +392,36 @@ class ContractServiceTest {
         assertEquals("CONFIRMED", response.status());
         assertEquals("Customer signature", response.customerSignature());
         assertEquals(new BigDecimal("2970000"), response.totalPayable());
+        approved.termsVersion="v1"; approved.customerSignedAt=null; approved.customerSignature=null;
+        ContractResponse legacy=contractService.confirmContract(customerId,id,new ConfirmContractRequest(true,"Legacy customer acceptance"));
+        assertEquals("PENDING_HANDOVER",legacy.status());
+        assertTrue(approved.isAwaitingHandover());
+    }
+
+    @Test void acceptanceUsesVietnamTimeAndCannotBeRewrittenOrSignedByAnotherCustomer() {
+        RentalContract approved=new RentalContract(); UUID id=UUID.randomUUID();
+        approved.contractId=id; approved.customerId=customerId; approved.termsVersion="v2";
+        approved.status="CONFIRMED"; approved.startDate=LocalDate.of(2026,11,1);
+        approved.endDate=approved.startDate.plusMonths(1); approved.monthlyRentalFee=new BigDecimal("900000");
+        approved.depositAmount=new BigDecimal("330000");
+        when(contracts.lockById(id)).thenReturn(Optional.of(approved));
+        when(users.findById(customerId)).thenReturn(Optional.of(customer));
+        when(contracts.save(approved)).thenReturn(approved);
+        var request=new ConfirmContractRequest(true,"Customer acceptance");
+        assertEquals(HttpStatus.FORBIDDEN,assertThrows(BusinessException.class,
+                () -> contractService.confirmContract(UUID.randomUUID(),id,request)).status());
+        TimeZone original=TimeZone.getDefault();
+        LocalDateTime before=LocalDateTime.now(Sprint2Access.ZONE);
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+            contractService.confirmContract(customerId,id,request);
+        } finally { TimeZone.setDefault(original); }
+        assertFalse(approved.customerSignedAt.isBefore(before));
+        assertFalse(approved.customerSignedAt.isAfter(LocalDateTime.now(Sprint2Access.ZONE)));
+        LocalDateTime first=approved.customerSignedAt;
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,
+                () -> contractService.confirmContract(customerId,id,request)).status());
+        assertEquals(first,approved.customerSignedAt); verify(contracts,times(1)).save(approved);
     }
     @Test
     void shortenedHistoricalContractUsesOriginalReservationFinancialSnapshotInList() {

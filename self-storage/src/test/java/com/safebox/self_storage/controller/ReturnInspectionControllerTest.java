@@ -97,7 +97,7 @@ class ReturnInspectionControllerTest {
                 "Tầng 1", "Khu A", facilityId, "SafeBox Quận 7", "123 Q7",
                 "0900000000", "07:00", "21:00", apptTime, "SCHEDULED",
                 "Đã lên lịch hẹn", staffId, "Nhân viên trực", "Ghi chú",
-                LocalDate.now().plusDays(3), true, LocalDateTime.now()
+                LocalDate.now().plusDays(3), true, LocalDateTime.now(), null
         );
 
         when(returnInspectionService.scheduleReturnAppointment(eq(customerId), eq(contractId), any()))
@@ -121,7 +121,7 @@ class ReturnInspectionControllerTest {
                 "Tầng 1", "Khu A", facilityId, "SafeBox Quận 7", "123 Q7",
                 "0900000000", "07:00", "21:00", LocalDateTime.now().plusDays(1), "SCHEDULED",
                 "Đã lên lịch hẹn", staffId, "Nhân viên trực", null,
-                LocalDate.now().plusDays(1), true, LocalDateTime.now()
+                LocalDate.now().plusDays(1), true, LocalDateTime.now(), null
         );
 
         when(returnInspectionService.getReturnSchedule(eq(customerId), eq(contractId)))
@@ -176,7 +176,7 @@ class ReturnInspectionControllerTest {
                 "AVAILABLE", "GOOD", null, BigDecimal.ZERO, null, null,
                 true, "CARD_AND_KEY", "Lock #LCK-99214", true, "Nguyễn Văn An",
                 "Phạm Gia Huy", staffId, "Phạm Gia Huy", new BigDecimal("1500000"),
-                0, false, "Tiền cọc lưu giữ theo dõi", null, null
+                0, false, "Tiền cọc lưu giữ theo dõi", null, null, LocalDate.now().plusDays(3)
         );
 
         when(returnInspectionService.completeReturnHandoverAndInspection(eq(staffId), any()))

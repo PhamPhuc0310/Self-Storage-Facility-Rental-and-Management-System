@@ -333,7 +333,7 @@ public class ContractServiceImpl implements ContractService {
             throw new IllegalArgumentException("Thông tin xác nhận hợp đồng không hợp lệ.");
         }
 
-        RentalContract contract = contracts.findById(contractId)
+        RentalContract contract = contracts.lockById(contractId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy hợp đồng."));
 
         // BR10.1 & BR10.9: customerId lấy từ JWT, không lấy từ tham số FE
@@ -360,7 +360,7 @@ public class ContractServiceImpl implements ContractService {
         }
 
         boolean approvedV2 = "v2".equals(contract.getTermsVersion()) && "CONFIRMED".equalsIgnoreCase(currentStatus);
-        if (!"PENDING_CONFIRMATION".equalsIgnoreCase(currentStatus) && !approvedV2) {
+        if (!"PENDING_CONFIRMATION".equalsIgnoreCase(currentStatus) && !"CONFIRMED".equalsIgnoreCase(currentStatus)) {
             throw new BusinessException(HttpStatus.BAD_REQUEST,
                     "Hợp đồng không ở trạng thái chờ xác nhận (Trạng thái hiện tại: " + currentStatus + ").");
         }
@@ -369,7 +369,7 @@ public class ContractServiceImpl implements ContractService {
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin khách hàng."));
 
         // BR10.4: BE lưu thời điểm xác nhận, ID khách và phiên bản điều khoản. Chữ ký điện tử trong hệ thống.
-        contract.setCustomerSignedAt(LocalDateTime.now());
+        contract.setCustomerSignedAt(LocalDateTime.now(com.safebox.self_storage.service.Sprint2Access.ZONE));
         String signature = (request.signature() != null && !request.signature().isBlank())
                 ? request.signature().trim()
                 : customer.getFullName() + " [Xác nhận trực tuyến qua SafeBox Online]";

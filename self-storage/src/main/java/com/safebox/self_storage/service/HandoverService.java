@@ -35,7 +35,11 @@ public class HandoverService {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Chỉ nhân viên cơ sở hoặc quản lý mới được bàn giao kho.");
 
         HandoverRecord existing = handovers.findFirstByContractIdAndHandoverTypeAndStatus(contractId, TYPE, "COMPLETED").orElse(null);
-        if (existing != null) return existing; // BR14.8 idempotency
+        if (existing != null) {
+            if ("FACILITY_STAFF".equals(access.role()) && !access.currentId().equals(existing.getStaffId()))
+                throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không thực hiện biên bản bàn giao này.");
+            return existing; // BR14.8 idempotency still requires access to the completed record.
+        }
         access.confirmed(contract);
         PickupAppointment appointment = appointments.findFirstByContractIdAndStatus(contractId, "SCHEDULED")
                 .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT, "Hợp đồng chưa có lịch nhận kho đang chờ bàn giao."));

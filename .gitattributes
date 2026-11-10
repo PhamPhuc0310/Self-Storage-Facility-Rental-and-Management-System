@@ -1,0 +1,2 @@
+# Migration ledgers hash exact source bytes. Preserve them across Windows/Unix clones.
+database/*.sql -text

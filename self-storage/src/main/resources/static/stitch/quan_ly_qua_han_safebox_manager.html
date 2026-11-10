@@ -86,7 +86,7 @@
       }
     }
   </style>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script><script src="/js/overdue-state.js"></script></head>
 <body class="bg-surface text-on-surface antialiased min-h-screen flex">
 
   <!-- Left Sidebar (SafeBox Manager Standard Layout) -->
@@ -734,18 +734,8 @@
 
       tbody.innerHTML = items.map(c => {
         const hasPendingApproval = (c.penalties || []).some(p => p.status === 'PENDING_APPROVAL');
-        let statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">Bình thường</span>';
-        if (hasPendingApproval) {
-          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">Chờ duyệt thanh toán</span>';
-        } else if (c.totalPenaltyDebt > 0) {
-          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">Đang nợ phí phạt</span>';
-        } else if (c.totalPenaltyPaid > 0) {
-          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Đã thanh toán đủ</span>';
-        }
-
-        const rateFormatted = (c.penalties && c.penalties.length > 0)
-          ? (c.penalties[0].penaltyRate * 100).toFixed(0) + '%/ngày'
-          : '5%/ngày';
+        const statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">' + SafeBoxOverdueState.label(c, SafeBoxUc12Time.todayISODateVN()) + '</span>';
+        const rateFormatted = c.penalties?.length ? 'Xem công thức trong chi tiết kỳ phí' : c.graceDays == null ? 'Chưa có chính sách phí áp dụng' : 'Chưa có kỳ phí';
 
         return `
           <tr class="hover:bg-slate-50 transition-colors">
@@ -986,7 +976,7 @@
         <div class="p-3 rounded-lg bg-white border border-blue-200 text-xs space-y-1">
           <div class="flex items-center justify-between">
             <strong class="text-blue-900 font-bold">${a.adjustmentType === 'WAIVER' ? 'Miễn giảm 100%' : 'Giảm trừ nợ'}: Giảm ${formatMoney(a.discountAmount)} (Nợ mới: ${formatMoney(a.adjustedAmount)})</strong>
-            <span class="text-slate-400 text-[11px] font-mono">${new Date(a.adjustedAt).toLocaleString('vi-VN')}</span>
+            <span class="text-slate-400 text-[11px] font-mono">${SafeBoxUc12Time.formatDateTimeVN(a.adjustedAt)}</span>
           </div>
           <p class="text-slate-700"><strong>Lý do điều chỉnh:</strong> ${a.reason}</p>
           <p class="text-slate-500 text-[11px]">Người thực hiện: <strong>${a.adjustedByName || 'Quản lý cơ sở'}</strong> ${a.note ? '· Ghi chú: ' + a.note : ''}</p>
@@ -1188,12 +1178,7 @@
       return Math.round(amount).toLocaleString('vi-VN') + ' đ';
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '--';
-      const parts = dateStr.split('-');
-      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      return dateStr;
-    }
+    function formatDate(dateStr) { return SafeBoxUc12Time.formatDateVN(dateStr); }
   </script>
 </body>
 </html>

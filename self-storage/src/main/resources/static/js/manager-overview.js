@@ -48,7 +48,7 @@
       ? ({ACTIVE:'Đang hoạt động', INACTIVE:'Chưa hoạt động', MAINTENANCE:'Đang bảo trì'}[shown[0].status] || 'Đang cập nhật') : '';
     $('dashboard-address').textContent = shown.length === 1 ? shown[0].address : shown.map(f => f.address).join(' · ') || 'Vui lòng liên hệ quản trị viên.';
     $('dashboard-phone').textContent = shown.length === 1 ? (shown[0].phone || 'Chưa có số liên hệ') : 'Chọn một cơ sở để xem liên hệ';
-    $('dashboard-hours').textContent = shown.length === 1 && shown[0].openingTime && shown[0].closingTime ? `${shown[0].openingTime} – ${shown[0].closingTime}` : '';
+    $('dashboard-hours').textContent = shown.length === 1 && shown[0].openingTime && shown[0].closingTime ? `${SafeBoxUc12Time.formatTimeVN(shown[0].openingTime)} – ${SafeBoxUc12Time.formatTimeVN(shown[0].closingTime)}` : '';
     const allowed = new Set(facilities.map(f => f.facilityId));
     const rows = pending.filter(r => allowed.has(r.facilityId) && (!id || r.facilityId === id));
     badge.textContent = `${pending.filter(r => allowed.has(r.facilityId)).length} MỚI`;

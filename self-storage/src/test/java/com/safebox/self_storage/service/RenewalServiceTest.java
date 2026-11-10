@@ -29,6 +29,13 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RenewalServiceTest {
+    @Test void unsignedActiveContractCannotRequestRenewal() {
+        contract.setCustomerSignedAt(null);
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        assertEquals(HttpStatus.CONFLICT, assertThrows(BusinessException.class,
+                () -> renewalService.requestRenewal(customerId,contractId,new CreateRenewalRequest(3))).status());
+        verify(renewalRepository,never()).save(any());
+    }
 
     private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
@@ -85,6 +92,8 @@ class RenewalServiceTest {
         contract.setMonthlyRentalFee(new BigDecimal("1000000"));
         contract.setDepositAmount(new BigDecimal("1000000"));
         contract.setStatus("ACTIVE");
+        contract.setCustomerSignedAt(LocalDateTime.of(2026, 10, 1, 9, 0));
+        contract.setCustomerSignature("Customer acceptance");
 
         storageUnit = new StorageUnit();
         storageUnit.setUnitId(unitId);
@@ -458,6 +467,11 @@ class RenewalServiceTest {
 
         PayRenewalRequest payRequest = new PayRenewalRequest("BANK_TRANSFER", new BigDecimal("1100000"), "IDEM-001");
 
+        contract.setCustomerSignature(null);
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,
+                () -> renewalService.payRenewal(customerId,renewalId,payRequest)).status());
+        verify(paymentTransactionRepository,never()).saveAndFlush(any());
+        contract.setCustomerSignature("Customer acceptance");
         RenewalPaymentResponse paymentResponse = renewalService.payRenewal(customerId, renewalId, payRequest);
 
         assertNotNull(paymentResponse);

@@ -44,6 +44,7 @@ public class Sprint2Access {
         return r;
     }
     public void confirmed(RentalContract r) {
-        if (!"CONFIRMED".equals(r.status)) throw new BusinessException(HttpStatus.CONFLICT, "Hợp đồng chưa được xác nhận hoặc đã hủy.");
+        if (!r.isAwaitingHandover()) throw new BusinessException(HttpStatus.CONFLICT,
+                "Khách hàng phải xác nhận điều khoản hợp đồng trước khi thanh toán hoặc nhận kho.");
     }
 }

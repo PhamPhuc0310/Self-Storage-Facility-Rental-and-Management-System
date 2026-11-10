@@ -156,6 +156,36 @@ class OverdueRemediationTest {
         verifyNoInteractions(payments, invoices);
     }
 
+    @Test void penaltyRetryMustMatchItsInvoiceAmountMethodAndReference() {
+        Role role=new Role(); role.setRoleName("CUSTOMER");
+        User customer=new User(); customer.setRole(role); customer.setStatus("ACTIVE");
+        UUID penaltyId=UUID.randomUUID(), invoiceId=UUID.randomUUID();
+        ContractPenalty penalty=new ContractPenalty(); penalty.setPenaltyId(penaltyId);
+        penalty.setContractId(contractId); penalty.setInvoiceId(invoiceId);
+        penalty.setPenaltyAmount(new BigDecimal("10000"));
+        penalty.setOverdueDays(1); penalty.setBillableDays(1); penalty.setDailyRate(BigDecimal.TEN);
+        penalty.setPenaltyRate(BigDecimal.ONE);
+        when(penalties.findById(penaltyId)).thenReturn(Optional.of(penalty));
+        when(contracts.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(users.findById(customerId)).thenReturn(Optional.of(customer));
+        PaymentTransaction tx=new PaymentTransaction(); tx.contractId=contractId; tx.invoiceId=invoiceId;
+        tx.paymentType="PENALTY"; tx.paymentMethod="BANK_TRANSFER";
+        tx.amount=new BigDecimal("10000"); tx.referenceCode="TEST-ONLY";
+        when(payments.findByCreatedByAndIdempotencyKey(customerId,"retry")).thenReturn(Optional.of(tx));
+        var original=new PayPenaltyRequest("BANK_TRANSFER",new BigDecimal("10000.00"),"retry","TEST-ONLY");
+        assertDoesNotThrow(() -> service.payPenaltyDebt(customerId,penaltyId,original));
+        for(var changed:List.of(
+                new PayPenaltyRequest("BANK_TRANSFER",new BigDecimal("9000"),"retry","TEST-ONLY"),
+                new PayPenaltyRequest("MOMO",new BigDecimal("10000"),"retry","TEST-ONLY"),
+                new PayPenaltyRequest("BANK_TRANSFER",new BigDecimal("10000"),"retry","CHANGED")))
+            assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,
+                    () -> service.payPenaltyDebt(customerId,penaltyId,changed)).status());
+        tx.invoiceId=UUID.randomUUID();
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,
+                () -> service.payPenaltyDebt(customerId,penaltyId,original)).status());
+        verify(payments,never()).save(any()); verify(invoices,never()).save(any());
+    }
+
     @Test void crossFacilityManagerCannotModifyOrCollectExistingPenalty() {
         Role role = new Role(); role.setRoleName("FACILITY_MANAGER");
         User manager = new User(); manager.setRole(role); manager.setStatus("ACTIVE");
@@ -245,5 +275,53 @@ class OverdueRemediationTest {
         p.setOverdueApprovedAt(feeDate.atStartOfDay()); p.setOverdueApprovedBy(managerId);
         p.setOverdueGraceDays(0); p.setPenaltyType("PERCENT_DAILY");
         p.setDailyPenaltyRate(new BigDecimal("0.05")); return p;
+    }
+    void calculationSaves() {
+        when(invoices.saveAndFlush(any())).thenAnswer(call->{Invoice i=call.getArgument(0);i.invoiceId=UUID.randomUUID();return i;});
+        when(penalties.saveAndFlush(any())).thenAnswer(call->{ContractPenalty p=call.getArgument(0);p.setPenaltyId(UUID.randomUUID());return p;});
+    }
+    @Test void gracePeriodCreatesZeroPaidPeriodInsteadOf409AndDoesNotHideFuturePeriod() {
+        managerAndContract(true);var p=validPolicy();p.setOverdueGraceDays(3);
+        when(policies.findApplicableOverduePolicies(facilityId,feeDate)).thenReturn(List.of(p));calculationSaves();
+        var result=service.calculateOverdueFeeForContract(managerId,contractId,feeDate);
+        assertEquals(0,result.billableDays());assertEquals(0,result.penaltyAmount().signum());assertEquals("PAID",result.status());
+        var future=new ContractPenalty();future.setPeriodDate(feeDate.plusDays(1));
+        when(penalties.findByContractIdOrderByPeriodDateDesc(contractId)).thenReturn(List.of(future));
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,()->service.calculateOverdueFeeForContract(managerId,contractId,feeDate)).status());
+    }
+    @Test void newGlobalDoesNotChargeDaysBeforeEffectiveFromAndUsesFixedFormula() {
+        managerAndContract(true);contract.endDate=feeDate.minusDays(10);var global=validPolicy();
+        global.setFacilityId(null);global.setEffectiveFrom(feeDate);global.setPenaltyType("FIXED_DAILY");global.setFixedPenaltyAmount(new BigDecimal("17000"));
+        when(policies.findApplicableOverduePolicies(facilityId,feeDate)).thenReturn(List.of(global));calculationSaves();
+        var result=service.calculateOverdueFeeForContract(managerId,contractId,feeDate);
+        assertEquals(1,result.billableDays());assertEquals(0,new BigDecimal("17000").compareTo(result.penaltyAmount()));
+        assertTrue(result.calculationExplanation().contains("17000 đ/ngày"));
+    }
+    @Test void displayedBillableDaysAlsoRespectCurrentPolicyEffectiveDate() {
+        LocalDate today=LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));contract.endDate=today.minusDays(10);
+        Role role=new Role();role.setRoleName("CUSTOMER");User customer=new User();customer.setRole(role);customer.setStatus("ACTIVE");
+        StorageUnit unit=new StorageUnit();unit.setFacilityId(facilityId);Facility facility=new Facility();facility.setFacilityId(facilityId);
+        when(users.findById(customerId)).thenReturn(Optional.of(customer));when(units.findById(unitId)).thenReturn(Optional.of(unit));
+        when(facilities.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(contracts.findByCustomerIdOrderByStartDateDesc(customerId)).thenReturn(List.of(contract));
+        RentalPolicy global=validPolicy();global.setFacilityId(null);global.setEffectiveFrom(today);global.setEffectiveTo(null);
+        when(policies.findApplicableOverduePolicies(facilityId,today)).thenReturn(List.of(global));
+        var row=service.getCustomerOverdueContracts(customerId,org.springframework.data.domain.PageRequest.of(0,10)).getContent().get(0);
+        assertEquals(10,row.overdueDays());assertEquals(1,row.billableDays());
+    }
+    @Test void uncalculatedOldVersionMustBeBilledFirstAndLocalWinsOverGlobal() {
+        managerAndContract(true);contract.endDate=feeDate.minusDays(10);
+        var global=validPolicy();global.setFacilityId(null);global.setEffectiveFrom(feeDate.minusDays(1));
+        var old=validPolicy();old.setFacilityId(null);old.setEffectiveFrom(feeDate.minusDays(20));old.setEffectiveTo(feeDate.minusDays(2));
+        when(policies.findApplicableOverduePolicies(facilityId,feeDate)).thenReturn(List.of(global));
+        doReturn(List.of(old,global)).when(policies).findByFacilityId(null);
+        doReturn(List.of()).when(policies).findByFacilityId(facilityId);
+        assertEquals(HttpStatus.CONFLICT,assertThrows(BusinessException.class,()->service.calculateOverdueFeeForContract(managerId,contractId,feeDate)).status());
+        verify(invoices,never()).saveAndFlush(any());
+        var local=validPolicy();local.setEffectiveFrom(feeDate.minusDays(20));local.setDailyPenaltyRate(new BigDecimal("0.02"));
+        when(policies.findByFacilityId(facilityId)).thenReturn(List.of(local));
+        when(policies.findApplicableOverduePolicies(facilityId,feeDate)).thenReturn(List.of(global,local));calculationSaves();
+        var result=service.calculateOverdueFeeForContract(managerId,contractId,feeDate);
+        assertEquals(0,new BigDecimal("20000").compareTo(result.penaltyAmount()));
     }
 }

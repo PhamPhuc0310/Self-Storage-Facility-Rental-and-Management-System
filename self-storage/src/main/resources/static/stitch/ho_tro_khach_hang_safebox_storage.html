@@ -37,7 +37,7 @@
     };
   </script>
   <script src="/auth.js"></script>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script></head>
 <body class="bg-surface text-on-surface font-body text-sm min-h-screen flex flex-col justify-between" >
 
   <!-- Header -->
@@ -371,7 +371,7 @@
                             t.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                             'bg-amber-50 text-amber-700 border-amber-200';
 
-        const dateStr = new Date(t.createdAt).toLocaleDateString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+        const dateStr = SafeBoxUc12Time.formatDateTimeVN(t.createdAt);
 
         return `
           <div onclick="selectTicket('${t.ticketId}')" class="p-3.5 rounded-2xl border cursor-pointer transition ${isSelected ? 'border-secondary bg-blue-50/50 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'}">
@@ -444,7 +444,7 @@
       } else {
         stream.innerHTML = currentTicketDetail.replies.map(r => {
           const isMe = r.isMine;
-          const time = new Date(r.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+          const time = SafeBoxUc12Time.formatDateTimeVN(r.createdAt);
           return `
             <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
               <div class="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">

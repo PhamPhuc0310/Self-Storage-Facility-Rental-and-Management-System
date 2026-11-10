@@ -2,6 +2,7 @@ package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.entity.*;
 import com.safebox.self_storage.service.EarlyReturnService;
+import com.safebox.self_storage.service.EarlyReturnRentSettlement;
 import java.util.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,8 @@ public class EarlyReturnController {
     public List<TerminationRequest> mine() { return service.customerList(); }
     @GetMapping("/api/customer/early-returns/{id}")
     public TerminationRequest mine(@PathVariable UUID id) { return service.customerGet(id); }
+    @GetMapping("/api/customer/early-returns/{id}/settlement")
+    public EarlyReturnService.SettlementView customerSettlement(@PathVariable UUID id) { return service.customerSettlement(id); }
     @GetMapping("/api/manager/early-returns")
     public List<TerminationRequest> managerList() { return service.managerList(); }
     @GetMapping("/api/manager/early-returns/{id}/settlement")
@@ -33,5 +36,6 @@ public class EarlyReturnController {
         return service.reject(id, input);
     }
     @PostMapping("/api/manager/early-returns/{id}/refund")
-    public EarlyReturnSettlement refund(@PathVariable UUID id) { return service.refund(id); }
+    public EarlyReturnSettlement refund(@PathVariable UUID id,
+            @RequestBody(required=false) EarlyReturnRentSettlement.Confirmation confirmation) { return service.refund(id,confirmation); }
 }

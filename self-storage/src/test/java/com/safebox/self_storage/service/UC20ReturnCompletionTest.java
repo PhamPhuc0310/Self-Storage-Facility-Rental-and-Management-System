@@ -50,7 +50,7 @@ class UC20ReturnCompletionTest {
     @Mock
     private DepositRefundRepository depositRefundRepository;
     @Mock
-    private TerminationRequestRepository terminationRequestRepository;
+    private EarlyReturnService earlyReturns;
     @Mock
     private ActivityLogRepository activityLogRepository;
 
@@ -250,8 +250,8 @@ class UC20ReturnCompletionTest {
         when(inspectionReportRepository.findFirstByContractIdAndInspectionTypeOrderByInspectionDateDesc(contractId, "RETURN_INSPECTION"))
                 .thenReturn(Optional.of(report));
         when(invoiceRepository.findByContractId(contractId)).thenReturn(List.of());
-        when(terminationRequestRepository.existsByContractIdAndTypeAndStatusIn(eq(contractId), eq("EARLY_RETURN"), any()))
-                .thenReturn(true);
+        doThrow(new BusinessException(HttpStatus.CONFLICT,"Quyết toán chưa hoàn tất"))
+                .when(earlyReturns).requireSettlementForClosure(contractId);
 
         BusinessException ex = assertThrows(BusinessException.class, () ->
                 returnInspectionService.completeContractAndFinalizeUnit(managerId, contractId, new CompleteContractRequest()));

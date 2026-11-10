@@ -95,7 +95,7 @@
       }
     }
   </style>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script></head>
 <body class="bg-surface text-on-surface antialiased min-h-screen flex">
 
   <!-- Left Sidebar (SafeBox Manager Standard Layout) -->
@@ -529,14 +529,7 @@
       return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '--';
-      try {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('vi-VN');
-      } catch (_) { return dateStr; }
-    }
+    function formatDate(dateStr) { return SafeBoxUc12Time.formatDateVN(dateStr); }
 
     function showAlert(text, type = 'info') {
       const banner = document.getElementById('alert-banner');

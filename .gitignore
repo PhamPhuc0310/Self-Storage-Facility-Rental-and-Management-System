@@ -111,6 +111,24 @@ database/primary-execution-records/
 /database/sprint3_test_inventory.sql
 /database/verify_three_contracts.sql
 
+# Portable setup tools are release sources; owner-specific campaigns stay local.
+!/database/apply_10_15.ps1
+!/database/bootstrap-local.ps1
+!/database/README.md
+!/database/tests/bootstrap-local.test.ps1
+/database/demo/customer1_refund80_demo_2026-11-12.sql
+/database/demo/preview_customer1_three_scenarios_2026-11-12.sql
+/self-storage/src/test/e2e/*
+!/self-storage/src/test/e2e/clean-clone-smoke.cjs
+!/self-storage/src/test/e2e/role-home-permissions.cjs
+/database/01_demo_source_listings.sql
+/database/02_demo_source_seed.sql
+/database/04_demo_catalog_seed.sql
+/database/05_seed_test_accounts.sql
+/database/05_uc13_uc14_demo_seed.sql
+/database/06_seed_test_contract.sql
+/database/demo/**
+
 # Private development settings, caches and secrets.
 /.codex/
 /.agents/

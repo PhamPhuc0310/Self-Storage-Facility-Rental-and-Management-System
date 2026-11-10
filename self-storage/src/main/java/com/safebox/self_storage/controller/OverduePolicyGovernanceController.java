@@ -2,6 +2,7 @@ package com.safebox.self_storage.controller;
 
 import com.safebox.self_storage.dto.manager.OverduePolicyProposalRequest;
 import com.safebox.self_storage.entity.OverduePolicyProposal;
+import com.safebox.self_storage.entity.RentalPolicy;
 import com.safebox.self_storage.service.OverduePolicyGovernanceService;
 import java.util.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +13,12 @@ public class OverduePolicyGovernanceController {
     private final OverduePolicyGovernanceService service;
     public OverduePolicyGovernanceController(OverduePolicyGovernanceService service) { this.service=service; }
     public record DecisionRequest(String reason) {}
+    @GetMapping("/api/business/overdue-policies/global")
+    @PreAuthorize("hasRole('BUSINESS_OPERATIONS_MANAGER')")
+    public List<RentalPolicy> globalHistory() { return service.globalHistory(); }
+    @PostMapping("/api/business/overdue-policies/global/activate")
+    @PreAuthorize("hasRole('BUSINESS_OPERATIONS_MANAGER')")
+    public RentalPolicy activateGlobal(@RequestBody OverduePolicyProposalRequest request) { return service.activateGlobal(request); }
     @GetMapping("/api/manager/facilities/{facilityId}/overdue-policy-proposals")
     @PreAuthorize("hasRole('FACILITY_MANAGER')")
     public List<OverduePolicyProposal> managerList(@PathVariable UUID facilityId) { return service.list(facilityId); }

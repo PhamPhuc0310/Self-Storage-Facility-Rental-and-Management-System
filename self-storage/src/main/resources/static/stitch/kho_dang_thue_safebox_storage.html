@@ -64,7 +64,7 @@
       }
     };
   </script>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script></head>
 <body class="bg-surface text-on-surface font-body-md text-sm">
 
   <!-- Fixed Top Header Navigation -->
@@ -541,25 +541,9 @@
     }
 
     // Date Formatter
-    function formatDate(dateStr) {
-      if (!dateStr) return 'N/A';
-      try {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      } catch (e) {
-        return dateStr;
-      }
-    }
+    function formatDate(dateStr) { return SafeBoxUc12Time.formatDateVN(dateStr); }
 
-    function formatDateTime(dtStr) {
-      if (!dtStr) return 'N/A';
-      try {
-        const d = new Date(dtStr);
-        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-      } catch (e) {
-        return dtStr;
-      }
-    }
+    function formatDateTime(dtStr) { return SafeBoxUc12Time.formatDateTimeVN(dtStr); }
 
     // Switch Tabs
     function switchFilterTab(tabName) {

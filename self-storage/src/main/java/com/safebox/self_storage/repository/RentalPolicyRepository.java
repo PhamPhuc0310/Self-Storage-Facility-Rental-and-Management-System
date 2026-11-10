@@ -8,12 +8,20 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 
 /**
  * Repository truy xuất dữ liệu từ bảng RENTAL_POLICIES (Chính sách thuê kho).
  */
 public interface RentalPolicyRepository extends JpaRepository<RentalPolicy, UUID> {
     List<RentalPolicy> findByFacilityId(UUID facilityId);
+
+    Optional<RentalPolicy> findFirstByFacilityIdIsNullOrderByEffectiveFromAscPolicyIdAsc();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from RentalPolicy p where p.policyId = :id")
+    Optional<RentalPolicy> lockById(@Param("id") UUID id);
 
     /**
      * Tìm chính sách thuê đang có hiệu lực gần nhất của một cơ sở theo trạng thái (thường là ACTIVE)

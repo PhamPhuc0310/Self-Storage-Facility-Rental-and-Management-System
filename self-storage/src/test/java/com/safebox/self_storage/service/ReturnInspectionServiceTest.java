@@ -12,6 +12,8 @@ import com.safebox.self_storage.service.impl.ReturnInspectionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -45,7 +47,7 @@ class ReturnInspectionServiceTest {
     @Mock private InspectionReportRepository inspectionReportRepository;
     @Mock private UserFacilityAssignmentRepository userFacilityAssignmentRepository;
     @Mock private InvoiceRepository invoiceRepository;
-    @Mock private TerminationRequestRepository terminationRequestRepository;
+    @Mock private EarlyReturnService earlyReturns;
     @Mock private PickupAppointmentRepository pickupAppointmentRepository;
     @Mock private StaffRegionAssignmentRepository staffRegionAssignmentRepository;
     @Mock private ActivityLogRepository activityLogRepository;
@@ -232,6 +234,7 @@ class ReturnInspectionServiceTest {
     void expiredRentalCanScheduleFutureReturnWithoutChangingContractEnd() {
         LocalDate originalEnd = LocalDate.now(VIETNAM_ZONE).minusDays(4);
         contract.setEndDate(originalEnd);
+        contract.setStatus("OVERDUE");
         LocalDateTime appointment = LocalDate.now(VIETNAM_ZONE).plusDays(1).atTime(10, 0);
         when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
         when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
@@ -247,6 +250,7 @@ class ReturnInspectionServiceTest {
 
     @Test
     void managerAssignsRegionEligibleStaffOnce() {
+        contract.setStatus("OVERDUE");
         scheduledHandover.setStaffId(null);
         manager.setStatus("ACTIVE");
         facility.setRegionCode("Q7");
@@ -330,10 +334,10 @@ class ReturnInspectionServiceTest {
         assertTrue(ex.getMessage().contains("không có quyền"));
     }
 
-    @Test
-    @DisplayName("BR16.1: Hợp đồng không ở trạng thái ACTIVE -> 400 Bad Request")
-    void testScheduleReturnAppointment_NonActiveContract() {
-        contract.setStatus("TERMINATION_PENDING");
+    @ParameterizedTest
+    @ValueSource(strings={"TERMINATION_PENDING","RETURNED","COMPLETED","CANCELLED"})
+    void testScheduleReturnAppointment_NonActiveContract(String status) {
+        contract.setStatus(status);
         LocalDateTime apptTime = LocalDateTime.of(contract.getEndDate(), LocalTime.of(10, 0));
         CreateReturnScheduleRequest request = new CreateReturnScheduleRequest(
                 contractId, apptTime, null, true, true);
@@ -344,7 +348,7 @@ class ReturnInspectionServiceTest {
                 returnInspectionService.scheduleReturnAppointment(customerId, contractId, request));
 
         assertEquals(HttpStatus.BAD_REQUEST, ex.status());
-        assertTrue(ex.getMessage().contains("đang hoạt động"));
+        assertTrue(ex.getMessage().contains("đang thuê hoặc quá hạn"));
     }
 
     @Test
@@ -384,8 +388,8 @@ class ReturnInspectionServiceTest {
     }
 
     @Test
-    @DisplayName("BR16.2: Ngày hẹn không khớp ngày kết thúc hợp đồng (Sprint 2 chỉ xử lý đúng hạn) -> 400 Bad Request")
-    void testScheduleReturnAppointment_NotOnEndDate() {
+    @DisplayName("Khách hàng đang thuê có thể đặt lịch sau ngày kết thúc hợp đồng")
+    void activeRentalCanScheduleAfterContractEnd() {
         LocalDate wrongDate = contract.getEndDate().plusDays(1);
         LocalDateTime apptTime = LocalDateTime.of(wrongDate, LocalTime.of(10, 0));
         CreateReturnScheduleRequest request = new CreateReturnScheduleRequest(
@@ -395,11 +399,27 @@ class ReturnInspectionServiceTest {
         when(handoverRecordRepository.findFirstByContractIdAndHandoverTypeAndStatus(contractId, "RETURN", "SCHEDULED"))
                 .thenReturn(Optional.empty());
 
-        BusinessException ex = assertThrows(BusinessException.class, () ->
-                returnInspectionService.scheduleReturnAppointment(customerId, contractId, request));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(handoverRecordRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        assertEquals(apptTime,returnInspectionService.scheduleReturnAppointment(customerId,contractId,request).scheduledAt());
+        assertEquals("ACTIVE",contract.status); assertEquals("OCCUPIED",storageUnit.getStatus());
+    }
 
-        assertEquals(HttpStatus.BAD_REQUEST, ex.status());
-        assertTrue(ex.getMessage().contains("ngày kết thúc hợp đồng"));
+    @Test void activeRentalCanScheduleEarlyWithoutChangingItsEndOrOccupancy() {
+        LocalDate originalEnd=contract.endDate;
+        LocalDateTime when=LocalDate.now(VIETNAM_ZONE).plusDays(1).atTime(10,0);
+        when(rentalContractRepository.findByContractId(contractId)).thenReturn(Optional.of(contract));
+        when(storageUnitRepository.findById(unitId)).thenReturn(Optional.of(storageUnit));
+        when(facilityRepository.findById(facilityId)).thenReturn(Optional.of(facility));
+        when(handoverRecordRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        var r=returnInspectionService.scheduleReturnAppointment(customerId,contractId,
+                new CreateReturnScheduleRequest(contractId,when,"Chuyển nhà",true,true));
+        assertEquals(when,r.scheduledAt()); assertEquals(originalEnd,r.contractEndDate());
+        assertNull(r.actualAt()); assertEquals(originalEnd,contract.endDate);
+        assertEquals("ACTIVE",contract.status);assertEquals("OCCUPIED",storageUnit.getStatus());
+        verify(earlyReturns).prepareReturnSchedule(contract,when,"Chuyển nhà");
+        verifyNoInteractions(invoiceRepository);
     }
 
     @Test
@@ -522,9 +542,10 @@ class ReturnInspectionServiceTest {
         assertTrue(ex.getMessage().contains("xác nhận"));
     }
 
-    @Test
-    @DisplayName("BR16.5, BR16.7, BR16.8, BR16.9, BR16.10: Hoàn tất nhận lại kho đạt chuẩn -> AVAILABLE & RETURNED")
-    void testCompleteReturnInspection_SuccessGoodCondition() {
+    @ParameterizedTest
+    @ValueSource(strings={"ACTIVE","OVERDUE"})
+    void testCompleteReturnInspection_SuccessGoodCondition(String status) {
+        contract.setStatus(status);
         scheduledHandover.setScheduledAt(LocalDateTime.now(VIETNAM_ZONE).minusMinutes(1));
         CompleteReturnInspectionRequest request = new CompleteReturnInspectionRequest();
         request.setHandoverId(handoverId);

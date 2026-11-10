@@ -109,6 +109,14 @@ public class RentalContract {
     public RentalContract() {
     }
 
+    public boolean hasCustomerAcceptance() {
+        return customerSignedAt != null && customerSignature != null && !customerSignature.isBlank();
+    }
+
+    public boolean isAwaitingHandover() {
+        return ("CONFIRMED".equals(status) || "PENDING_HANDOVER".equals(status)) && hasCustomerAcceptance();
+    }
+
     public UUID getContractId() {
         return contractId;
     }

@@ -220,11 +220,12 @@ public class OverdueServiceImpl implements OverdueService {
         int graceDays = policy.getOverdueGraceDays();
         LocalDate chargeFrom = contract.getEndDate().plusDays(graceDays);
         List<ContractPenalty> priorPeriods = contractPenaltyRepository.findByContractIdOrderByPeriodDateDesc(contractId);
+        if (!priorPeriods.isEmpty() && priorPeriods.get(0).getPeriodDate().isAfter(date))
+            throw new BusinessException(HttpStatus.CONFLICT, "Đã có kỳ phí phát sinh sau ngày tính phí này.");
         if (!priorPeriods.isEmpty() && priorPeriods.get(0).getPeriodDate().isAfter(chargeFrom))
             chargeFrom = priorPeriods.get(0).getPeriodDate();
-        if (chargeFrom.isAfter(date))
-            throw new BusinessException(HttpStatus.CONFLICT, "Đã có kỳ phí phát sinh sau ngày tính phí này.");
-        int billableDays = (int) ChronoUnit.DAYS.between(chargeFrom, date);
+        chargeFrom = policyPeriodStart(facilityId, policy, chargeFrom, date);
+        int billableDays = (int) Math.max(0, ChronoUnit.DAYS.between(chargeFrom, date));
         BigDecimal dailyPenaltyRate = policy.getDailyPenaltyRate();
 
         BigDecimal monthlyFee = contract.getMonthlyRentalFee() != null ? contract.getMonthlyRentalFee() : BigDecimal.ZERO;
@@ -243,7 +244,9 @@ public class OverdueServiceImpl implements OverdueService {
         }
 
         // BR18.3: Tạo log giải thích cách tính minh bạch
-        String rateText = dailyPenaltyRate.multiply(BigDecimal.valueOf(100)).stripTrailingZeros().toPlainString() + "%";
+        String rateText = "FIXED_DAILY".equalsIgnoreCase(policy.getPenaltyType())
+                ? policy.getFixedPenaltyAmount().stripTrailingZeros().toPlainString()+" đ"
+                : dailyPenaltyRate.multiply(BigDecimal.valueOf(100)).stripTrailingZeros().toPlainString() + "%";
         String explanation = String.format(
                 "Đơn giá thuê: %,d đ/tháng (~%,.0f đ/ngày). Quá hạn %d ngày (Ân hạn: %d ngày -> Kỳ này tính phí: %d ngày). "
                         + "Chính sách áp dụng: %s/ngày theo quy định cơ sở. Tổng phí phạt = %,.0f đ.",
@@ -415,6 +418,14 @@ public class OverdueServiceImpl implements OverdueService {
         if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
             Optional<PaymentTransaction> existingTx = paymentTransactionRepository.findByCreatedByAndIdempotencyKey(currentUserId, request.getIdempotencyKey());
             if (existingTx.isPresent()) {
+                PaymentTransaction tx = existingTx.get();
+                if (!Objects.equals(tx.getContractId(), contract.getContractId())
+                        || !Objects.equals(tx.getInvoiceId(), penalty.getInvoiceId())
+                        || !"PENALTY".equals(tx.getPaymentType())
+                        || !Objects.equals(tx.getPaymentMethod(), request.getPaymentMethod())
+                        || tx.getAmount() == null || tx.getAmount().compareTo(request.getAmount()) != 0
+                        || !Objects.equals(tx.getReferenceCode(), request.getReferenceCode()))
+                    throw new BusinessException(HttpStatus.CONFLICT, "Mã yêu cầu đã dùng cho khoản thanh toán khác.");
                 return mapToPenaltyDetailResponse(penalty, contract.getContractNumber());
             }
         }
@@ -611,6 +622,32 @@ public class OverdueServiceImpl implements OverdueService {
         return policy;
     }
 
+    private LocalDate policyPeriodStart(UUID facilityId, RentalPolicy selected, LocalDate from, LocalDate to) {
+        if (!from.isBefore(to)) return from;
+        List<RentalPolicy> history = new ArrayList<>(rentalPolicyRepository.findByFacilityId(facilityId));
+        history.addAll(rentalPolicyRepository.findByFacilityId(null));
+        history.add(selected);
+        history = history.stream().filter(p -> "ACTIVE".equals(p.getStatus())
+                && p.getOverdueApprovedBy()!=null && p.getOverdueApprovedAt()!=null).distinct().toList();
+        Set<LocalDate> boundaries = new TreeSet<>(); boundaries.add(from.plusDays(1));
+        for (RentalPolicy p:history) {
+            if (p.getEffectiveFrom().isAfter(from) && !p.getEffectiveFrom().isAfter(to)) boundaries.add(p.getEffectiveFrom());
+            if (p.getEffectiveTo()!=null && !p.getEffectiveTo().isBefore(from) && p.getEffectiveTo().isBefore(to))
+                boundaries.add(p.getEffectiveTo().plusDays(1));
+        }
+        for (LocalDate day:boundaries) {
+            List<RentalPolicy> active = history.stream().filter(p -> !p.getEffectiveFrom().isAfter(day)
+                    && (p.getEffectiveTo()==null || !p.getEffectiveTo().isBefore(day))).toList();
+            List<RentalPolicy> local = active.stream().filter(p -> facilityId.equals(p.getFacilityId())).toList();
+            List<RentalPolicy> applicable = local.isEmpty()?active.stream().filter(p -> p.getFacilityId()==null).toList():local;
+            if (applicable.size()>1 || applicable.stream().anyMatch(p -> !Objects.equals(p.getPolicyId(),selected.getPolicyId())))
+                throw new BusinessException(HttpStatus.CONFLICT,
+                        "Kỳ chưa tính đi qua phiên bản chính sách khác; hãy tính đến hết kỳ chính sách cũ trước.");
+        }
+        // No approved policy means no retrospective charge before this version's effective date.
+        return from.isBefore(selected.getEffectiveFrom().minusDays(1)) ? selected.getEffectiveFrom().minusDays(1) : from;
+    }
+
     // =========================================================================
     // Helper: BR18.1 Kiểm tra xem hợp đồng có thuộc diện quá hạn hay không
     // =========================================================================
@@ -653,7 +690,8 @@ public class OverdueServiceImpl implements OverdueService {
             if (selected.size() == 1) policy = selected.get(0);
         }
         Integer graceDays = policy == null ? null : policy.getOverdueGraceDays();
-        Integer billableDays = graceDays == null ? null : Math.max(0, overdueDays - graceDays);
+        Integer billableDays = graceDays == null ? null : Math.max(0, Math.min(overdueDays - graceDays,
+                (int) ChronoUnit.DAYS.between(policy.getEffectiveFrom().minusDays(1), today)));
 
         BigDecimal monthlyFee = contract.getMonthlyRentalFee() != null ? contract.getMonthlyRentalFee() : BigDecimal.ZERO;
         BigDecimal dailyRent = monthlyFee.divide(BigDecimal.valueOf(30), 2, RoundingMode.HALF_UP);

@@ -24,6 +24,52 @@ public class OverduePolicyGovernanceService {
         this.proposals=proposals; this.policies=policies; this.facilities=facilities; this.logs=logs; this.access=access;
     }
     @Transactional(readOnly=true)
+    public List<RentalPolicy> globalHistory() {
+        business();
+        return policies.findByFacilityId(null).stream()
+                .sorted(Comparator.comparing(RentalPolicy::getEffectiveFrom).reversed()).toList();
+    }
+    public RentalPolicy activateGlobal(OverduePolicyProposalRequest request) {
+        business(); validateParameters(request, true);
+        // Every activation locks the same oldest global row, even when callers choose different source versions.
+        RentalPolicy anchor=policies.findFirstByFacilityIdIsNullOrderByEffectiveFromAscPolicyIdAsc()
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT,"Chưa có chính sách toàn hệ thống làm gốc; cần đối soát cấu hình."));
+        policies.lockById(anchor.getPolicyId()).orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT,"Chính sách gốc đã thay đổi."));
+        RentalPolicy base=policies.findById(request.basePolicyId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,"Không tìm thấy chính sách gốc."));
+        if (base.getFacilityId()!=null || !"ACTIVE".equals(base.getStatus())
+                || base.getEffectiveFrom().isAfter(access.today())
+                || (base.getEffectiveTo()!=null && base.getEffectiveTo().isBefore(access.today())))
+            conflict("Cần chọn chính sách gốc toàn hệ thống đang có hiệu lực.");
+        List<RentalPolicy> versions=policies.findByFacilityId(null);
+        List<RentalPolicy> overlapping=versions.stream().filter(p -> approved(p)
+                && overlaps(p.getEffectiveFrom(),p.getEffectiveTo(),request.effectiveFrom(),request.effectiveTo())).toList();
+        if (overlapping.size()>1 || overlapping.stream().anyMatch(p -> !p.getEffectiveFrom().isBefore(request.effectiveFrom())))
+            conflict("Kỳ hiệu lực chồng lấn phiên bản toàn hệ thống đã duyệt; hãy tải lại lịch sử.");
+        for (RentalPolicy old:overlapping) {
+            old.setEffectiveTo(request.effectiveFrom().minusDays(1)); policies.saveAndFlush(old);
+            logs.save(new ActivityLog(access.currentId(),"GLOBAL_OVERDUE_POLICY_SUPERSEDE","RENTAL_POLICY",
+                    old.getPolicyId(),"end="+old.getEffectiveTo()+"; reason="+request.reason().trim(),access.now()));
+        }
+        RentalPolicy next=new RentalPolicy(); next.setFacilityId(null);
+        next.setRenewalOpenDays(base.getRenewalOpenDays()); next.setPriorityDeadlineDays(base.getPriorityDeadlineDays());
+        next.setRenewalPaymentHours(base.getRenewalPaymentHours()); next.setReservationHoldMinutes(base.getReservationHoldMinutes());
+        next.setCancellationPolicy(base.getCancellationPolicy()); next.setReturnPolicy(base.getReturnPolicy());
+        next.setOverdueGraceDays(request.overdueGraceDays()); next.setPenaltyType(request.penaltyType());
+        next.setDailyPenaltyRate(request.dailyPenaltyRate()); next.setFixedPenaltyAmount(request.fixedPenaltyAmount());
+        next.setEffectiveFrom(request.effectiveFrom()); next.setEffectiveTo(request.effectiveTo()); next.setStatus("ACTIVE");
+        next.setOverdueVersion(versions.stream().map(RentalPolicy::getOverdueVersion).filter(Objects::nonNull)
+                .mapToInt(Integer::intValue).max().orElse(0)+1);
+        next.setOverdueSourcePolicyId(base.getPolicyId()); next.setOverdueCreatedBy(access.currentId());
+        next.setOverdueApprovedBy(access.currentId()); next.setOverdueApprovedAt(access.now());
+        next=policies.saveAndFlush(next);
+        logs.save(new ActivityLog(access.currentId(),"GLOBAL_OVERDUE_POLICY_ACTIVATE","RENTAL_POLICY",next.getPolicyId(),
+                "version="+next.getOverdueVersion()+"; from="+next.getEffectiveFrom()+"; to="+next.getEffectiveTo()
+                        +"; source="+base.getPolicyId()+"; grace="+next.getOverdueGraceDays()+"; type="+next.getPenaltyType()
+                        +"; rate="+next.getDailyPenaltyRate()+"; fixed="+next.getFixedPenaltyAmount()+"; reason="+request.reason().trim(),access.now()));
+        return next;
+    }
+    @Transactional(readOnly=true)
     public List<OverduePolicyProposal> list(UUID facilityId) {
         view(facilityId);
         return proposals.findByFacilityIdOrderByCreatedAtDesc(facilityId);
@@ -123,16 +169,20 @@ public class OverduePolicyGovernanceService {
     private void validate(UUID facilityId,OverduePolicyProposalRequest r) {
         Facility f=facilities.findById(facilityId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,"Không tìm thấy cơ sở."));
         if (!"ACTIVE".equals(f.getStatus())) conflict("Cơ sở chưa hoạt động.");
+        validateParameters(r, false);
+        basePolicy(facilityId,r.basePolicyId());
+    }
+    private void validateParameters(OverduePolicyProposalRequest r, boolean allowToday) {
         if (r==null || r.basePolicyId()==null || r.overdueGraceDays()==null || r.overdueGraceDays()<0
                 || r.penaltyType()==null || !Set.of("PERCENT_DAILY","FIXED_DAILY").contains(r.penaltyType())
                 || r.dailyPenaltyRate()==null || r.dailyPenaltyRate().signum()<0 || r.dailyPenaltyRate().scale()>4
                 || r.dailyPenaltyRate().compareTo(new BigDecimal("10"))>=0
                 || r.fixedPenaltyAmount()==null || r.fixedPenaltyAmount().signum()<0 || r.fixedPenaltyAmount().scale()>2
-                || r.effectiveFrom()==null || !r.effectiveFrom().isAfter(access.today())
+                || r.effectiveFrom()==null || r.effectiveFrom().isBefore(access.today())
+                || (!allowToday && r.effectiveFrom().equals(access.today()))
                 || (r.effectiveTo()!=null && r.effectiveTo().isBefore(r.effectiveFrom()))
                 || r.reason()==null || r.reason().trim().length()<10 || r.reason().length()>500)
             throw new BusinessException(HttpStatus.BAD_REQUEST,"Dữ liệu đề xuất quá hạn không hợp lệ; cần nhập rõ công thức, mức phạt, kỳ hiệu lực và lý do.");
-        basePolicy(facilityId,r.basePolicyId());
     }
     private RentalPolicy basePolicy(UUID facilityId,UUID id) {
         RentalPolicy base=policies.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,"Không tìm thấy chính sách gốc."));

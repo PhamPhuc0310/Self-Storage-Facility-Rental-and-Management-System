@@ -46,7 +46,7 @@
     #return-role-nav a { padding: .4rem .6rem; border-radius: .5rem; color: #334155; }
     #return-role-nav a:hover, #return-role-nav a[aria-current="page"] { background: #0f2744; color: white; }
   </style>
-<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script></head>
+<link rel="stylesheet" href="/css/phase46-ui.css"><script src="/js/support-contact.js" defer></script><script src="/js/uc12-time.js"></script></head>
 <body class="bg-background text-on-surface antialiased min-h-screen flex flex-col justify-between">
 
   <!-- Header -->
@@ -153,6 +153,7 @@
                     SCHEDULED
                   </span>
                   <span class="text-xs text-slate-500">Giờ hẹn: <strong id="work-scheduled-time" class="text-slate-800">10:00</strong></span>
+                  <span id="work-contract-end" class="text-xs text-slate-500"></span>
                 </div>
                 <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Biên bản nghiệm thu & Nhận lại kho</h2>
               </div>
@@ -508,17 +509,9 @@
     let appointmentsQueue = [];
     let selectedAppointment = null;
 
-    function formatDateTimeVi(str) {
-      if (!str) return 'N/A';
-      const d = new Date(str);
-      return isNaN(d.getTime()) ? str : d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
+    function formatDateTimeVi(str) { return SafeBoxUc12Time.formatDateTimeVN(str); }
 
-    function formatTimeVi(str) {
-      if (!str) return 'N/A';
-      const d = new Date(str);
-      return isNaN(d.getTime()) ? str : d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    }
+    function formatTimeVi(str) { return SafeBoxUc12Time.formatTimeVN(str); }
 
     async function initManagerPage() {
       if (!await SafeBoxAuth.requireRole('FACILITY_STAFF', 'FACILITY_MANAGER')) return;
@@ -659,6 +652,7 @@
       document.getElementById('work-contract-no').textContent = detail.contractNumber;
       document.getElementById('work-status-badge').textContent = detail.handoverStatus === 'COMPLETED' ? 'Đã nhận lại kho' : 'Chờ tiếp nhận';
       document.getElementById('work-scheduled-time').textContent = formatDateTimeVi(detail.scheduledAt);
+      document.getElementById('work-contract-end').textContent = `Ngày kết thúc hợp đồng: ${SafeBoxUc12Time.formatDateVN(detail.contractEndDate)}`;
 
       document.getElementById('work-customer-name').textContent = detail.customerName;
       document.getElementById('work-customer-phone').textContent = detail.customerPhone;

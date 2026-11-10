@@ -2,6 +2,7 @@ package com.safebox.self_storage.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -46,6 +47,7 @@ public record ReturnInspectionDetailResponse(
         boolean financialObligationsSettled,
         String financialStatusNotes,
         String note,
-        String evidenceUrls
+        String evidenceUrls,
+        LocalDate contractEndDate
 ) {
 }

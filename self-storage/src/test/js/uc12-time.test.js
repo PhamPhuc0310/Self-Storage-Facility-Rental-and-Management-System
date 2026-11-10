@@ -2,6 +2,25 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {formatDateVN, formatDateTimeVN, parseDateVN, toISODate, formatAppointmentTime, appointmentInstant, appointmentLocalFields, canEditAppointment, appointmentActions} = require('../../main/resources/static/js/uc12-time.js');
 
+test('calendar dates, leap day and midnight conversions are unambiguous in every browser zone', () => {
+  const {formatTimeVN}=require('../../main/resources/static/js/uc12-time.js');
+  assert.equal(formatDateVN('2026-11-05'),'05/11/2026');
+  assert.equal(formatDateVN('2026-05-11'),'11/05/2026');
+  assert.equal(formatDateVN('2028-02-29'),'29/02/2028');
+  assert.equal(formatDateVN('2026-02-29'),'—');
+  assert.equal(formatDateTimeVN('2026-12-31T18:30:00Z'),'01/01/2027 01:30');
+  assert.equal(formatDateVN('2026-12-31T18:30:00Z'),'01/01/2027');
+  assert.equal(formatDateTimeVN('2028-02-28T18:00:00Z'),'29/02/2028 01:00');
+  assert.equal(formatDateTimeVN('2026-11-05T09:10:59.9999999'),'05/11/2026 09:10');
+  assert.equal(formatDateTimeVN('05/11/2026 09:10'),'—');
+  assert.equal(formatDateTimeVN('2026-11-05T24:00:00Z'),'—');
+  assert.equal(formatDateTimeVN('2026-02-30T09:00:00Z'),'—');
+  assert.equal(formatTimeVN('2026-12-31T18:30:00Z'),'01:30');
+  assert.equal(formatTimeVN('22:10:45'),'22:10');
+  assert.equal(parseDateVN('29/02/2028'),'2028-02-29');
+  assert.equal(parseDateVN('29/02/2026'),null);
+});
+
 test('Vietnam date display preserves day and month order', () => {
   assert.equal(formatDateVN('2026-11-10'), '10/11/2026');
   assert.equal(formatDateVN('2026-11-25'), '25/11/2026');

@@ -46,19 +46,27 @@ public class PaymentService {
     }
     public Summary calculate(RentalContract r) {
         boolean v2 = "v2".equals(r.termsVersion);
-        ContractPricing price = v2 ? ContractPricing.of(r.monthlyRentalFee, r.startDate, r.endDate) : null;
+        BigDecimal rentDue = originalRentDue(r);
+        BigDecimal total = r.depositAmount.add(rentDue);
+        BigDecimal subtotal = v2 ? total.divide(new BigDecimal("1.10"), 0, RoundingMode.HALF_UP) : total;
         Component deposit = component(r.contractId, "DEPOSIT", r.depositAmount);
-        Component rent = component(r.contractId, v2 ? "REMAINING_RENT" : "INITIAL_RENT", v2 ? price.remaining() : r.monthlyRentalFee);
+        Component rent = component(r.contractId, v2 ? "REMAINING_RENT" : "INITIAL_RENT", rentDue);
         LocalDate dueDate = v2 ? appointments.findFirstByContractIdAndStatus(r.contractId, "SCHEDULED")
                 .map(a -> a.appointmentTime.toLocalDate()).orElse(null) : r.startDate;
         return new Summary(r.contractId, deposit, rent,
-                "CONFIRMED".equals(r.status) && deposit.remainingAmount().signum() == 0 && rent.remainingAmount().signum() == 0
+                r.isAwaitingHandover() && deposit.remainingAmount().signum() == 0 && rent.remainingAmount().signum() == 0
                         && (!v2 || (invoicePaid(r.contractId, "DEPOSIT") && invoicePaid(r.contractId, "REMAINING_RENT"))),
                 v2 ? "v2" : "v1", v2 ? "REMAINING_RENT" : "INITIAL_RENT",
-                v2 ? price.subtotal() : r.depositAmount.add(r.monthlyRentalFee),
-                v2 ? price.vatAmount() : BigDecimal.ZERO,
-                v2 ? price.total() : r.depositAmount.add(r.monthlyRentalFee),
+                subtotal, total.subtract(subtotal), total,
                 dueDate, !v2 || (dueDate != null && !access.today().isBefore(dueDate)));
+    }
+    private BigDecimal originalRentDue(RentalContract contract) {
+        if (!"v2".equals(contract.termsVersion)) return contract.monthlyRentalFee;
+        // Renewal changes endDate; the original approved invoice is the immutable payment obligation.
+        return invoices.findFirstByContractIdAndInvoiceType(contract.contractId, "REMAINING_RENT")
+                .map(i -> i.totalAmount).filter(amount -> amount.signum() >= 0)
+                .orElseThrow(() -> new BusinessException(HttpStatus.CONFLICT,
+                        "Thiếu hóa đơn tiền thuê ban đầu; cần đối soát trước khi xác định công nợ."));
     }
     private Component component(UUID id, String type, BigDecimal due) {
         BigDecimal paid = payments.successful(id, type).stream().map(p -> p.amount).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -89,11 +97,10 @@ public class PaymentService {
             Map<String, BigDecimal> byType = totals.getOrDefault(c.contractId, Map.of());
             BigDecimal depositPaid = byType.getOrDefault("DEPOSIT", BigDecimal.ZERO);
             BigDecimal depositLeft = c.depositAmount.subtract(depositPaid);
-            BigDecimal rentDue = "v2".equals(c.termsVersion)
-                    ? ContractPricing.of(c.monthlyRentalFee, c.startDate, c.endDate).remaining() : c.monthlyRentalFee;
+            BigDecimal rentDue = originalRentDue(c);
             BigDecimal rentLeft = rentDue.subtract(byType.getOrDefault("v2".equals(c.termsVersion) ? "REMAINING_RENT" : "INITIAL_RENT", BigDecimal.ZERO));
             result.put(c.contractId, new Balance(depositPaid, depositLeft, rentLeft,
-                    "CONFIRMED".equals(c.status) && depositLeft.signum() <= 0 && rentLeft.signum() <= 0
+                    c.isAwaitingHandover() && depositLeft.signum() <= 0 && rentLeft.signum() <= 0
                             && (!"v2".equals(c.termsVersion) || (invoicePaid(c.contractId, "DEPOSIT")
                                     && invoicePaid(c.contractId, "REMAINING_RENT")))));
         }

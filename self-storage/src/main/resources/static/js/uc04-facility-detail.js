@@ -230,7 +230,7 @@
       putManagedText('detail-terms', facility.demoTerms);
       put('detail-phone', facility.phone ? `Điện thoại: ${facility.phone}` : '');
       put('detail-hours', facility.openingTime && facility.closingTime
-        ? `Giờ ra vào: ${facility.openingTime}–${facility.closingTime}` : '');
+        ? `Giờ ra vào: ${SafeBoxUc12Time.formatTimeVN(facility.openingTime)}–${SafeBoxUc12Time.formatTimeVN(facility.closingTime)}` : '');
       const facilityLink = document.getElementById('detail-facility-link');
       facilityLink.textContent = facility.name;
       facilityLink.href = `/stitch/t_m_kho_l_u_tr_safebox_storage.html?${new URLSearchParams({search:facility.name})}`;
