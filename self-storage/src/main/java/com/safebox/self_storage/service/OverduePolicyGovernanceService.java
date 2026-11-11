@@ -169,7 +169,7 @@ public class OverduePolicyGovernanceService {
     private void validate(UUID facilityId,OverduePolicyProposalRequest r) {
         Facility f=facilities.findById(facilityId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND,"Không tìm thấy cơ sở."));
         if (!"ACTIVE".equals(f.getStatus())) conflict("Cơ sở chưa hoạt động.");
-        validateParameters(r, false);
+        validateParameters(r, true);
         basePolicy(facilityId,r.basePolicyId());
     }
     private void validateParameters(OverduePolicyProposalRequest r, boolean allowToday) {

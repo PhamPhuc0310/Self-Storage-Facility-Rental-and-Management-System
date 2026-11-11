@@ -10,6 +10,8 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -45,7 +47,11 @@ class OverduePolicyGovernanceServiceTest {
         lenient().when(proposals.saveAndFlush(any())).thenAnswer(x->x.getArgument(0));
         lenient().when(policies.saveAndFlush(any())).thenAnswer(x->{RentalPolicy p=x.getArgument(0);if(p.getPolicyId()==null)p.setPolicyId(UUID.randomUUID());return p;});
     }
-    OverduePolicyProposalRequest request(){return new OverduePolicyProposalRequest(baseId,4,"PERCENT_DAILY",new BigDecimal("0.0400"),BigDecimal.ZERO,today.plusDays(5),null,"Điều chỉnh theo đánh giá vận hành");}
+    OverduePolicyProposalRequest request(){return request(today.plusDays(5));}
+    OverduePolicyProposalRequest request(LocalDate effectiveFrom) {
+        return new OverduePolicyProposalRequest(baseId,4,"PERCENT_DAILY",new BigDecimal("0.0400"),
+                BigDecimal.ZERO,effectiveFrom,null,"Điều chỉnh theo đánh giá vận hành");
+    }
     OverduePolicyProposal pending() {
         OverduePolicyProposal p=new OverduePolicyProposal();p.setFacilityId(facility);p.setBasePolicyId(baseId);
         p.setCreatedBy(manager);p.setStatus("SUBMITTED");p.setOverdueGraceDays(4);p.setPenaltyType("PERCENT_DAILY");
@@ -58,6 +64,128 @@ class OverduePolicyGovernanceServiceTest {
         assertEquals("DRAFT",p.getStatus());assertEquals(new BigDecimal("0.0400"),p.getDailyPenaltyRate());
         assertEquals(HttpStatus.FORBIDDEN,assertThrows(BusinessException.class,()->service.create(UUID.randomUUID(),request())).status());
         verify(policies,never()).saveAndFlush(any());
+    }
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1})
+    void facilityCreationRejectsPastAndAcceptsTodayOrFuture(int offset) {
+        when(access.role()).thenReturn("FACILITY_MANAGER");
+        when(access.facilities()).thenReturn(List.of(facility));
+        LocalDate effectiveFrom = today.plusDays(offset);
+
+        if (offset < 0) {
+            assertEquals(HttpStatus.BAD_REQUEST, assertThrows(BusinessException.class,
+                    () -> service.create(facility, request(effectiveFrom))).status());
+            verify(proposals, never()).saveAndFlush(any());
+        } else {
+            when(access.currentId()).thenReturn(manager);
+            OverduePolicyProposal draft = service.create(facility, request(effectiveFrom));
+            assertEquals("DRAFT", draft.getStatus());
+            assertEquals(effectiveFrom, draft.getEffectiveFrom());
+            assertEquals(manager, draft.getCreatedBy());
+        }
+        verify(policies, never()).saveAndFlush(any());
+    }
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1})
+    void facilityEditingRejectsPastAndAcceptsTodayOrFuture(int offset) {
+        when(access.role()).thenReturn("FACILITY_MANAGER");
+        when(access.facilities()).thenReturn(List.of(facility));
+        when(access.currentId()).thenReturn(manager);
+        UUID id = UUID.randomUUID();
+        OverduePolicyProposal draft = pending();
+        draft.setStatus("DRAFT");
+        when(proposals.lockById(id)).thenReturn(Optional.of(draft));
+        LocalDate effectiveFrom = today.plusDays(offset);
+
+        if (offset < 0) {
+            assertEquals(HttpStatus.BAD_REQUEST, assertThrows(BusinessException.class,
+                    () -> service.edit(facility, id, request(effectiveFrom))).status());
+            verify(proposals, never()).saveAndFlush(any());
+        } else {
+            service.edit(facility, id, request(effectiveFrom));
+            assertEquals("DRAFT", draft.getStatus());
+            assertEquals(effectiveFrom, draft.getEffectiveFrom());
+        }
+        verify(policies, never()).saveAndFlush(any());
+    }
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1})
+    void facilitySubmissionRevalidatesPastTodayAndFuture(int offset) {
+        when(access.role()).thenReturn("FACILITY_MANAGER");
+        when(access.facilities()).thenReturn(List.of(facility));
+        when(access.currentId()).thenReturn(manager);
+        UUID id = UUID.randomUUID();
+        OverduePolicyProposal draft = pending();
+        draft.setStatus("DRAFT");
+        draft.setEffectiveFrom(today.plusDays(offset));
+        when(proposals.lockById(id)).thenReturn(Optional.of(draft));
+
+        if (offset < 0) {
+            assertEquals(HttpStatus.BAD_REQUEST, assertThrows(BusinessException.class,
+                    () -> service.submit(facility, id)).status());
+            assertEquals("DRAFT", draft.getStatus());
+            verify(proposals, never()).saveAndFlush(any());
+        } else {
+            service.submit(facility, id);
+            assertEquals("SUBMITTED", draft.getStatus());
+            assertEquals(today.atTime(12, 0), draft.getSubmittedAt());
+        }
+        verify(policies, never()).saveAndFlush(any());
+    }
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 0, 1})
+    void facilityApprovalRevalidatesPastTodayAndFuture(int offset) {
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");
+        when(access.currentId()).thenReturn(business);
+        UUID id = UUID.randomUUID();
+        OverduePolicyProposal submitted = pending();
+        LocalDate effectiveFrom = today.plusDays(offset);
+        submitted.setEffectiveFrom(effectiveFrom);
+        when(proposals.lockById(id)).thenReturn(Optional.of(submitted));
+
+        if (offset < 0) {
+            assertEquals(HttpStatus.BAD_REQUEST, assertThrows(BusinessException.class,
+                    () -> service.approve(facility, id, "Đã xem xét kỹ")).status());
+            assertEquals("SUBMITTED", submitted.getStatus());
+            verify(policies, never()).saveAndFlush(any());
+        } else {
+            service.approve(facility, id, "Đã xem xét kỹ");
+            assertEquals("APPROVED", submitted.getStatus());
+            assertEquals(business, submitted.getReviewedBy());
+            assertNotNull(submitted.getApprovedPolicyId());
+            verify(policies).saveAndFlush(argThat(policy ->
+                    effectiveFrom.equals(policy.getEffectiveFrom())
+                    && business.equals(policy.getOverdueApprovedBy())
+                    && manager.equals(policy.getOverdueCreatedBy())));
+        }
+    }
+    @Test void proposalCrossesVietnamMidnightFromFutureToToday() {
+        LocalDate effectiveFrom = LocalDate.of(2026, 11, 11);
+        Clock beforeMidnight = Clock.fixed(Instant.parse("2026-11-10T16:59:59Z"), Sprint2Access.ZONE);
+        Clock atMidnight = Clock.fixed(Instant.parse("2026-11-10T17:00:00Z"), Sprint2Access.ZONE);
+        when(access.role()).thenReturn("FACILITY_MANAGER");
+        when(access.facilities()).thenReturn(List.of(facility));
+        when(access.currentId()).thenReturn(manager);
+        assertEquals("Asia/Ho_Chi_Minh", Sprint2Access.ZONE.getId());
+        assertEquals(effectiveFrom.minusDays(1), LocalDate.now(beforeMidnight));
+        assertEquals(effectiveFrom, LocalDate.now(atMidnight));
+        assertEquals(effectiveFrom.minusDays(1), LocalDate.ofInstant(atMidnight.instant(), ZoneOffset.UTC));
+        when(access.today()).thenReturn(LocalDate.now(beforeMidnight));
+        when(access.now()).thenReturn(LocalDateTime.now(beforeMidnight));
+        OverduePolicyProposal draft = service.create(facility, request(effectiveFrom));
+        UUID id = UUID.randomUUID();
+        when(proposals.lockById(id)).thenReturn(Optional.of(draft));
+
+        when(access.today()).thenReturn(LocalDate.now(atMidnight));
+        when(access.now()).thenReturn(LocalDateTime.now(atMidnight));
+        service.submit(facility, id);
+        assertEquals(effectiveFrom.atStartOfDay(), draft.getSubmittedAt());
+        when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");
+        when(access.currentId()).thenReturn(business);
+        service.approve(facility, id, "Duyệt tại ranh giới ngày Việt Nam");
+        assertEquals("APPROVED", draft.getStatus());
+        verify(policies).saveAndFlush(argThat(policy ->
+                effectiveFrom.atStartOfDay().equals(policy.getOverdueApprovedAt())));
     }
     @Test void businessActivatesGlobalDirectlyAndPreservesUnrelatedTermsAndLocalFlow() {
         base.setFacilityId(null);
@@ -127,7 +255,7 @@ class OverduePolicyGovernanceServiceTest {
     @Test void expiredAndConflictingApprovalAreRejectedWithoutChangingPenaltyRecords() {
         when(access.role()).thenReturn("BUSINESS_OPERATIONS_MANAGER");when(access.currentId()).thenReturn(business);
         UUID id=UUID.randomUUID();OverduePolicyProposal p=pending();when(proposals.lockById(id)).thenReturn(Optional.of(p));
-        p.setEffectiveFrom(today);assertEquals(HttpStatus.BAD_REQUEST,assertThrows(BusinessException.class,()->service.approve(facility,id,"Đã xem xét kỹ")).status());
+        p.setEffectiveFrom(today.minusDays(1));assertEquals(HttpStatus.BAD_REQUEST,assertThrows(BusinessException.class,()->service.approve(facility,id,"Đã xem xét kỹ")).status());
         p.setEffectiveFrom(today.plusDays(5));
         RentalPolicy conflict=new RentalPolicy();conflict.setStatus("ACTIVE");conflict.setEffectiveFrom(today.plusDays(5));
         conflict.setOverdueApprovedAt(today.atStartOfDay());conflict.setOverdueApprovedBy(business);
